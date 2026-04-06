@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sekira | Telegram Premium Development</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+        
+    <div class="bg-gradient"></div>
+    <div class="grid-bg"></div>
+
+    <!-- Навигация -->
+    <nav class="navbar fade-in-top">
+        <div class="logo">SEKIRA<span class="dot">.</span></div>
+        <div class="nav-links">
+            <a href="https://github.com/sekira578" target="_blank" class="nav-link"><i class="fa-brands fa-github"></i> GitHub</a>
+            <a href="https://t.me/sekira578" target="_blank" class="btn btn-outline btn-sm">Обсудить проект</a>
+        </div>
+    </nav>
+
+    <!-- Главный экран -->
+    <header class="hero">
+        <div class="hero-content fade-in-up">
+            <div class="badge-modern">
+                <span class="pulse-dot"></span> Доступен для новых проектов
+            </div>
+            <h1 class="hero-title">Создаю <span class="text-gradient">Telegram-решения</span><br> нового уровня.</h1>
+            <p class="hero-subtitle">Архитектура, автоматизация и UX/UI, которые конвертируют пользователей в клиентов. От WebApp витрин до AI-ассистентов.</p>
+            
+            <div class="hero-buttons">
+                <a href="https://t.me/sekira578" target="_blank" class="btn btn-primary btn-magnetic">
+                    <span>Запустить проект <i class="fa-solid fa-arrow-right"></i></span>
+                </a>
+                <button onclick="scrollToPortfolio()" class="btn btn-secondary btn-magnetic">
+                    <span>Смотреть кейсы</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Трендовая бегущая строка -->
+    <div class="marquee-container fade-in-up">
+        <div class="marquee">
+            <div class="marquee-content">
+                <span>TELEGRAM WEBAPPS</span><i class="fa-solid fa-asterisk"></i>
+                <span>AI INTEGRATIONS</span><i class="fa-solid fa-asterisk"></i>
+                <span>PYTHON BOTS</span><i class="fa-solid fa-asterisk"></i>
+                <span>PAYMENT SYSTEMS</span><i class="fa-solid fa-asterisk"></i>
+                <span>CRM SYNC</span><i class="fa-solid fa-asterisk"></i>
+                <!-- Дублируем для плавного лупа -->
+                <span>TELEGRAM WEBAPPS</span><i class="fa-solid fa-asterisk"></i>
+                <span>AI INTEGRATIONS</span><i class="fa-solid fa-asterisk"></i>
+                <span>PYTHON BOTS</span><i class="fa-solid fa-asterisk"></i>
+                <span>PAYMENT SYSTEMS</span><i class="fa-solid fa-asterisk"></i>
+                <span>CRM SYNC</span><i class="fa-solid fa-asterisk"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Статистика -->
+    <section class="stats-cta">
+        <div class="stats-container">
+            <div class="stat-item fade-in-up">
+                <div class="stat-number">50+</div>
+                <div class="stat-label">Успешных релизов</div>
+            </div>
+            <div class="stat-item fade-in-up" style="transition-delay: 0.1s">
+                <div class="stat-number">99%</div>
+                <div class="stat-label">Uptime серверов</div>
+            </div>
+            <div class="stat-item fade-in-up" style="transition-delay: 0.2s">
+                <div class="stat-number">3+</div>
+                <div class="stat-label">Года экспертизы</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Bento Портфолио -->
+    <section id="portfolio" class="portfolio">
+        <div class="section-header fade-in-up">
+            <h2 class="section-title">Экспертиза <span class="text-gradient">& Решения</span></h2>
+            <p>Выбирайте модуль, который ускорит ваш бизнес</p>
+        </div>
+        
+        <div id="bento-container" class="bento-container">
+            <!-- Карточки из JS -->
+        </div>
+    </section>
+
+    <!-- Максимальный CTA Блок -->
+    <section class="mega-cta fade-in-up">
+        <div class="mega-cta-content">
+            <h2>Хватит терять клиентов <br>из-за рутины.</h2>
+            <p>Бесплатно проанализирую ваши бизнес-процессы и предложу концепт автоматизации через Telegram за 24 часа.</p>
+            <a href="https://t.me/sekira578" target="_blank" class="btn btn-primary btn-large btn-glow">
+                Запросить аудит <i class="fa-brands fa-telegram"></i>
+            </a>
+        </div>
+    </section>
+
+    <!-- Модальное окно (без изменений в структуре, стили обновлены) -->
+    <div id="bot-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal"><i class="fa-solid fa-xmark"></i></span>
+            <div class="modal-header">
+                <div class="modal-icon"><i></i></div>
+                <h2></h2>
+            </div>
+            <div class="modal-body">
+                <div class="description"></div>
+                <div class="gallery-section">
+                    <h3>Интерфейс:</h3>
+                    <div class="image-gallery"></div>
+                </div>
+                <div class="features-tech-grid">
+                    <div class="features">
+                        <h3>Возможности:</h3>
+                        <ul></ul>
+                    </div>
+                    <div class="tech-stack">
+                        <h3>Стек:</h3>
+                        <div class="tech-tags"></div>
+                        <h3 style="margin-top:20px;">Под капотом:</h3>
+                        <div class="implementation-details"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary btn-large modal-contact" style="width: 100%">Хочу такого бота</button>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="footer-content">
+            <div class="logo">SEKIRA<span class="dot">.</span></div>
+            <p>© 2026. Code & Design by Sekira.</p>
+        </div>
+    </footer>
+
+    <!-- Чат виджет (оставлен, стили улучшены) -->
+    <div class="chat-widget">
+        <div class="chat-button pulse" id="chat-button">
+            <i class="fa-solid fa-paper-plane"></i>
+        </div>
+        <div class="chat-window" id="chat-window">
+            <div class="chat-header">
+                <div class="chat-header-info">
+                    <div class="chat-avatar"><i class="fa-solid fa-robot"></i></div>
+                    <div class="chat-title">
+                        <h4>AI Assist</h4>
+                        <span>Online</span>
+                    </div>
+                </div>
+                <button class="chat-close" id="chat-close"><i class="fa-solid fa-times"></i></button>
+            </div>
+            <div class="chat-messages" id="chat-messages">
+                <div class="message bot-message">
+                    <div class="message-content">
+                        <p>Привет! Я цифровой помощник Секиры. Помочь с расчетом стоимости или подбором решения? 🚀</p>
+                    </div>
+                </div>
+            </div>
+            <div class="chat-input">
+                <div class="input-container">
+                    <input type="text" id="message-input" placeholder="Введите запрос...">
+                    <button id="send-button"><i class="fa-solid fa-arrow-up"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
