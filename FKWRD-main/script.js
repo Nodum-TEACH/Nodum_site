@@ -137,7 +137,7 @@ document.addEventListener('DOMContentLoaded', () => {
         chatMsgs.scrollTop = chatMsgs.scrollHeight;
         
         setTimeout(() => {
-            chatMsgs.innerHTML += `<div class="message bot-message"><div class="message-content"><p>Отличный вопрос! Чтобы я смог дать точный ответ, перейдите в мой основной Telegram: <a href="https://t.me/sekira578" target="_blank" style="color:var(--accent)">@sekira578</a></p></div></div>`;
+            chatMsgs.innerHTML += `<div class="message bot-message"><div class="message-content"><p>Отличный вопрос! Чтобы я смог дать точный ответ, свяжитесь со мной через форму на сайте.</p></div></div>`;
             chatMsgs.scrollTop = chatMsgs.scrollHeight;
         }, 1000);
     }
