@@ -101,7 +101,7 @@ body {
 .btn-primary:hover {
     background: var(--accent);
     color: #fff;
-    transform: translateY(-2px);
+    /* transform: translateY(-2px); - REMOVED to prevent animation issues */
     box-shadow: 0 10px 25px rgba(59, 130, 246, 0.4);
 }
 
@@ -190,12 +190,85 @@ body {
     margin-inline: auto;
 }
 
-.hero-buttons { 
-    display: flex; 
-    gap: 15px; 
-    justify-content: center; 
-    transform: scale(1.4);
-    transform-origin: center;
+/* hero-buttons container styling */
+.hero-buttons {
+    display: flex;
+    gap: 20px; /* Increased gap instead of scale */
+    justify-content: center;
+    align-items: center;
+    margin-top: 10px;
+    /* transform: scale(1.4); - REMOVE THIS */
+    /* transform-origin: center; - REMOVE THIS */
+}
+
+/* Increase the buttons themselves inside hero-buttons to look like scale(1.4) */
+.hero-buttons .btn {
+    padding: 22px 44px; /* Increased padding to simulate scale(1.4) */
+    font-size: 1.4rem; /* Increased font size to match scale */
+    /* No transform scale - using actual size instead */
+    /* Base styles for reset if not in main .btn class */
+    cursor: pointer;
+    border-radius: 16px; /* Slightly larger border radius for bigger buttons */
+    font-weight: 600;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px; /* Increased gap proportionally */
+}
+
+/* Responsive: so huge buttons don't break screen on phones */
+@media (max-width: 768px) {
+    .hero-buttons {
+        flex-direction: column; /* Stack buttons vertically */
+        gap: 15px;
+        width: 100%;
+        max-width: 300px;
+        margin-inline: auto;
+    }
+    
+    .hero-buttons .btn {
+        width: 100%; /* Full width buttons on mobile */
+        font-size: 1rem;
+        padding: 14px 24px;
+        border-radius: 12px;
+        gap: 10px;
+    }
+}
+
+/* Scroll arrow animation */
+.scroll-arrow {
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: 0;
+    transition: all 0.3s ease;
+    font-size: 1.2rem; /* Larger arrow */
+    pointer-events: none; /* Don't interfere with clicks */
+}
+
+.btn-secondary:hover .scroll-arrow {
+    opacity: 1;
+    animation: bounce-down 1s ease-in-out infinite;
+}
+
+.btn-secondary {
+    position: relative; /* For absolute positioning of arrow */
+}
+
+.btn-secondary span {
+    transition: transform 0.3s ease;
+    display: inline-block;
+}
+
+.btn-secondary:hover span {
+    transform: translateX(-8px); /* Shift text left to make room for arrow */
+}
+
+@keyframes bounce-down {
+    0%, 100% { transform: translateY(-50%); }
+    50% { transform: translateY(-40%); } /* Bounce more */
 }
 
 /* Бегущая строка (Marquee) */
@@ -222,6 +295,11 @@ body {
     align-items: center;
     gap: 40px;
     animation: scroll 25s linear infinite;
+    font-size: 0;
+}
+
+.marquee-content span, .marquee-content i {
+    white-space: nowrap;
 }
 
 .marquee-content span {
@@ -236,7 +314,7 @@ body {
 
 @keyframes scroll {
     0% { transform: translateX(0); }
-    100% { transform: translateX(-50%); }
+    100% { transform: translateX(-100%); }
 }
 
 /* Статистика */
@@ -496,7 +574,6 @@ footer { padding: 40px 5%; border-top: 1px solid var(--card-border); margin-top:
 
 @media (max-width: 768px) {
     .hero-title { font-size: 3rem; }
-    .hero-buttons { flex-direction: column; }
     .bento-container { grid-template-columns: 1fr; grid-auto-rows: auto; }
     .card-0, .card-1, .card-2, .card-3, .card-4, .card-5 { grid-column: span 1; grid-row: span 1; }
     .stats-container { flex-direction: column; gap: 30px; }
