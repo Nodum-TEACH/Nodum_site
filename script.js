@@ -1,0 +1,687 @@
+
+// LM Studio Configuration
+const LM_STUDIO_CONFIG = {
+    baseUrl: 'http://192.168.0.13:1236',
+    apiKey: 'sk-lm-izWcqstY:wg0BEXJampmg904bgGgI',
+    model: 'qwen/qwen3.5-9b'
+};
+
+
+
+// Function to call LM Studio API
+async function callMistralAPI(input, systemPrompt = "You answer only in rhymes.") {
+    try {
+        const response = await fetch(`${LM_STUDIO_CONFIG.baseUrl}/v1/chat/completions`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${LM_STUDIO_CONFIG.apiKey}`
+            },
+            body: JSON.stringify({
+                model: LM_STUDIO_CONFIG.model,
+                messages: [
+                    {
+                        role: 'system',
+                        content: systemPrompt
+                    },
+                    {
+                        role: 'user',
+                        content: input
+                    }
+                ]
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error(`LM Studio API error: ${response.status} ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        return data.choices?.[0]?.message?.content || 'No response received';
+    } catch (error) {
+        console.error('Error calling LM Studio API:', error);
+        throw error;
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    
+    // Плавный скролл
+    window.scrollToPortfolio = function() {
+        document.getElementById('portfolio').scrollIntoView({ behavior: 'smooth' });
+    };
+
+
+// 2. Магнитные кнопки
+    const magneticButtons = document.querySelectorAll('.btn-magnetic');
+    magneticButtons.forEach(btn => {
+        btn.addEventListener('mousemove', function(e) {
+            const position = btn.getBoundingClientRect();
+            const x = e.pageX - position.left - position.width / 2;
+            const y = e.pageY - position.top - position.height / 2;
+            
+            btn.style.transform = `translate(${x * 0.15}px, ${y * 0.15}px)`;
+            const span = btn.querySelector('span');
+            if(span) span.style.transform = `translate(${x * 0.05}px, ${y * 0.05}px)`;
+        });
+
+        btn.addEventListener('mouseout', function() {
+            btn.style.transform = 'translate(0px, 0px)';
+            const span = btn.querySelector('span');
+            if(span) span.style.transform = 'translate(0px, 0px)';
+        });
+    });
+
+    // 3. Загрузка данных и рендер Bento
+    fetch('data.json')
+        .then(response => response.json())
+        .then(data => {
+            renderCards(data);
+            initScrollAnimations();
+        })
+        .catch(err => console.error('Ошибка:', err));
+
+    function renderCards(cards) {
+        const container = document.getElementById('bento-container');
+        
+        cards.forEach((card, index) => {
+            const cardEl = document.createElement('div');
+            // Применяем классы сетки
+            cardEl.className = `bento-card card-${index} fade-in-up`;
+            // Задержка анимации для каскадного появления
+            cardEl.style.transitionDelay = `${index * 0.1}s`;
+            
+            const tagsHTML = card.tags.slice(0, 3).map(tag => `<span>${tag}</span>`).join('');
+
+            cardEl.innerHTML = `
+                <div>
+                    <div class="card-icon"><i class="${card.icon}"></i></div>
+                    <h3>${card.title}</h3>
+                    <p>${card.description}</p>
+                </div>
+                <div class="card-tags">${tagsHTML}</div>
+            `;
+            
+            
+            cardEl.addEventListener('click', () => openModal(card));
+            container.appendChild(cardEl);
+        });
+    }
+
+    // 4. Модальное окно (логика)
+    const modal = document.getElementById('bot-modal');
+    
+    function openModal(card) {
+        modal.querySelector('.modal-icon i').className = card.icon;
+        modal.querySelector('h2').textContent = card.title;
+        modal.querySelector('.description').textContent = card.description;
+        
+        // Галерея
+        const gallery = modal.querySelector('.image-gallery');
+        gallery.innerHTML = card.images ? card.images.map(img => `
+            <div class="gallery-item"><img src="${img}" alt="Preview" loading="lazy"></div>
+        `).join('') : '<p style="color:var(--text-muted)">Нет скриншотов</p>';
+        
+        // Функции
+        modal.querySelector('.features ul').innerHTML = card.features.map(f => `<li>${f}</li>`).join('');
+        
+        // Теги и детали
+        modal.querySelector('.tech-tags').innerHTML = card.tags.map(t => `<span style="background:var(--card-bg); border:1px solid var(--card-border); padding:5px 12px; border-radius:100px; font-size:0.8rem; margin-right:5px; display:inline-block; margin-bottom:5px;">${t}</span>`).join('');
+        modal.querySelector('.implementation-details').textContent = card.implementation;
+        
+        // Reset bot chat
+        resetBotChat(card.title);
+        
+        modal.style.display = 'flex';
+        setTimeout(() => modal.classList.add('visible'), 10);
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal() {
+        modal.classList.remove('visible');
+        setTimeout(() => {
+            modal.style.display = 'none';
+            document.body.style.overflow = '';
+        }, 300);
+    }
+
+    modal.querySelector('.close-modal').addEventListener('click', closeModal);
+    modal.addEventListener('click', e => { if(e.target === modal) closeModal(); });
+    document.addEventListener('keydown', e => { if(e.key === 'Escape') closeModal(); });
+
+    // Bot Chat Functionality
+    const botInput = document.getElementById('bot-message-input');
+    const botSendBtn = document.getElementById('bot-send-btn');
+    const botChatMessages = document.getElementById('bot-chat-messages');
+
+    function sendBotMessage() {
+        const text = botInput.value.trim();
+        if (!text) return;
+
+        // Add user message
+        const userMsg = document.createElement('div');
+        userMsg.className = 'user-message';
+        userMsg.innerHTML = `<div class="message-content"><p>${text}</p></div>`;
+        botChatMessages.appendChild(userMsg);
+
+        botInput.value = '';
+        botChatMessages.scrollTop = botChatMessages.scrollHeight;
+
+        // Simulate bot response
+        setTimeout(() => {
+            const botMsg = document.createElement('div');
+            botMsg.className = 'bot-message';
+            botMsg.innerHTML = `
+                <div class="bot-avatar"><i class="fa-solid fa-robot"></i></div>
+                <div class="message-content">
+                    <p>${generateBotResponse(text)}</p>
+                </div>
+            `;
+            botChatMessages.appendChild(botMsg);
+            botChatMessages.scrollTop = botChatMessages.scrollHeight;
+        }, 800 + Math.random() * 800);
+    }
+
+    function generateBotResponse(userMessage) {
+        const responses = {
+            'price': 'The pricing depends on your specific requirements. Contact me for a personalized quote! Starting from $299 for basic modules.',
+            'cost': 'Pricing varies by complexity and features. Basic bots start at $299, advanced solutions with AI integration start at $999.',
+            'features': 'This module includes automated responses, user management, analytics dashboard, and seamless integration with your existing systems.',
+            'implementation': 'Implementation typically takes 2-4 weeks. We handle everything from setup to deployment and training.',
+            'integration': 'Yes! I can integrate with CRM systems, payment gateways, calendars, and most popular business tools.',
+            'support': '24/7 technical support included with all packages. Plus regular updates and maintenance.',
+            'custom': 'Custom features can be developed based on your specific business needs. Let\'s discuss your requirements!',
+            'demo': 'This is a demo interface. The actual bot would be deployed to Telegram with full functionality.',
+            'how': 'The bot works through Telegram\'s API, providing a seamless experience for your users right in their favorite messenger.',
+            'security': 'All data is encrypted and stored securely. We comply with GDPR and other privacy regulations.'
+        };
+
+        const lowerMessage = userMessage.toLowerCase();
+        
+        for (const [key, response] of Object.entries(responses)) {
+            if (lowerMessage.includes(key)) {
+                return response;
+            }
+        }
+
+        // Default responses
+        const defaultResponses = [
+            'That\'s a great question! The best way to get detailed information is to schedule a consultation with me.',
+            'I can help with that! Each solution is tailored to specific business needs. What industry are you in?',
+            'Excellent question! This module is designed to streamline your operations. What specific features interest you most?',
+            'Thanks for asking! I offer various solutions depending on your requirements. Would you like to know about pricing or implementation timeline?'
+        ];
+
+        return defaultResponses[Math.floor(Math.random() * defaultResponses.length)];
+    }
+
+    botSendBtn.addEventListener('click', sendBotMessage);
+    botInput.addEventListener('keypress', e => { if (e.key === 'Enter') sendBotMessage(); });
+
+    function resetBotChat(moduleName) {
+        botChatMessages.innerHTML = `
+            <div class="bot-message">
+                <div class="bot-avatar"><i class="fa-solid fa-robot"></i></div>
+                <div class="message-content">
+                    <p>Hi! I'm the demo bot for <strong>${moduleName}</strong>. Ask me anything about features, pricing, implementation, or how this can help your business!</p>
+                </div>
+            </div>
+        `;
+        botInput.value = '';
+    }
+
+    // 5. Scroll Анимации (Intersection Observer)
+    function initScrollAnimations() {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.fade-in-up, .fade-in-top').forEach(el => observer.observe(el));
+    }
+
+    // 6. Минималистичный чат
+    const chatBtn = document.getElementById('chat-button');
+    const chatWin = document.getElementById('chat-window');
+    const chatClose = document.getElementById('chat-close');
+    const chatInput = document.getElementById('message-input');
+    const chatSend = document.getElementById('send-button');
+    const chatMsgs = document.getElementById('chat-messages');
+
+    chatBtn.addEventListener('click', () => {
+        chatWin.classList.toggle('active');
+        if(chatWin.classList.contains('active')) chatInput.focus();
+    });
+    chatClose.addEventListener('click', () => chatWin.classList.remove('active'));
+
+    function sendMsg() {
+        const text = chatInput.value.trim();
+        if(!text) return;
+        
+        chatMsgs.innerHTML += `<div class="message user-message"><div class="message-content"><p>${text}</p></div></div>`;
+        chatInput.value = '';
+        chatMsgs.scrollTop = chatMsgs.scrollHeight;
+        
+        setTimeout(() => {
+            chatMsgs.innerHTML += `<div class="message bot-message"><div class="message-content"><p>Отличный вопрос! Чтобы я смог дать точный ответ, свяжитесь со мной через форму на сайте.</p></div></div>`;
+            chatMsgs.scrollTop = chatMsgs.scrollHeight;
+        }, 1000);
+    }
+
+    chatSend.addEventListener('click', sendMsg);
+    chatInput.addEventListener('keypress', e => { if(e.key === 'Enter') sendMsg(); });
+
+    // 7. Инициализация графиков
+    initCharts();
+});
+
+function initCharts() {
+    // Глобальные настройки Chart.js
+    Chart.defaults.color = '#9ca3af';
+    Chart.defaults.font.family = 'Outfit';
+    Chart.defaults.font.size = 14;
+    
+    // 1. График роста рынка автоматизации (Line Chart)
+    // Данные: рост рынка бизнес-автоматизации 2019-2026 (в млрд $)
+    const popularityCtx = document.getElementById('popularityChart');
+    if (popularityCtx) {
+        new Chart(popularityCtx, {
+            type: 'line',
+            data: {
+                labels: ['2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'],
+                datasets: [{
+                    label: 'Рынок автоматизации ($ млрд)',
+                    data: [8.5, 11.2, 15.8, 21.3, 28.7, 37.2, 48.5, 62.1],
+                    borderColor: '#3b82f6',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: '#3b82f6',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointRadius: 6,
+                    pointHoverRadius: 9
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                        labels: {
+                            color: '#f9fafb',
+                            font: { size: 15 }
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(3, 7, 18, 0.9)',
+                        titleColor: '#f9fafb',
+                        bodyColor: '#9ca3af',
+                        borderColor: 'rgba(59, 130, 246, 0.3)',
+                        borderWidth: 1,
+                        padding: 15,
+                        cornerRadius: 8,
+                        titleFont: { size: 15 },
+                        bodyFont: { size: 14 }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.05)'
+                        },
+                        ticks: {
+                            color: '#9ca3af',
+                            font: { size: 14 }
+                        }
+                    },
+                    x: {
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.05)'
+                        },
+                        ticks: {
+                            color: '#9ca3af',
+                            font: { size: 14 }
+                        }
+                    }
+                }
+            }
+        });
+    }
+    
+    // 2. Воронка удержания клиентов (Bar Chart - Funnel)
+    // Данные: типичная воронка для Telegram ботов
+    const funnelCtx = document.getElementById('funnelChart');
+    if (funnelCtx) {
+        new Chart(funnelCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Установили бота', 'Первое действие', 'Регулярное\nиспользование', 'Оплата', 'Рекомендации'],
+                datasets: [{
+                    label: 'Пользователей',
+                    data: [1000, 650, 420, 180, 95],
+                    backgroundColor: [
+                        'rgba(59, 130, 246, 0.8)',
+                        'rgba(99, 160, 247, 0.8)',
+                        'rgba(139, 180, 250, 0.8)',
+                        'rgba(179, 200, 253, 0.8)',
+                        'rgba(219, 220, 255, 0.8)'
+                    ],
+                    borderColor: '#3b82f6',
+                    borderWidth: 2,
+                    borderRadius: 8,
+                    borderSkipped: false
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                indexAxis: 'y',
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(3, 7, 18, 0.9)',
+                        titleColor: '#f9fafb',
+                        bodyColor: '#9ca3af',
+                        borderColor: 'rgba(59, 130, 246, 0.3)',
+                        borderWidth: 1,
+                        padding: 15,
+                        cornerRadius: 8,
+                        titleFont: { size: 15 },
+                        bodyFont: { size: 14 },
+                        callbacks: {
+                            label: function(context) {
+                                return context.parsed.x + ' пользователей (' + (context.parsed.x / 10) + '%)';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.05)'
+                        },
+                        ticks: {
+                            color: '#9ca3af',
+                            font: { size: 14 }
+                        }
+                    },
+                    y: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            color: '#9ca3af',
+                            font: { size: 14 }
+                        }
+                    }
+                }
+            }
+        });
+    }
+    
+    // 3. Популярность типов ботов (Doughnut Chart)
+    // Данные: распределение спроса на типы Telegram ботов
+    const engagementCtx = document.getElementById('engagementChart');
+    if (engagementCtx) {
+        new Chart(engagementCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Продажи', 'Поддержка', 'Автоматизация', 'Аналитика', 'CRM'],
+                datasets: [{
+                    data: [35, 25, 20, 12, 8],
+                    backgroundColor: [
+                        '#3b82f6',
+                        '#6366f1',
+                        '#8b5cf6',
+                        '#a78bfa',
+                        '#c4b5fd'
+                    ],
+                    borderColor: '#030712',
+                    borderWidth: 3,
+                    hoverOffset: 15
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '65%',
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            color: '#f9fafb',
+                            font: { size: 14 },
+                            padding: 20,
+                            usePointStyle: true,
+                            pointStyleWidth: 12
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(3, 7, 18, 0.9)',
+                        titleColor: '#f9fafb',
+                        bodyColor: '#9ca3af',
+                        borderColor: 'rgba(59, 130, 246, 0.3)',
+                        borderWidth: 1,
+                        padding: 15,
+                        cornerRadius: 8,
+                        titleFont: { size: 15 },
+                        bodyFont: { size: 14 },
+                        callbacks: {
+                            label: function(context) {
+                                return context.label + ': ' + context.parsed + '%';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Main Chat Section Functionality
+    const mainChatInput = document.getElementById('main-chat-input');
+    const mainChatSendBtn = document.getElementById('main-chat-send');
+    const mainChatMessages = document.getElementById('main-chat-messages');
+    const quickActionBtns = document.querySelectorAll('.quick-action-btn');
+
+    // Bot responses
+    const botResponses = {
+        'pricing': 'Наши цены начинаются от $500 для базовых ботов и доходят до $5000+ для сложных корпоративных решений. Точная стоимость зависит от функций, интеграций и сложности. Хотите получить подробный расчет под ваши требования?',
+        'technologies': 'Мы работаем с: Python (Telebot, aiogram), Node.js, Web технологии (React, Vue), AI/ML (OpenAI, GPT), Базы данных (PostgreSQL, MongoDB), и различные платежные системы. Все решения готовы для облака с правильной DevOps настройкой.',
+        'timeline': 'Сроки разработки варьируются: Простые боты (2-3 недели), Средней сложности (4-6 недель), Корпоративные решения (8-12 недель). Также предлагаем быстрое прототипирование за 1 неделю для проверки MVP.',
+        'default': 'Спасибо за ваше сообщение! Я здесь, чтобы помочь вам с разработкой Telegram ботов. Вы можете спросить о ценах, технологиях, сроках или любых других вопросах о наших услугах. Чем я могу вам помочь сегодня?'
+    };
+
+    // Send message function
+    async function sendMainChatMessage(message) {
+        if (!message.trim()) return;
+
+        // Add user message
+        const userMsgDiv = document.createElement('div');
+        userMsgDiv.className = 'message user-message';
+        userMsgDiv.innerHTML = `
+            <div class="message-avatar" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <i class="fa-solid fa-user"></i>
+            </div>
+            <div class="message-content">
+                <p>${message}</p>
+            </div>
+        `;
+        mainChatMessages.appendChild(userMsgDiv);
+
+        // Clear input
+        mainChatInput.value = '';
+
+        // Scroll to bottom
+        mainChatMessages.scrollTop = mainChatMessages.scrollHeight;
+
+        // Show typing indicator
+        const typingDiv = document.createElement('div');
+        typingDiv.className = 'message bot-message typing-indicator';
+        typingDiv.innerHTML = `
+            <div class="message-avatar">
+                <i class="fa-solid fa-robot"></i>
+            </div>
+            <div class="message-content">
+                <div class="typing-dots">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+        `;
+        mainChatMessages.appendChild(typingDiv);
+        mainChatMessages.scrollTop = mainChatMessages.scrollHeight;
+
+        try {
+            let response, data, botResponse;
+            
+            // Try native endpoint first
+            try {
+                response = await fetch(`${LM_STUDIO_CONFIG.baseUrl}/api/v1/chat`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${LM_STUDIO_CONFIG.apiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: LM_STUDIO_CONFIG.model,
+                        messages: [
+                            {
+                                role: 'system',
+                                content: ''
+                            },
+                            {
+                                role: 'user',
+                                content: message
+                            }
+                        ]
+                    })
+                });
+                
+                if (response.ok) {
+                    data = await response.json();
+                    botResponse = data.choices[0].message.content;
+                } else {
+                    throw new Error(`Native endpoint failed: ${response.status}`);
+                }
+            } catch (nativeError) {
+                console.log('Native endpoint failed, trying OpenAI-compatible endpoint...');
+                
+                // Try OpenAI-compatible endpoint with dummy auth
+                response = await fetch(`${LM_STUDIO_CONFIG.baseUrl}/v1/chat/completions`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${LM_STUDIO_CONFIG.apiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: LM_STUDIO_CONFIG.model,
+                        messages: [
+
+                            {
+                                role: 'user',
+                                content: message
+                            }
+                        ]
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Both endpoints failed. Last error: ${response.status}`);
+                }
+                
+                data = await response.json();
+                botResponse = data.choices[0].message.content;
+            }
+
+            // Remove typing indicator
+            typingDiv.remove();
+
+            // Add bot response
+            const botMsgDiv = document.createElement('div');
+            botMsgDiv.className = 'message bot-message';
+            botMsgDiv.innerHTML = `
+                <div class="message-avatar">
+                    <i class="fa-solid fa-robot"></i>
+                </div>
+                <div class="message-content">
+                    <p>${botResponse.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\*(.*?)\*/g, '<em>$1</em>').replace(/\n/g, '<br>')}</p>
+                </div>
+            `;
+            mainChatMessages.appendChild(botMsgDiv);
+            mainChatMessages.scrollTop = mainChatMessages.scrollHeight;
+
+        } catch (error) {
+            console.error('Error calling LM Studio API:', error);
+            
+            // Remove typing indicator
+            typingDiv.remove();
+
+            // Fallback response
+            const fallbackResponse = getBotResponse(message);
+            const botMsgDiv = document.createElement('div');
+            botMsgDiv.className = 'message bot-message';
+            botMsgDiv.innerHTML = `
+                <div class="message-avatar">
+                    <i class="fa-solid fa-robot"></i>
+                </div>
+                <div class="message-content">
+                    <p>${fallbackResponse}</p>
+                    <small style="color: #6b7280; font-size: 0.85em;">*Использую резервные ответы из-за недоступности нейросети</small>
+                </div>
+            `;
+            mainChatMessages.appendChild(botMsgDiv);
+            mainChatMessages.scrollTop = mainChatMessages.scrollHeight;
+        }
+    }
+
+    // Get bot response based on message content
+    function getBotResponse(message) {
+        const lowerMessage = message.toLowerCase();
+        
+        if (lowerMessage.includes('price') || lowerMessage.includes('cost') || lowerMessage.includes('pricing')) {
+            return botResponses.pricing;
+        } else if (lowerMessage.includes('technology') || lowerMessage.includes('tech') || lowerMessage.includes('stack')) {
+            return botResponses.technologies;
+        } else if (lowerMessage.includes('time') || lowerMessage.includes('timeline') || lowerMessage.includes('how long')) {
+            return botResponses.timeline;
+        } else {
+            return botResponses.default;
+        }
+    }
+
+    // Event listeners
+    if (mainChatSendBtn) {
+        mainChatSendBtn.addEventListener('click', () => {
+            sendMainChatMessage(mainChatInput.value);
+        });
+    }
+
+    if (mainChatInput) {
+        mainChatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMainChatMessage(mainChatInput.value);
+            }
+        });
+    }
+
+    // Quick action buttons
+    quickActionBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const message = btn.getAttribute('data-message');
+            sendMainChatMessage(message);
+        });
+    });
+}
