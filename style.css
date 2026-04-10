@@ -26,6 +26,98 @@ body {
     cursor: default;
 }
 
+/* Model Selector Styles */
+.model-selector {
+    position: relative;
+    margin-bottom: 12px;
+}
+
+.model-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    color: var(--text-main);
+    padding: 10px 16px;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: var(--transition);
+    font-size: 0.9rem;
+    width: 100%;
+    justify-content: space-between;
+}
+
+.model-btn:hover {
+    background: var(--card-hover);
+    border-color: var(--accent);
+    transform: translateY(-1px);
+}
+
+.model-btn i:first-child {
+    color: var(--accent);
+}
+
+.model-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    margin-top: 4px;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: var(--transition);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+.model-dropdown.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.model-option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    cursor: pointer;
+    transition: var(--transition);
+    border-bottom: 1px solid var(--card-border);
+}
+
+.model-option:last-child {
+    border-bottom: none;
+}
+
+.model-option:hover {
+    background: var(--card-hover);
+    padding-left: 20px;
+}
+
+.model-option.active {
+    background: rgba(59, 130, 246, 0.1);
+    border-left: 3px solid var(--accent);
+}
+
+.model-option i {
+    width: 16px;
+    text-align: center;
+}
+
+.model-option i.fa-server {
+    color: #10b981;
+}
+
+.model-option i.fa-google {
+    color: #f59e0b;
+}
+
 /* Динамический курсор-глоу (удален) */
 
 

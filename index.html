@@ -126,6 +126,23 @@
                 </div>
                 
                 <div class="chat-input-area">
+                    <div class="model-selector">
+                        <button id="model-switch-btn" class="model-btn">
+                            <i class="fa-solid fa-brain"></i>
+                            <span id="current-model-name">LM Studio</span>
+                            <i class="fa-solid fa-chevron-down"></i>
+                        </button>
+                        <div id="model-dropdown" class="model-dropdown">
+                            <div class="model-option" data-model="lmstudio">
+                                <i class="fa-solid fa-server"></i>
+                                <span>LM Studio (Local)</span>
+                            </div>
+                            <div class="model-option" data-model="gemini">
+                                <i class="fa-solid fa-google"></i>
+                                <span>Gemini 2.5 Flash Lite</span>
+                            </div>
+                        </div>
+                    </div>
                     <div class="input-wrapper">
                         <input type="text" id="main-chat-input" placeholder="Введите ваше сообщение...">
                         <button id="main-chat-send" class="send-btn">
