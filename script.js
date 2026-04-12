@@ -3,9 +3,9 @@
 const AI_MODELS = {
     lmstudio: {
         name: 'LM Studio',
-        baseUrl: 'http://192.168.0.13:1236',
-        apiKey: 'sk-lm-izWcqstY:wg0BEXJampmg904bgGgI',
-        model: 'qwen/qwen3.5-9b',
+        baseUrl: 'http://198.18.0.1:1234',
+        apiKey: 'sk-lm-BKnxZktu:9mFDEhcWQG5wBamQeV67',
+        model: 'google/gemma-4-e4b',
         type: 'openai-compatible'
     },
     gemini: {
@@ -19,6 +19,22 @@ const AI_MODELS = {
 
 // Current selected model
 let currentModel = 'lmstudio';
+
+// Global completion detection function
+function checkForCompletion(botResponse) {
+    // This will be defined later in DOMContentLoaded
+    if (typeof window.checkForCompletionImpl === 'function') {
+        window.checkForCompletionImpl(botResponse);
+    }
+}
+
+// Global collected info check function
+function checkCollectedInfo(botResponse) {
+    // This will be defined later in DOMContentLoaded
+    if (typeof window.checkCollectedInfoImpl === 'function') {
+        window.checkCollectedInfoImpl(botResponse);
+    }
+}
 
 
 
@@ -75,7 +91,12 @@ async function callGeminiAPI(input, systemPrompt, chatHistory = []) {
         }
 
         const data = await response.json();
-        return data.candidates?.[0]?.content?.parts?.[0]?.text || 'No response received';
+        const botResponse = data.candidates?.[0]?.content?.parts?.[0]?.text || 'No response received';
+        
+        // Check if this is a completion response
+        checkForCompletion(botResponse);
+        
+        return botResponse;
     } catch (error) {
         console.error('Error calling Gemini API:', error);
         throw error;
@@ -111,7 +132,12 @@ async function callLMStudioAPI(input, systemPrompt, chatHistory = []) {
         }
 
         const data = await response.json();
-        return data.choices?.[0]?.message?.content || 'No response received';
+        const botResponse = data.choices?.[0]?.message?.content || 'No response received';
+        
+        // Check if this is a completion response
+        checkForCompletion(botResponse);
+        
+        return botResponse;
     } catch (error) {
         console.error('Error calling LM Studio API:', error);
         throw error;
@@ -696,6 +722,19 @@ function initCharts() {
     // Хранение истории чата
     let chatHistory = [];
     
+    // Отслеживание собранной информации
+    let collectedInfo = {
+        name: false,
+        company: false,
+        field: false,
+        size: false,
+        phone: false,
+        email: false
+    };
+    
+    // Флаг отключения чата
+    let chatDisabled = false;
+    
     // Функция очистки истории чата
     function resetMainChatHistory() {
         chatHistory = [];
@@ -765,6 +804,9 @@ function initCharts() {
                 role: 'assistant',
                 content: botResponse
             });
+
+            // Проверяем, была ли собрана информация
+            checkCollectedInfo(botResponse);
 
             // Remove typing indicator
             typingDiv.remove();
@@ -898,4 +940,192 @@ function initCharts() {
 
     // Set initial active state
     document.querySelector(`.model-option[data-model="${currentModel}"]`).classList.add('active');
+    
+    // Add manual trigger for testing (remove in production)
+    window.testDisableChat = function() {
+        disableChat();
+    };
+    
+    // Function to check if application is completed
+    function checkForCompletionImpl(botResponse) {
+        if (chatDisabled) return;
+        
+        const response = botResponse.toLowerCase();
+        
+        // Check for completion keywords
+        const completionKeywords = [
+            'everything recorded',
+            'application collected',
+            'we will contact',
+            'see you soon',
+            'thank you for your time',
+            'all the best',
+            'stay in touch',
+            'bye bye',
+            'good luck with your sales',
+            'always happy to help',
+            'everything recorded',
+            'application collected',
+            'we will contact',
+            'see you soon',
+            'thank you for your time',
+            'all the best',
+            'stay in touch',
+            'bye bye',
+            'good luck with your sales',
+            'always happy to help'
+        ];
+        
+        const isCompletion = completionKeywords.some(keyword => response.includes(keyword));
+        
+        if (isCompletion) {
+            // Small delay before disabling for naturalness
+            setTimeout(() => {
+                disableChat();
+            }, 2000);
+        }
+    }
+    
+    // Assign to window for global access
+    window.checkForCompletionImpl = checkForCompletionImpl;
+    
+    // Function to check collected information
+    function checkCollectedInfoImpl(botResponse) {
+        if (chatDisabled) return;
+        
+        const response = botResponse.toLowerCase();
+        
+        // Check when bot REQUESTS information (not when mentions)
+        if (response.includes('how are you?') || response.includes('what is your name')) {
+            collectedInfo.name = true;
+        } else if (response.includes('what is your company called') || response.includes('company name')) {
+            collectedInfo.company = true;
+        } else if (response.includes('what field do you work in') || response.includes('what do you do')) {
+            collectedInfo.field = true;
+        } else if (response.includes('how many employees') || response.includes('company size')) {
+            collectedInfo.size = true;
+        } else if (response.includes('what is your phone') || response.includes('phone number')) {
+            collectedInfo.phone = true;
+        } else if (response.includes('what is your email') || response.includes('email address')) {
+            collectedInfo.email = true;
+        }
+        
+        // Check if all information is collected
+        const allCollected = Object.values(collectedInfo).every(value => value === true);
+        
+        if (allCollected) {
+            disableChat();
+        }
+    }
+    
+    // Assign to window for global access
+    window.checkCollectedInfoImpl = checkCollectedInfoImpl;
+    
+    console.log('Chat disable system loaded. Use testDisableChat() to test manually.');
+}
+
+// Функция отключения чата
+function disableChat() {
+    chatDisabled = true;
+    
+    // Отключаем поле ввода
+    mainChatInput.disabled = true;
+    mainChatInput.placeholder = 'Чат завершен';
+    
+    // Отключаем кнопку отправки
+    mainChatSendBtn.disabled = true;
+    mainChatSendBtn.style.opacity = '0.5';
+    mainChatSendBtn.style.cursor = 'not-allowed';
+    
+    // Отключаем быстрые кнопки
+    quickActionBtns.forEach(btn => {
+        btn.disabled = true;
+        btn.style.opacity = '0.5';
+        btn.style.cursor = 'not-allowed';
+    });
+    
+    // Добавляем сообщение о завершении
+    const completionMsg = document.createElement('div');
+    completionMsg.className = 'message bot-message completion-message';
+    completionMsg.innerHTML = `
+        <div class="message-avatar">
+            <i class="fa-solid fa-check-circle"></i>
+        </div>
+        <div class="message-content">
+            <div class="completion-card">
+                <h3><i class="fa-solid fa-clipboard-check"></i> Заявка собрана!</h3>
+                <p>Спасибо за предоставленную информацию! Мы получили все необходимые данные и свяжемся с вами в ближайшее время, чтобы обсудить детали автоматизации вашего бизнеса.</p>
+                <div class="completion-stats">
+                    <div class="stat-item">
+                        <i class="fa-solid fa-user"></i>
+                        <span>Имя: ✓</span>
+                    </div>
+                    <div class="stat-item">
+                        <i class="fa-solid fa-building"></i>
+                        <span>Компания: ✓</span>
+                    </div>
+                    <div class="stat-item">
+                        <i class="fa-solid fa-briefcase"></i>
+                        <span>Сфера: ✓</span>
+                    </div>
+                    <div class="stat-item">
+                        <i class="fa-solid fa-users"></i>
+                        <span>Размер: ✓</span>
+                    </div>
+                    <div class="stat-item">
+                        <i class="fa-solid fa-phone"></i>
+                        <span>Телефон: ✓</span>
+                    </div>
+                    <div class="stat-item">
+                        <i class="fa-solid fa-envelope"></i>
+                        <span>Email: ✓</span>
+                    </div>
+                </div>
+                <div class="next-steps">
+                    <h4>Что дальше?</h4>
+                    <ul>
+                        <li>Наш специалист изучит вашу заявку</li>
+                        <li>Подготовит персональное предложение</li>
+                        <li>Свяжется с вами для обсуждения деталей</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    `;
+    mainChatMessages.appendChild(completionMsg);
+    mainChatMessages.scrollTop = mainChatMessages.scrollHeight;
+    
+    // Добавляем класс для стилизации
+    document.querySelector('.chat-main').classList.add('chat-disabled');
+}
+
+// Функция очистки истории чата
+function resetMainChatHistory() {
+    chatHistory = [];
+    // Сбрасываем отслеживание информации
+    collectedInfo = {
+        name: false,
+        company: false,
+        field: false,
+        size: false,
+        phone: false,
+        email: false
+    };
+    chatDisabled = false;
+    
+    // Включаем обратно элементы управления
+    mainChatInput.disabled = false;
+    mainChatInput.placeholder = 'Введите ваше сообщение...';
+    mainChatSendBtn.disabled = false;
+    mainChatSendBtn.style.opacity = '1';
+    mainChatSendBtn.style.cursor = 'pointer';
+    
+    quickActionBtns.forEach(btn => {
+        btn.disabled = false;
+        btn.style.opacity = '1';
+        btn.style.cursor = 'pointer';
+    });
+    
+    // Удаляем класс отключения
+    document.querySelector('.chat-main').classList.remove('chat-disabled');
 }
