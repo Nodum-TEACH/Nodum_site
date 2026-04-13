@@ -102,11 +102,8 @@
         </div>
     </section>
 -->
-    <!-- Bento Портфолио -->
-    <section id="portfolio" class="portfolio">
-        
     <!-- Chat Section -->
-    <section class="chat-section fade-in-up">
+    <section id="chat" class="chat-section fade-in-up">
         <div class="section-header">
             <h2 class="section-title">Прямая <span class="text-gradient">Связь</span></h2>
             <p>Задавайте вопросы или обсудите ваш проект напрямую с нами</p>
@@ -120,7 +117,7 @@
                             <i class="fa-solid fa-robot"></i>
                         </div>
                         <div class="message-content">
-                            <p>Добро пожаловать! Я здесь, чтобы помочь вам с разработкой Telegram ботов. Смело спрашивайте о функциях, ценах или деталях реализации.</p>
+                            <p>Привет! Я Витя, помощник консультант компании. Уже видел представление на сайте? Если нет, это можно сделать <a href="#portfolio" class="text-gradient">ниже</a>. А так спрашивай, что интересует по ботам!</p>
                         </div>
                     </div>
                 </div>
@@ -187,13 +184,16 @@
             </div>
         </div>
     </section>
-        <div class="section-header fade-in-up">
+
+    <!-- Portfolio Section -->
+    <section id="portfolio" class="portfolio fade-in-up">
+        <div class="section-header">
             <h2 class="section-title">Экспертиза <span class="text-gradient">& Решения</span></h2>
             <p>Выбирайте модуль, который ускорит ваш бизнес</p>
         </div>
         
         <div id="bento-container" class="bento-container">
-            <!-- Карточки из JS -->
+            <!-- Cards from JS -->
         </div>
     </section>
 
@@ -268,38 +268,6 @@
             <p> 2026. Code & Design.</p>
         </div>
     </footer>
-
-    <!-- Чат виджет (оставлен, стили улучшены) -->
-    <div class="chat-widget">
-        <div class="chat-button pulse" id="chat-button">
-            <i class="fa-solid fa-paper-plane"></i>
-        </div>
-        <div class="chat-window" id="chat-window">
-            <div class="chat-header">
-                <div class="chat-header-info">
-                    <div class="chat-avatar"><i class="fa-solid fa-robot"></i></div>
-                    <div class="chat-title">
-                        <h4>AI Assist</h4>
-                        <span>Online</span>
-                    </div>
-                </div>
-                <button class="chat-close" id="chat-close"><i class="fa-solid fa-times"></i></button>
-            </div>
-            <div class="chat-messages" id="chat-messages">
-                <div class="message bot-message">
-                    <div class="message-content">
-                        <p>Привет! Я цифровой помощник. Помочь с расчетом стоимости или подбором решения? 🚀</p>
-                    </div>
-                </div>
-            </div>
-            <div class="chat-input">
-                <div class="input-container">
-                    <input type="text" id="message-input" placeholder="Введите запрос...">
-                    <button id="send-button"><i class="fa-solid fa-arrow-up"></i></button>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <script src="script.js"></script>
 </body>
