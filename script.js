@@ -2,7 +2,7 @@
 const AI_MODELS = {
     lmstudio: {
         name: 'LM Studio',
-        baseUrl: 'https://109.68.171.140:1234',
+        baseUrl: 'https://weebx.duckdns.org',
         apiKey: 'sk-lm-BKnxZktu:9mFDEhcWQG5wBamQeV67',
         model: 'google/gemma-4-e4b',
         type: 'openai-compatible'

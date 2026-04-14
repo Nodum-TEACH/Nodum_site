@@ -1,0 +1,4 @@
+weebx.duckdns.org {
+    # Перенаправляем весь трафик на LM Studio
+    reverse_proxy 198.18.0.1:1236
+}
