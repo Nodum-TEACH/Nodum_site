@@ -2,18 +2,18 @@
 const AI_MODELS = {
     lmstudio: {
         name: 'LM Studio',
-        baseUrl: 'http://109.68.171.140:1234',
+        baseUrl: 'https://109.68.171.140:1234',
         apiKey: 'sk-lm-BKnxZktu:9mFDEhcWQG5wBamQeV67',
         model: 'google/gemma-4-e4b',
         type: 'openai-compatible'
     },
-    gemini: {
-        name: 'Gemini 2.5 Flash Lite',
-        baseUrl: 'https://generativelanguage.googleapis.com',
-        apiKey: 'AIzaSyC2tAVEOCa6_lpmeawg-Mk_Ra8_t_Mz-bQ',
-        model: 'gemini-2.5-flash-lite',
-        type: 'gemini'
-    }
+    // gemini: {
+    //     name: 'Gemini 2.5 Flash Lite',
+    //     baseUrl: 'https://generativelanguage.googleapis.com',
+    //     apiKey: 'AIzaSyC2tAVEOCa6_lpmeawg-Mk_Ra8_t_Mz-bQ',
+    //     model: 'gemini-2.5-flash-lite',
+    //     type: 'gemini'
+    // }
 };
 
 // Current selected model
