@@ -980,25 +980,369 @@ footer { padding: 40px 5%; border-top: 1px solid var(--card-border); margin-top:
     .card-2, .card-3 { grid-column: span 1; }
     .features-tech-grid { grid-template-columns: 1fr; gap: 20px;}
     .charts-grid { grid-template-columns: repeat(2, 1fr); }
+    .navbar {
+        padding: 1rem 4%;
+    }
+
+    .hero {
+        padding-left: 4%;
+        padding-right: 4%;
+    }
+
+    .hero-content {
+        max-width: 760px;
+    }
+
+    .hero-title {
+        font-size: clamp(2.6rem, 5vw, 4.4rem);
+    }
+
+    .hero-subtitle {
+        font-size: 1.05rem;
+    }
+
+    .hero-buttons {
+        gap: 14px;
+        flex-wrap: wrap;
+    }
+
+    .hero-buttons .btn {
+        padding: 18px 30px;
+        font-size: 1.1rem;
+    }
+
+    .stats-container {
+        gap: 36px;
+        padding: 48px 4%;
+    }
+
+    .pricing-section,
+    .charts-section,
+    .portfolio {
+        padding-left: 4%;
+        padding-right: 4%;
+    }
+
+    .pricing-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .pricing-card-featured {
+        grid-column: 1 / -1;
+        transform: translateY(0);
+    }
+
+    .chat-container {
+        gap: 20px;
+    }
+
+    .modal-content {
+        max-height: 92vh;
+    }
 }
 
 @media (max-width: 768px) {
-    .hero-title { font-size: 3rem; }
+    .navbar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 14px;
+        padding: 1rem 4%;
+    }
+
+    .nav-links {
+        width: 100%;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .nav-link {
+        font-size: 0.95rem;
+    }
+
+    .hero {
+        min-height: auto;
+        padding-top: 120px;
+        padding-bottom: 60px;
+    }
+
+    .badge-modern {
+        font-size: 0.75rem;
+        padding: 7px 12px;
+        margin-bottom: 1.25rem;
+    }
+
+    .hero-title {
+        font-size: clamp(2.2rem, 10vw, 3.4rem);
+        line-height: 1.05;
+        margin-bottom: 1rem;
+    }
+
+    .hero-subtitle {
+        font-size: 1rem;
+        margin-bottom: 1.75rem;
+    }
+
+    .hero-buttons {
+        width: 100%;
+        max-width: 420px;
+    }
+
+    .hero-buttons .btn {
+        width: 100%;
+        font-size: 1rem;
+        padding: 14px 20px;
+    }
+
+    .marquee-container {
+        padding: 18px 0;
+        margin: 24px 0;
+        transform: none;
+    }
+
+    .marquee-content {
+        gap: 24px;
+        animation-duration: 18s;
+    }
+
+    .marquee-content span {
+        font-size: 1rem;
+    }
+
+    .stats-container {
+        gap: 22px;
+        padding: 36px 4%;
+    }
+
+    .stat-number {
+        font-size: 2.8rem;
+    }
+
+    .pricing-section,
+    .charts-section,
+    .portfolio,
+    .chat-section,
+    .mega-cta {
+        padding-top: 72px;
+        padding-bottom: 72px;
+    }
+
+    .pricing-grid {
+        grid-template-columns: 1fr;
+        margin-top: 32px;
+    }
+
+    .pricing-card,
+    .chart-card,
+    .bento-card,
+    .sidebar-section,
+    .mega-cta-content,
+    .modal-header,
+    .modal-body,
+    .modal-footer {
+        padding-left: 20px;
+        padding-right: 20px;
+    }
+
+    .pricing-top {
+        gap: 10px;
+    }
+
+    .pricing-name {
+        font-size: 1.35rem;
+    }
+
+    .pricing-launch {
+        font-size: 0.88rem;
+    }
+
+    .chart-card {
+        padding-top: 22px;
+        padding-bottom: 22px;
+    }
+
+    .chart-title {
+        font-size: 1.05rem;
+        gap: 10px;
+        margin-bottom: 18px;
+    }
+
+    .chart-wrapper {
+        min-height: 280px;
+    }
+
     .bento-container { grid-template-columns: 1fr; grid-auto-rows: auto; }
     .card-0, .card-1, .card-2, .card-3, .card-4, .card-5 { grid-column: span 1; grid-row: span 1; }
-    .stats-container { flex-direction: column; gap: 30px; }
-    .pricing-section { padding: 80px 5%; }
-    .pricing-grid { grid-template-columns: 1fr; margin-top: 40px; }
+    .stats-container { flex-direction: column; }
     .pricing-card-featured { transform: none; }
     .pricing-top { flex-direction: column; }
     .pricing-launch { text-align: left; }
-    .mega-cta { padding: 60px 5%; }
-    .mega-cta-content { padding: 40px 20px; }
+    .mega-cta { padding-top: 56px; padding-bottom: 56px; }
+    .mega-cta-content { padding-top: 36px; padding-bottom: 36px; }
+    .mega-cta h2 { font-size: clamp(1.8rem, 8vw, 2.8rem); }
+    .mega-cta p { font-size: 1rem; margin-bottom: 28px; }
     .image-gallery { grid-template-columns: 1fr; }
     .footer-content { flex-direction: column; gap: 10px; text-align: center; }
     .charts-grid { grid-template-columns: 1fr; }
-    .chart-card { padding: 20px; }
-    .chart-title { font-size: 1rem; }
+    .chat-container { grid-template-columns: 1fr; }
+    .chat-sidebar { grid-template-columns: 1fr; }
+    .chat-messages { height: 280px; }
+    .quick-actions { justify-content: flex-start; }
+    .input-wrapper {
+        flex-direction: column;
+    }
+
+    .send-btn {
+        width: 100%;
+    }
+
+    .contact-buttons {
+        gap: 12px;
+    }
+
+    .modal {
+        padding: 12px;
+    }
+
+    .modal-content {
+        border-radius: 20px;
+    }
+
+    .modal-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+        padding-top: 28px;
+    }
+
+    .modal-header h2 {
+        font-size: 1.7rem;
+    }
+
+    .close-modal {
+        top: 14px;
+        right: 14px;
+    }
+
+    .bot-chat-input {
+        flex-direction: column;
+    }
+
+    #bot-send-btn {
+        width: 100%;
+        border-radius: 14px;
+    }
+
+    .bot-message .message-content,
+    .user-message .message-content {
+        max-width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .hero {
+        padding-top: 112px;
+        padding-bottom: 44px;
+    }
+
+    .logo {
+        font-size: 1.5rem;
+    }
+
+    .nav-links {
+        justify-content: flex-start;
+    }
+
+    .btn {
+        width: 100%;
+    }
+
+    .btn-sm {
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+
+    .hero-buttons {
+        gap: 12px;
+    }
+
+    .section-title {
+        font-size: clamp(2rem, 11vw, 2.6rem);
+    }
+
+    .section-header p {
+        font-size: 1rem;
+    }
+
+    .stats-container {
+        padding-top: 28px;
+        padding-bottom: 28px;
+    }
+
+    .stat-number {
+        font-size: 2.4rem;
+    }
+
+    .pricing-card,
+    .chart-card,
+    .bento-card,
+    .sidebar-section,
+    .mega-cta-content {
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+
+    .pricing-list {
+        gap: 10px;
+    }
+
+    .bento-card h3 {
+        font-size: 1.25rem;
+    }
+
+    .card-0 h3 {
+        font-size: 1.7rem;
+    }
+
+    .card-icon {
+        width: 52px;
+        height: 52px;
+        font-size: 1.5rem;
+    }
+
+    .chat-messages {
+        height: 240px;
+        padding: 14px;
+    }
+
+    .message {
+        max-width: 100%;
+    }
+
+    .quick-action-btn,
+    .contact-btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .modal-body {
+        padding-top: 24px;
+    }
+
+    .bot-chat-messages {
+        max-height: 240px;
+        padding: 14px;
+    }
+
+    .completion-card,
+    .bot-message-section {
+        padding: 18px;
+    }
+
+    footer {
+        padding-left: 4%;
+        padding-right: 4%;
+    }
 }
 
 /* Chat Section Styles */
