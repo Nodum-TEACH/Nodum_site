@@ -1,4 +1,18 @@
 weebx.duckdns.org {
+    # CORS заголовки для разрешения запросов с GitHub Pages
+    header {
+        Access-Control-Allow-Origin "https://nodum-teach.github.io"
+        Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
+        Access-Control-Allow-Headers "Content-Type, Authorization"
+        Access-Control-Allow-Credentials "true"
+    }
+
+    # Обработка OPTIONS запросов (preflight)
+    @options {
+        method OPTIONS
+    }
+    respond @options 204
+
     # Перенаправляем весь трафик на LM Studio
     reverse_proxy 198.18.0.1:1236
 }
