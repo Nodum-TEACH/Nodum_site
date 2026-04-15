@@ -1,5 +1,3 @@
-// AI Model Configuration (imported from config.js)
-const AI_MODELS = window.AI_MODELS;
 
 // Current selected model
 let currentModel = 'lmstudio';
