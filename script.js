@@ -1,20 +1,5 @@
-// AI Model Configuration
-const AI_MODELS = {
-    lmstudio: {
-        name: 'LM Studio',
-        baseUrl: 'https://weebx.duckdns.org',
-        apiKey: 'sk-lm-MnP7r7Dl:h2ZafXVv77GKbgKwcH8Q',
-        model: 'google/gemma-4-e4b',
-        type: 'openai-compatible'
-    },
-    // gemini: {
-    //     name: 'Gemini 2.5 Flash Lite',
-    //     baseUrl: 'https://generativelanguage.googleapis.com',
-    //     apiKey: 'AIzaSyC2tAVEOCa6_lpmeawg-Mk_Ra8_t_Mz-bQ',
-    //     model: 'gemini-2.5-flash-lite',
-    //     type: 'gemini'
-    // }
-};
+// AI Model Configuration (imported from config.js)
+const AI_MODELS = window.AI_MODELS;
 
 // Current selected model
 let currentModel = 'lmstudio';
@@ -33,6 +18,86 @@ function checkCollectedInfo(botResponse) {
     if (typeof window.checkCollectedInfoImpl === 'function') {
         window.checkCollectedInfoImpl(botResponse);
     }
+}
+
+// Function to handle "Запустить проект" button click
+function startProjectChat(event) {
+    event.preventDefault();
+    
+    // Smooth scroll to chat section
+    const chatSection = document.getElementById('chat');
+    if (chatSection) {
+        chatSection.scrollIntoView({ behavior: 'smooth' });
+        
+        // Wait for scroll to complete, then send message
+        setTimeout(() => {
+            const mainChatInput = document.getElementById('main-chat-input');
+            if (mainChatInput && typeof window.sendMainChatMessageImpl === 'function') {
+                window.sendMainChatMessageImpl('Хочу обсудить запуск проекта');
+            }
+        }, 500);
+    }
+}
+
+// Function to handle pricing button clicks
+function selectTariff(event, tariffName) {
+    event.preventDefault();
+    
+    // Smooth scroll to chat section
+    const chatSection = document.getElementById('chat');
+    if (chatSection) {
+        chatSection.scrollIntoView({ behavior: 'smooth' });
+        
+        // Wait for scroll to complete, then send message
+        setTimeout(() => {
+            const mainChatInput = document.getElementById('main-chat-input');
+            if (mainChatInput && typeof window.sendMainChatMessageImpl === 'function') {
+                window.sendMainChatMessageImpl(`Меня интересует тариф ${tariffName}`);
+            }
+        }, 500);
+    }
+}
+
+// Function to open traditional form modal
+function openTraditionalForm(event) {
+    event.preventDefault();
+    const modal = document.getElementById('traditional-form-modal');
+    modal.style.display = 'flex';
+    setTimeout(() => modal.classList.add('visible'), 10);
+    document.body.style.overflow = 'hidden';
+}
+
+// Function to close traditional form modal
+function closeTraditionalForm() {
+    const modal = document.getElementById('traditional-form-modal');
+    modal.classList.remove('visible');
+    setTimeout(() => {
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+    }, 300);
+}
+
+// Function to submit traditional form
+function submitTraditionalForm(event) {
+    event.preventDefault();
+    
+    const field = document.getElementById('form-field').value;
+    const contact = document.getElementById('form-contact').value;
+    const message = document.getElementById('form-message').value;
+    
+    // Send the data to your backend or process it
+    console.log('Traditional form submitted:', { field, contact, message });
+    
+    // Close the modal
+    closeTraditionalForm();
+    
+    // Show success message in chat
+    if (typeof window.sendMainChatMessageImpl === 'function') {
+        window.sendMainChatMessageImpl(`Оставил классическую заявку. Сфера: ${field}, Контакт: ${contact}`);
+    }
+    
+    // Reset form
+    document.getElementById('traditional-form').reset();
 }
 
 
@@ -156,12 +221,8 @@ AI-ботов для малого или крупного бизнеса. Общ
 Познакомься с бизнесом посетителя и мягко доведи до заявки на консультацию.
 
 По ходу разговора (не анкетой!) собери:
-- Имя
-- Название компании
 - Сфера деятельности
-- Размер бизнеса / кол-во сотрудников
-- Телефон
-- Email или альтернативный контакт
+- Телефон или Telegram
 </primary_objective>
 
 <conversation_flow>
@@ -180,12 +241,8 @@ AI-ботов для малого или крупного бизнеса. Общ
 в одно сообщение.
 
 Порядок сбора:
-1. Имя
-2. Название компании
-3. Сфера деятельности
-4. Кол-во сотрудников
-5. Телефон
-6. Email или альтернативный контакт
+1. Сфера деятельности
+2. Телефон или Telegram
 
 Фаза 4 — Закрытие:
 После получения всех данных — подтверди заявку, скажи что свяжутся
@@ -204,7 +261,10 @@ User: "У нас салон красоты, 3 мастера"
 
 User: "Да, звучит интересно"
 Витя: "Тогда давай оформим заявку на бесплатную консультацию —
-специалист подберёт решение под вас. Как тебя зовут?"
+специалист подберёт решение под вас. В какой сфере работаете?"
+
+User: "Салон красоты"
+Витя: "Понял! Оставь телефон или Telegram, чтобы мы могли связаться"
 
 [После сбора всех данных]
 Витя: "Отлично, всё записал! Свяжемся в течение рабочего дня.
@@ -214,11 +274,9 @@ User: "Да, звучит интересно"
 Витя: "Как тебя зовут и как называется твоя компания?"
 
 Пример ПРАВИЛЬНОГО поведения (✅ только так):
-Витя: "Как тебя зовут?"
-User: "Алексей"
-Витя: "Приятно, Алексей! А как называется ваша компания?"
-User: "Ромашка"
-Витя: "Отлично! В какой сфере работаете?"
+Витя: "В какой сфере работаете?"
+User: "Салон красоты"
+Витя: "Понял! Оставь телефон или Telegram"
 </examples>
 
 <scope_and_boundaries>
@@ -540,220 +598,6 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('.fade-in-up, .fade-in-top').forEach(el => observer.observe(el));
     }
 
-    // 7. Инициализация графиков
-    initCharts();
-});
-
-function initCharts() {
-    // Глобальные настройки Chart.js
-    Chart.defaults.color = '#9ca3af';
-    Chart.defaults.font.family = 'Outfit';
-    Chart.defaults.font.size = 14;
-    
-    // 1. График роста рынка автоматизации (Line Chart)
-    // Данные: рост рынка бизнес-автоматизации 2019-2026 (в млрд $)
-    const popularityCtx = document.getElementById('popularityChart');
-    if (popularityCtx) {
-        new Chart(popularityCtx, {
-            type: 'line',
-            data: {
-                labels: ['2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'],
-                datasets: [{
-                    label: 'Рынок автоматизации ($ млрд)',
-                    data: [8.5, 11.2, 15.8, 21.3, 28.7, 37.2, 48.5, 62.1],
-                    borderColor: '#3b82f6',
-                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                    borderWidth: 3,
-                    fill: true,
-                    tension: 0.4,
-                    pointBackgroundColor: '#3b82f6',
-                    pointBorderColor: '#fff',
-                    pointBorderWidth: 2,
-                    pointRadius: 6,
-                    pointHoverRadius: 9
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: true,
-                        position: 'top',
-                        labels: {
-                            color: '#f9fafb',
-                            font: { size: 15 }
-                        }
-                    },
-                    tooltip: {
-                        backgroundColor: 'rgba(3, 7, 18, 0.9)',
-                        titleColor: '#f9fafb',
-                        bodyColor: '#9ca3af',
-                        borderColor: 'rgba(59, 130, 246, 0.3)',
-                        borderWidth: 1,
-                        padding: 15,
-                        cornerRadius: 8,
-                        titleFont: { size: 15 },
-                        bodyFont: { size: 14 }
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        grid: {
-                            color: 'rgba(255, 255, 255, 0.05)'
-                        },
-                        ticks: {
-                            color: '#9ca3af',
-                            font: { size: 14 }
-                        }
-                    },
-                    x: {
-                        grid: {
-                            color: 'rgba(255, 255, 255, 0.05)'
-                        },
-                        ticks: {
-                            color: '#9ca3af',
-                            font: { size: 14 }
-                        }
-                    }
-                }
-            }
-        });
-    }
-    
-    // 2. Воронка удержания клиентов (Bar Chart - Funnel)
-    // Данные: типичная воронка для Telegram ботов
-    const funnelCtx = document.getElementById('funnelChart');
-    if (funnelCtx) {
-        new Chart(funnelCtx, {
-            type: 'bar',
-            data: {
-                labels: ['Установили бота', 'Первое действие', 'Регулярное\nиспользование', 'Оплата', 'Рекомендации'],
-                datasets: [{
-                    label: 'Пользователей',
-                    data: [1000, 650, 420, 180, 95],
-                    backgroundColor: [
-                        'rgba(59, 130, 246, 0.8)',
-                        'rgba(99, 160, 247, 0.8)',
-                        'rgba(139, 180, 250, 0.8)',
-                        'rgba(179, 200, 253, 0.8)',
-                        'rgba(219, 220, 255, 0.8)'
-                    ],
-                    borderColor: '#3b82f6',
-                    borderWidth: 2,
-                    borderRadius: 8,
-                    borderSkipped: false
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                indexAxis: 'y',
-                plugins: {
-                    legend: {
-                        display: false
-                    },
-                    tooltip: {
-                        backgroundColor: 'rgba(3, 7, 18, 0.9)',
-                        titleColor: '#f9fafb',
-                        bodyColor: '#9ca3af',
-                        borderColor: 'rgba(59, 130, 246, 0.3)',
-                        borderWidth: 1,
-                        padding: 15,
-                        cornerRadius: 8,
-                        titleFont: { size: 15 },
-                        bodyFont: { size: 14 },
-                        callbacks: {
-                            label: function(context) {
-                                return context.parsed.x + ' пользователей (' + (context.parsed.x / 10) + '%)';
-                            }
-                        }
-                    }
-                },
-                scales: {
-                    x: {
-                        beginAtZero: true,
-                        grid: {
-                            color: 'rgba(255, 255, 255, 0.05)'
-                        },
-                        ticks: {
-                            color: '#9ca3af',
-                            font: { size: 14 }
-                        }
-                    },
-                    y: {
-                        grid: {
-                            display: false
-                        },
-                        ticks: {
-                            color: '#9ca3af',
-                            font: { size: 14 }
-                        }
-                    }
-                }
-            }
-        });
-    }
-    
-    // 3. Популярность типов ботов (Doughnut Chart)
-    // Данные: распределение спроса на типы Telegram ботов
-    const engagementCtx = document.getElementById('engagementChart');
-    if (engagementCtx) {
-        new Chart(engagementCtx, {
-            type: 'doughnut',
-            data: {
-                labels: ['Продажи', 'Поддержка', 'Автоматизация', 'Аналитика', 'CRM'],
-                datasets: [{
-                    data: [35, 25, 20, 12, 8],
-                    backgroundColor: [
-                        '#3b82f6',
-                        '#6366f1',
-                        '#8b5cf6',
-                        '#a78bfa',
-                        '#c4b5fd'
-                    ],
-                    borderColor: '#030712',
-                    borderWidth: 3,
-                    hoverOffset: 15
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                cutout: '65%',
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: {
-                            color: '#f9fafb',
-                            font: { size: 14 },
-                            padding: 20,
-                            usePointStyle: true,
-                            pointStyleWidth: 12
-                        }
-                    },
-                    tooltip: {
-                        backgroundColor: 'rgba(3, 7, 18, 0.9)',
-                        titleColor: '#f9fafb',
-                        bodyColor: '#9ca3af',
-                        borderColor: 'rgba(59, 130, 246, 0.3)',
-                        borderWidth: 1,
-                        padding: 15,
-                        cornerRadius: 8,
-                        titleFont: { size: 15 },
-                        bodyFont: { size: 14 },
-                        callbacks: {
-                            label: function(context) {
-                                return context.label + ': ' + context.parsed + '%';
-                            }
-                        }
-                    }
-                }
-            }
-        });
-    }
-
     // Main Chat Section Functionality
     const mainChatInput = document.getElementById('main-chat-input');
     const mainChatSendBtn = document.getElementById('main-chat-send');
@@ -765,12 +609,8 @@ function initCharts() {
     
     // Отслеживание собранной информации
     let collectedInfo = {
-        name: false,
-        company: false,
         field: false,
-        size: false,
-        phone: false,
-        email: false
+        contact: false
     };
     
     // Флаг отключения чата
@@ -779,6 +619,28 @@ function initCharts() {
     // Функция очистки истории чата
     function resetMainChatHistory() {
         chatHistory = [];
+        // Сбрасываем отслеживание информации
+        collectedInfo = {
+            field: false,
+            contact: false
+        };
+        chatDisabled = false;
+        
+        // Включаем обратно элементы управления
+        mainChatInput.disabled = false;
+        mainChatInput.placeholder = 'Введите ваше сообщение...';
+        mainChatSendBtn.disabled = false;
+        mainChatSendBtn.style.opacity = '1';
+        mainChatSendBtn.style.cursor = 'pointer';
+        
+        quickActionBtns.forEach(btn => {
+            btn.disabled = false;
+            btn.style.opacity = '1';
+            btn.style.cursor = 'pointer';
+        });
+        
+        // Удаляем класс отключения
+        document.querySelector('.chat-main').classList.remove('chat-disabled');
     }
 
     // Bot responses
@@ -791,7 +653,7 @@ function initCharts() {
 
     // Send message function
     async function sendMainChatMessage(message) {
-        if (!message.trim()) return;
+        if (!message || !message.trim()) return;
 
         // Добавляем сообщение пользователя в историю
         chatHistory.push({
@@ -967,64 +829,27 @@ function initCharts() {
         });
     });
 
-    // Model switching functionality
-    const modelSwitchBtn = document.getElementById('model-switch-btn');
-    const modelDropdown = document.getElementById('model-dropdown');
-    const currentModelName = document.getElementById('current-model-name');
-    const modelOptions = document.querySelectorAll('.model-option');
-
-    // Toggle dropdown
-    modelSwitchBtn.addEventListener('click', () => {
-        modelDropdown.classList.toggle('active');
-    });
-
-    // Close dropdown when clicking outside
-    document.addEventListener('click', (e) => {
-        if (!e.target.closest('.model-selector')) {
-            modelDropdown.classList.remove('active');
-        }
-    });
-
-    // Handle model selection
-    modelOptions.forEach(option => {
-        option.addEventListener('click', () => {
-            const selectedModel = option.getAttribute('data-model');
-            currentModel = selectedModel;
-            currentModelName.textContent = AI_MODELS[selectedModel].name;
-            
-            // Update active state
-            modelOptions.forEach(opt => opt.classList.remove('active'));
-            option.classList.add('active');
-            
-            // Close dropdown
-            modelDropdown.classList.remove('active');
-            
-            // Reset chat history when switching models
-            resetMainChatHistory();
-            
-            // Add system message about model switch
-            const systemMsg = document.createElement('div');
-            systemMsg.className = 'message bot-message';
-            systemMsg.innerHTML = `
-                <div class="message-avatar">
-                    <i class="fa-solid fa-robot"></i>
-                </div>
-                <div class="message-content">
-                    <p>Переключено на модель: <strong>${AI_MODELS[selectedModel].name}</strong></p>
-                </div>
-            `;
-            mainChatMessages.appendChild(systemMsg);
-            mainChatMessages.scrollTop = mainChatMessages.scrollHeight;
-        });
-    });
-
-    // Set initial active state
-    document.querySelector(`.model-option[data-model="${currentModel}"]`).classList.add('active');
-    
     // Add manual trigger for testing (remove in production)
     window.testDisableChat = function() {
         disableChat();
     };
+    
+    // Function to check if bot has collected information
+    function checkCollectedInfoImpl(response) {
+        // Check when bot REQUESTS information (not when mentions)
+        if (response.includes('в какой сфере') || response.includes('сфера деятельности') || response.includes('какой бизнес') || response.includes('чем занимаетесь')) {
+            collectedInfo.field = true;
+        } else if (response.includes('телефон') || response.includes('telegram') || response.includes('связаться') || response.includes('контакт')) {
+            collectedInfo.contact = true;
+        }
+        
+        // Check if all information is collected
+        const allCollected = Object.values(collectedInfo).every(value => value === true);
+        
+        if (allCollected) {
+            disableChat();
+        }
+    }
     
     // Function to check if application is completed
     function checkForCompletionImpl(botResponse) {
@@ -1069,43 +894,14 @@ function initCharts() {
     // Assign to window for global access
     window.checkForCompletionImpl = checkForCompletionImpl;
     
-    // Function to check collected information
-    function checkCollectedInfoImpl(botResponse) {
-        if (chatDisabled) return;
-        
-        const response = botResponse.toLowerCase();
-        
-        // Check when bot REQUESTS information (not when mentions)
-        if (response.includes('how are you?') || response.includes('what is your name')) {
-            collectedInfo.name = true;
-        } else if (response.includes('what is your company called') || response.includes('company name')) {
-            collectedInfo.company = true;
-        } else if (response.includes('what field do you work in') || response.includes('what do you do')) {
-            collectedInfo.field = true;
-        } else if (response.includes('how many employees') || response.includes('company size')) {
-            collectedInfo.size = true;
-        } else if (response.includes('what is your phone') || response.includes('phone number')) {
-            collectedInfo.phone = true;
-        } else if (response.includes('what is your email') || response.includes('email address')) {
-            collectedInfo.email = true;
-        }
-        
-        // Check if all information is collected
-        const allCollected = Object.values(collectedInfo).every(value => value === true);
-        
-        if (allCollected) {
-            disableChat();
-        }
-    }
-    
     // Assign to window for global access
     window.checkCollectedInfoImpl = checkCollectedInfoImpl;
+    window.sendMainChatMessageImpl = sendMainChatMessage;
     
     console.log('Chat disable system loaded. Use testDisableChat() to test manually.');
-}
 
-// Функция отключения чата
-function disableChat() {
+    // Функция отключения чата
+    function disableChat() {
     chatDisabled = true;
     
     // Отключаем поле ввода
@@ -1137,28 +933,12 @@ function disableChat() {
                 <p>Спасибо за предоставленную информацию! Мы получили все необходимые данные и свяжемся с вами в ближайшее время, чтобы обсудить детали автоматизации вашего бизнеса.</p>
                 <div class="completion-stats">
                     <div class="stat-item">
-                        <i class="fa-solid fa-user"></i>
-                        <span>Имя: ✓</span>
-                    </div>
-                    <div class="stat-item">
-                        <i class="fa-solid fa-building"></i>
-                        <span>Компания: ✓</span>
-                    </div>
-                    <div class="stat-item">
                         <i class="fa-solid fa-briefcase"></i>
                         <span>Сфера: ✓</span>
                     </div>
                     <div class="stat-item">
-                        <i class="fa-solid fa-users"></i>
-                        <span>Размер: ✓</span>
-                    </div>
-                    <div class="stat-item">
                         <i class="fa-solid fa-phone"></i>
-                        <span>Телефон: ✓</span>
-                    </div>
-                    <div class="stat-item">
-                        <i class="fa-solid fa-envelope"></i>
-                        <span>Email: ✓</span>
+                        <span>Контакт: ✓</span>
                     </div>
                 </div>
                 <div class="next-steps">
@@ -1208,4 +988,5 @@ function resetMainChatHistory() {
     
     // Удаляем класс отключения
     document.querySelector('.chat-main').classList.remove('chat-disabled');
-}
+    }
+});

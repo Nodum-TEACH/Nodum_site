@@ -7,7 +7,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 </head>
 <body>
         
@@ -18,7 +17,6 @@
     <nav class="navbar fade-in-top">
         <div class="logo">Nodum<span class="dot">.tech</span></div>
         <div class="nav-links">
-            <a href="#" target="_blank" class="nav-link"><i class="fa-brands fa-github"></i> GitHub</a>
             <a href="#pricing" class="btn btn-outline btn-sm">Выбрать тариф</a>
         </div>
     </nav>
@@ -33,7 +31,7 @@
             <p class="hero-subtitle">Архитектура, автоматизация и UX/UI, которые конвертируют пользователей в клиентов. От WebApp витрин до AI-ассистентов.</p>
             
             <div class="hero-buttons">
-                <a href="#" target="_blank" class="btn btn-primary">
+                <a href="#chat" onclick="startProjectChat(event)" class="btn btn-primary">
                     <span>Запустить проект <i class="fa-solid fa-arrow-right"></i></span>
                 </a>
                 <button onclick="scrollToPortfolio()" class="btn btn-secondary">
@@ -43,6 +41,35 @@
             </div>
         </div>
     </header>
+
+    <!-- Нам доверяют -->
+    <section class="trust-section fade-in-up">
+        <div class="trust-container">
+            <h2 class="trust-title">Нам доверяют</h2>
+            <div class="trust-logos">
+                <div class="trust-logo">
+                    <div class="logo-placeholder"><i class="fa-solid fa-building"></i></div>
+                    <span>ТехСтарт</span>
+                </div>
+                <div class="trust-logo">
+                    <div class="logo-placeholder"><i class="fa-solid fa-store"></i></div>
+                    <span>БьютиПро</span>
+                </div>
+                <div class="trust-logo">
+                    <div class="logo-placeholder"><i class="fa-solid fa-graduation-cap"></i></div>
+                    <span>ОбразовательныйЦентр</span>
+                </div>
+                <div class="trust-logo">
+                    <div class="logo-placeholder"><i class="fa-solid fa-briefcase"></i></div>
+                    <span>КонсалтХаб</span>
+                </div>
+                <div class="trust-logo">
+                    <div class="logo-placeholder"><i class="fa-solid fa-utensils"></i></div>
+                    <span>ДоставкаЕды</span>
+                </div>
+            </div>
+        </div>
+    </section>
 
     <!-- Трендовая бегущая строка -->
     <div class="marquee-container fade-in-up">
@@ -67,6 +94,49 @@
                 <div class="stat-label">Года экспертизы</div>
             </div>
         </div>
+
+        <!-- Отзывы клиентов -->
+        <div class="reviews-widget fade-in-up" style="transition-delay: 0.3s">
+            <h3 class="reviews-title">Отзывы клиентов</h3>
+            <div class="reviews-container">
+                <div class="review-card">
+                    <div class="review-header">
+                        <div class="review-avatar">
+                            <i class="fa-solid fa-user"></i>
+                        </div>
+                        <div class="review-info">
+                            <div class="review-name">Алексей М.</div>
+                            <div class="review-source"><i class="fa-brands fa-telegram"></i> Telegram</div>
+                        </div>
+                    </div>
+                    <p class="review-text">"Бот полностью заменил администратора! Теперь запись 24/7, а клиенты в восторге от скорости ответа. За месяц окупился полностью."</p>
+                </div>
+                <div class="review-card">
+                    <div class="review-header">
+                        <div class="review-avatar">
+                            <i class="fa-solid fa-user"></i>
+                        </div>
+                        <div class="review-info">
+                            <div class="review-name">Мария К.</div>
+                            <div class="review-source"><i class="fa-brands fa-telegram"></i> Telegram</div>
+                        </div>
+                    </div>
+                    <p class="review-text">"Разработка заняла всего 8 дней вместо обещанных 14. Качество на высоте, поддержка отличная. Рекомендую!"</p>
+                </div>
+                <div class="review-card">
+                    <div class="review-header">
+                        <div class="review-avatar">
+                            <i class="fa-solid fa-user"></i>
+                        </div>
+                        <div class="review-info">
+                            <div class="review-name">Дмитрий В.</div>
+                            <div class="review-source"><i class="fa-brands fa-telegram"></i> Telegram</div>
+                        </div>
+                    </div>
+                    <p class="review-text">"Интеграция с CRM прошла гладко. Бот квалифицирует лиды и отправляет их в нашу систему. Автоматизация работает идеально."</p>
+                </div>
+            </div>
+        </div>
     </section>
 
     <section id="pricing" class="pricing-section fade-in-up">
@@ -80,9 +150,9 @@
                 <div class="pricing-top">
                     <div>
                         <div class="pricing-name">Нейрон</div>
-                        <div class="pricing-price">от 5 900 ₽/мес</div>
+                        <div class="pricing-price">Разовая интеграция: 18 000 ₽</div>
                     </div>
-                    <div class="pricing-launch">Запуск: 18 000 ₽</div>
+                    <div class="pricing-launch">Поддержка серверов и AI-токенов: 5 900 ₽/мес</div>
                 </div>
                 <ul class="pricing-list">
                     <li>Бот в Telegram + VK</li>
@@ -91,7 +161,7 @@
                     <li>До 500 диалогов в месяц</li>
                     <li>Запуск за 7-10 дней</li>
                 </ul>
-                <a href="#chat" class="btn btn-secondary btn-sm pricing-btn">Выбрать</a>
+                <a href="#chat" onclick="selectTariff(event, 'Нейрон')" class="btn btn-secondary btn-sm pricing-btn">Выбрать</a>
             </article>
 
             <article class="pricing-card pricing-card-featured fade-in-up" style="transition-delay: 0.1s">
@@ -99,9 +169,9 @@
                 <div class="pricing-top">
                     <div>
                         <div class="pricing-name">Синапс</div>
-                        <div class="pricing-price">от 13 900 ₽/мес</div>
+                        <div class="pricing-price">Разовая интеграция: 30 000 ₽</div>
                     </div>
-                    <div class="pricing-launch">Запуск: 30 000 ₽</div>
+                    <div class="pricing-launch">Поддержка серверов и AI-токенов: 13 900 ₽/мес</div>
                 </div>
                 <ul class="pricing-list">
                     <li>Telegram + VK + сайт</li>
@@ -110,16 +180,16 @@
                     <li>До 1 500 диалогов в месяц</li>
                     <li>Ежемесячный отчёт по вопросам и конверсии</li>
                 </ul>
-                <a href="#chat" class="btn btn-primary btn-sm pricing-btn">Выбрать</a>
+                <a href="#chat" onclick="selectTariff(event, 'Синапс')" class="btn btn-primary btn-sm pricing-btn">Выбрать</a>
             </article>
 
             <article class="pricing-card fade-in-up" style="transition-delay: 0.2s">
                 <div class="pricing-top">
                     <div>
                         <div class="pricing-name">Разум</div>
-                        <div class="pricing-price">от 35 000 ₽/мес</div>
+                        <div class="pricing-price">Разовая интеграция: по договору</div>
                     </div>
-                    <div class="pricing-launch">Запуск: по договору</div>
+                    <div class="pricing-launch">Поддержка серверов и AI-токенов: 35 000 ₽/мес</div>
                 </div>
                 <ul class="pricing-list">
                     <li>Безлимит диалогов</li>
@@ -128,44 +198,11 @@
                     <li>Кастомные AI-агенты</li>
                     <li>Приоритетная поддержка</li>
                 </ul>
-                <a href="#chat" class="btn btn-secondary btn-sm pricing-btn">Выбрать</a>
+                <a href="#chat" onclick="selectTariff(event, 'Разум')" class="btn btn-secondary btn-sm pricing-btn">Выбрать</a>
             </article>
         </div>
     </section>
 
- 
-    <!-- Графики популярности автоматизации -->
-    <!-- 
-    <section class="charts-section fade-in-up">
-        <div class="section-header">
-            <h2 class="section-title">Тренды <span class="text-gradient">Автоматизации</span></h2>
-            <p>Рост рынка и востребованность решений</p>
-        </div>
-        
-        <div class="charts-grid">
-            <div class="chart-card fade-in-up">
-                <h3 class="chart-title"><i class="fa-solid fa-chart-line"></i> Рост рынка автоматизации</h3>
-                <div class="chart-wrapper">
-                    <canvas id="popularityChart"></canvas>
-                </div>
-            </div>
-            
-            <div class="chart-card fade-in-up" style="transition-delay: 0.15s">
-                <h3 class="chart-title"><i class="fa-solid fa-filter"></i> Воронка удержания клиентов</h3>
-                <div class="chart-wrapper">
-                    <canvas id="funnelChart"></canvas>
-                </div>
-            </div>
-            
-            <div class="chart-card fade-in-up" style="transition-delay: 0.3s">
-                <h3 class="chart-title"><i class="fa-solid fa-chart-pie"></i> Популярность типов ботов</h3>
-                <div class="chart-wrapper">
-                    <canvas id="engagementChart"></canvas>
-                </div>
-            </div>
-        </div>
-    </section>
--->
     <!-- Chat Section -->
     <section id="chat" class="chat-section fade-in-up">
         <div class="section-header">
@@ -187,23 +224,6 @@
                 </div>
                 
                 <div class="chat-input-area">
-                    <div class="model-selector">
-                        <button id="model-switch-btn" class="model-btn">
-                            <i class="fa-solid fa-brain"></i>
-                            <span id="current-model-name">LM Studio</span>
-                            <i class="fa-solid fa-chevron-down"></i>
-                        </button>
-                        <div id="model-dropdown" class="model-dropdown">
-                            <div class="model-option" data-model="lmstudio">
-                                <i class="fa-solid fa-server"></i>
-                                <span>LM Studio (Local)</span>
-                            </div>
-                            <div class="model-option" data-model="gemini">
-                                <i class="fa-solid fa-google"></i>
-                                <span>Gemini 2.5 Flash Lite</span>
-                            </div>
-                        </div>
-                    </div>
                     <div class="input-wrapper">
                         <input type="text" id="main-chat-input" placeholder="Введите ваше сообщение...">
                         <button id="main-chat-send" class="send-btn">
@@ -220,19 +240,14 @@
                         <button class="quick-action-btn" data-message="Как долго занимает разработка?">
                             <i class="fa-solid fa-clock"></i> Сроки
                         </button>
+                        <button class="quick-action-btn traditional-form-btn" onclick="openTraditionalForm(event)">
+                            <i class="fa-solid fa-file-lines"></i> Классическая заявка
+                        </button>
                     </div>
                 </div>
             </div>
             
             <div class="chat-sidebar">
-                <div class="sidebar-section">
-                    <h3><i class="fa-solid fa-circle-info"></i> Быстрая информация</h3>
-                    <ul class="info-list">
-                        <li><strong>Время ответа:</strong> Обычно в течение минут</li>
-                        <li><strong>Доступен:</strong> Пн-Пт, 9:00-18:00</li>
-                        <li><strong>Языки:</strong> Русский, Английский</li>
-                    </ul>
-                </div>
                 
                 <div class="sidebar-section">
                     <h3><i class="fa-solid fa-phone"></i> Другие контакты</h3>
@@ -271,6 +286,36 @@
             </a>
         </div>
     </section>
+
+    <!-- Модальное окно традиционной формы -->
+    <div id="traditional-form-modal" class="modal">
+        <div class="modal-content traditional-form-content">
+            <span class="close-modal" onclick="closeTraditionalForm()"><i class="fa-solid fa-xmark"></i></span>
+            <div class="modal-header">
+                <h2><i class="fa-solid fa-file-lines"></i> Классическая заявка</h2>
+                <p>Заполните простую форму, и мы свяжемся с вами</p>
+            </div>
+            <div class="modal-body">
+                <form id="traditional-form" onsubmit="submitTraditionalForm(event)">
+                    <div class="form-group">
+                        <label for="form-field">Сфера деятельности *</label>
+                        <input type="text" id="form-field" required placeholder="Например: Салон красоты, E-commerce, IT">
+                    </div>
+                    <div class="form-group">
+                        <label for="form-contact">Телефон или Telegram *</label>
+                        <input type="text" id="form-contact" required placeholder="+7 (999) 123-45-67 или @username">
+                    </div>
+                    <div class="form-group">
+                        <label for="form-message">Дополнительная информация</label>
+                        <textarea id="form-message" rows="3" placeholder="Расскажите о вашем проекте (необязательно)"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-large">
+                        <span>Отправить заявку <i class="fa-solid fa-paper-plane"></i></span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
 
     <!-- Модальное окно (без изменений в структуре, стили обновлены) -->
     <div id="bot-modal" class="modal">
@@ -328,11 +373,22 @@
 
     <footer>
         <div class="footer-content">
-            <div class="logo">Nodum<span class="dot">.tech</span></div>
-            <p> 2026. Code & Design.</p>
+            <div class="footer-left">
+                <div class="logo">Nodum<span class="dot">.tech</span></div>
+                <p>© 2026. Code & Design.</p>
+            </div>
+            <div class="footer-right">
+                <a href="#" target="_blank" class="footer-link">
+                    <i class="fa-brands fa-github"></i> GitHub
+                </a>
+                <a href="#" target="_blank" class="footer-link">
+                    <i class="fa-brands fa-telegram"></i> Telegram
+                </a>
+            </div>
         </div>
     </footer>
 
+    <script src="config.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
