@@ -5,10 +5,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#030712">
     <title>Nodum.tech</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://nodum.tech/">
+    <meta property="og:title" content="Nodum.tech - AI Bots для бизнеса">
+    <meta property="og:description" content="Создаём ботов нового уровня. Архитектура, автоматизация и UX/UI, которые конвертируют пользователей в клиентов. От WebApp витрин до AI-ассистентов.">
+    <meta property="og:image" content="https://nodum.tech/images/bot-main.jpg">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://nodum.tech/">
+    <meta property="twitter:title" content="Nodum.tech - AI Bots для бизнеса">
+    <meta property="twitter:description" content="Создаём ботов нового уровня. Архитектура, автоматизация и UX/UI, которые конвертируют пользователей в клиентов.">
+    <meta property="twitter:image" content="https://nodum.tech/images/bot-main.jpg">
+
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 </head>
 <body>
     <a class="skip-link" href="#main-content">Пропустить к содержанию</a>
@@ -26,301 +41,400 @@
     </nav>
 
     <main id="main-content">
-        <!-- Главный экран -->
-        <header class="hero">
-            <div class="hero-content fade-in-up">
-                <div class="badge-modern">
-                    <span class="pulse-dot"></span> Доступен для новых проектов
-                </div>
-                <h1 class="hero-title">Создаём <span class="text-gradient">Ботов</span><br> нового уровня</h1>
-                <p class="hero-subtitle">Архитектура, автоматизация и UX/UI, которые помогают пользователям быстрее дойти до заявки. От витрин до AI-ассистентов.</p>
+    <!-- Главный экран -->
+    <header class="hero">
+        <div class="hero-content fade-in-up">
+            <div class="badge-modern">
+                <span class="pulse-dot"></span> Доступен для новых проектов
+            </div>
+            <h1 class="hero-title">Создаём <span class="text-gradient">Ботов</span><br> нового уровня</h1>
+            <p class="hero-subtitle">Архитектура, автоматизация и UX/UI, которые конвертируют пользователей в клиентов. От витрин до AI-ассистентов.</p>
 
-                <div class="hero-buttons">
-                    <a href="#chat" class="btn btn-primary">
-                        <span>Запустить проект <i class="fa-solid fa-arrow-right"></i></span>
-                    </a>
-                    <a href="#portfolio" class="btn btn-secondary">
-                        <span>Смотреть кейсы</span>
-                        <i class="fa-solid fa-arrow-down scroll-arrow"></i>
-                    </a>
+            <div class="hero-buttons">
+                <a href="#chat" onclick="startProjectChat(event)" class="btn btn-primary">
+                    <span>Запустить проект <i class="fa-solid fa-arrow-right"></i></span>
+                </a>
+                <button onclick="scrollToPortfolio()" class="btn btn-secondary">
+                    <span>Смотреть кейсы</span>
+                    <i class="fa-solid fa-arrow-down scroll-arrow"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Нам доверяют
+    <section class="trust-section fade-in-up">
+        <div class="trust-container">
+            <h2 class="trust-title">Нам доверяют</h2>
+            <div class="trust-logos">
+                <div class="trust-logo">
+                    <div class="logo-placeholder"><i class="fa-solid fa-building"></i></div>
+                    <span>ТехСтарт</span>
+                </div>
+                <div class="trust-logo">
+                    <div class="logo-placeholder"><i class="fa-solid fa-store"></i></div>
+                    <span>БьютиПро</span>
+                </div>
+                <div class="trust-logo">
+                    <div class="logo-placeholder"><i class="fa-solid fa-graduation-cap"></i></div>
+                    <span>ОбразовательныйЦентр</span>
+                </div>
+                <div class="trust-logo">
+                    <div class="logo-placeholder"><i class="fa-solid fa-briefcase"></i></div>
+                    <span>КонсалтХаб</span>
+                </div>
+                <div class="trust-logo">
+                    <div class="logo-placeholder"><i class="fa-solid fa-utensils"></i></div>
+                    <span>ДоставкаЕды</span>
                 </div>
             </div>
-        </header>
+        </div>
+    </section>-->
 
-        <!-- Трендовая бегущая строка -->
-        <div class="marquee-container fade-in-up">
-            <div class="marquee">
-                <div class="marquee-content"><span>TELEGRAM WEBAPPS</span><i class="fa-solid fa-asterisk"></i><span>AI INTEGRATIONS</span><i class="fa-solid fa-asterisk"></i><span>PYTHON BOTS</span><i class="fa-solid fa-asterisk"></i><span>PAYMENT SYSTEMS</span><i class="fa-solid fa-asterisk"></i><span>CRM SYNC</span><i class="fa-solid fa-asterisk"></i><span>TELEGRAM WEBAPPS</span><i class="fa-solid fa-asterisk"></i><span>AI INTEGRATIONS</span><i class="fa-solid fa-asterisk"></i><span>PYTHON BOTS</span><i class="fa-solid fa-asterisk"></i><span>PAYMENT SYSTEMS</span><i class="fa-solid fa-asterisk"></i><span>CRM SYNC</span><i class="fa-solid fa-asterisk"></i></div>
+    <!-- Трендовая бегущая строка
+    <div class="marquee-container fade-in-up">
+        <div class="marquee">
+            <div class="marquee-content"><span>TELEGRAM WEBAPPS</span><i class="fa-solid fa-asterisk"></i><span>AI INTEGRATIONS</span><i class="fa-solid fa-asterisk"></i><span>PYTHON BOTS</span><i class="fa-solid fa-asterisk"></i><span>PAYMENT SYSTEMS</span><i class="fa-solid fa-asterisk"></i><span>CRM SYNC</span><i class="fa-solid fa-asterisk"></i><span>TELEGRAM WEBAPPS</span><i class="fa-solid fa-asterisk"></i><span>AI INTEGRATIONS</span><i class="fa-solid fa-asterisk"></i><span>PYTHON BOTS</span><i class="fa-solid fa-asterisk"></i><span>PAYMENT SYSTEMS</span><i class="fa-solid fa-asterisk"></i><span>CRM SYNC</span><i class="fa-solid fa-asterisk"></i></div>
+        </div>
+    </div>-->
+
+    <!-- Статистика -->
+    <section class="stats-cta">
+        <div class="stats-container">
+            <div class="stat-item fade-in-up">
+                <div class="stat-number" data-target="50">0</div>
+                <div class="stat-label">Успешных релизов</div>
+                <div class="stat-chart">
+                    <svg viewBox="0 0 100 40" class="chart-svg">
+                        <defs>
+                            <linearGradient id="chartGradient1" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:0.3"/>
+                                <stop offset="100%" style="stop-color:#3b82f6;stop-opacity:0"/>
+                            </linearGradient>
+                        </defs>
+                        <path class="chart-area" d="M0,35 Q10,30 20,28 T40,25 T60,18 T80,12 T100,5 L100,40 L0,40 Z" fill="url(#chartGradient1)"/>
+                        <path class="chart-line" d="M0,35 Q10,30 20,28 T40,25 T60,18 T80,12 T100,5" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round"/>
+                        <circle class="chart-dot" cx="100" cy="5" r="3" fill="#3b82f6"/>
+                    </svg>
+                </div>
+            </div>
+            <div class="stat-item fade-in-up" style="transition-delay: 0.1s">
+                <div class="stat-number" data-target="99">0</div>
+                <div class="stat-label">Uptime серверов</div>
+                <div class="stat-chart">
+                    <svg viewBox="0 0 100 40" class="chart-svg">
+                        <defs>
+                            <linearGradient id="chartGradient2" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" style="stop-color:#10b981;stop-opacity:0.3"/>
+                                <stop offset="100%" style="stop-color:#10b981;stop-opacity:0"/>
+                            </linearGradient>
+                        </defs>
+                        <path class="chart-area" d="M0,35 Q15,32 30,30 T55,20 T75,15 T100,3 L100,40 L0,40 Z" fill="url(#chartGradient2)"/>
+                        <path class="chart-line" d="M0,35 Q15,32 30,30 T55,20 T75,15 T100,3" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round"/>
+                        <circle class="chart-dot" cx="100" cy="3" r="3" fill="#10b981"/>
+                    </svg>
+                </div>
+            </div>
+            <div class="stat-item fade-in-up" style="transition-delay: 0.2s">
+                <div class="stat-number" data-target="3">0</div>
+                <div class="stat-label">Года экспертизы</div>
+                <div class="stat-chart">
+                    <svg viewBox="0 0 100 40" class="chart-svg">
+                        <defs>
+                            <linearGradient id="chartGradient3" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" style="stop-color:#8b5cf6;stop-opacity:0.3"/>
+                                <stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:0"/>
+                            </linearGradient>
+                        </defs>
+                        <path class="chart-area" d="M0,38 Q20,35 35,30 T60,22 T85,15 T100,8 L100,40 L0,40 Z" fill="url(#chartGradient3)"/>
+                        <path class="chart-line" d="M0,38 Q20,35 35,30 T60,22 T85,15 T100,8" fill="none" stroke="#8b5cf6" stroke-width="2" stroke-linecap="round"/>
+                        <circle class="chart-dot" cx="100" cy="8" r="3" fill="#8b5cf6"/>
+                    </svg>
+                </div>
             </div>
         </div>
 
-        <!-- Статистика -->
-        <section class="stats-cta">
-            <div class="stats-container">
-                <div class="stat-item fade-in-up">
-                    <div class="stat-number">50+</div>
-                    <div class="stat-label">Успешных релизов</div>
+        <!-- Отзывы клиентов -->
+        <div class="reviews-widget fade-in-up" style="transition-delay: 0.3s">
+            <h3 class="reviews-title">Отзывы клиентов</h3>
+            <div class="reviews-container" id="reviews-container">
+                <div class="review-card active" data-index="0">
+                    <div class="review-header">
+                        <div class="review-avatar">
+                            <i class="fa-solid fa-user"></i>
+                        </div>
+                        <div class="review-info">
+                            <div class="review-name">Алексей М.</div>
+                            <div class="review-source"><i class="fa-brands fa-telegram"></i> Telegram</div>
+                        </div>
+                    </div>
+                    <p class="review-text">"Бот полностью заменил администратора! Теперь запись 24/7, а клиенты в восторге от скорости ответа. За месяц окупился полностью."</p>
                 </div>
-                <div class="stat-item fade-in-up" style="transition-delay: 0.1s">
-                    <div class="stat-number">99%</div>
-                    <div class="stat-label">Uptime серверов</div>
+                <div class="review-card next" data-index="1">
+                    <div class="review-header">
+                        <div class="review-avatar">
+                            <i class="fa-solid fa-user"></i>
+                        </div>
+                        <div class="review-info">
+                            <div class="review-name">Мария К.</div>
+                            <div class="review-source"><i class="fa-brands fa-telegram"></i> Telegram</div>
+                        </div>
+                    </div>
+                    <p class="review-text">"Разработка заняла всего 8 дней вместо обещанных 14. Качество на высоте, поддержка отличная. Рекомендую!"</p>
                 </div>
-                <div class="stat-item fade-in-up" style="transition-delay: 0.2s">
-                    <div class="stat-number">3+</div>
-                    <div class="stat-label">Года экспертизы</div>
+                <div class="review-card next" data-index="2">
+                    <div class="review-header">
+                        <div class="review-avatar">
+                            <i class="fa-solid fa-user"></i>
+                        </div>
+                        <div class="review-info">
+                            <div class="review-name">Дмитрий В.</div>
+                            <div class="review-source"><i class="fa-brands fa-telegram"></i> Telegram</div>
+                        </div>
+                    </div>
+                    <p class="review-text">"Интеграция с CRM прошла гладко. Бот квалифицирует лиды и отправляет их в нашу систему. Автоматизация работает идеально."</p>
                 </div>
             </div>
-        </section>
-
-        <section id="pricing" class="pricing-section fade-in-up">
-            <div class="section-header">
-                <h2 class="section-title">Тарифы <span class="text-gradient">Nodum</span></h2>
-                <p>Выберите формат запуска под ваш масштаб и задачу</p>
+            <div class="reviews-nav">
+                <div class="review-dot active" data-index="0"></div>
+                <div class="review-dot" data-index="1"></div>
+                <div class="review-dot" data-index="2"></div>
             </div>
+        </div>
+    </section>
 
-            <div class="pricing-grid">
-                <article class="pricing-card fade-in-up">
-                    <div class="pricing-top">
-                        <div>
-                            <div class="pricing-name">Нейрон</div>
-                            <div class="pricing-price">от 5 900 ₽/мес</div>
-                        </div>
-                        <div class="pricing-launch">Запуск: 18 000 ₽</div>
-                    </div>
-                    <ul class="pricing-list">
-                        <li>Бот в Telegram + VK</li>
-                        <li>Отвечает на вопросы 24/7</li>
-                        <li>Принимает заявки и записи</li>
-                        <li>До 500 диалогов в месяц</li>
-                        <li>Запуск за 7-10 дней</li>
-                    </ul>
-                    <a href="#chat" class="btn btn-secondary btn-sm pricing-btn">Выбрать</a>
-                </article>
-
-                <article class="pricing-card pricing-card-featured fade-in-up" style="transition-delay: 0.1s">
-                    <div class="pricing-badge">ПОПУЛЯРНЫЙ</div>
-                    <div class="pricing-top">
-                        <div>
-                            <div class="pricing-name">Синапс</div>
-                            <div class="pricing-price">от 13 900 ₽/мес</div>
-                        </div>
-                        <div class="pricing-launch">Запуск: 30 000 ₽</div>
-                    </div>
-                    <ul class="pricing-list">
-                        <li>Telegram + VK + сайт</li>
-                        <li>Дожим "думающих" клиентов</li>
-                        <li>Квалификация лидов</li>
-                        <li>До 1 500 диалогов в месяц</li>
-                        <li>Ежемесячный отчёт по вопросам и конверсии</li>
-                    </ul>
-                    <a href="#chat" class="btn btn-primary btn-sm pricing-btn">Выбрать</a>
-                </article>
-
-                <article class="pricing-card fade-in-up" style="transition-delay: 0.2s">
-                    <div class="pricing-top">
-                        <div>
-                            <div class="pricing-name">Разум</div>
-                            <div class="pricing-price">от 35 000 ₽/мес</div>
-                        </div>
-                        <div class="pricing-launch">Запуск: по договору</div>
-                    </div>
-                    <ul class="pricing-list">
-                        <li>Безлимит диалогов</li>
-                        <li>Анализ звонков и коммуникаций</li>
-                        <li>Инсайты из всех касаний</li>
-                        <li>Кастомные AI-агенты</li>
-                        <li>Приоритетная поддержка</li>
-                    </ul>
-                    <a href="#chat" class="btn btn-secondary btn-sm pricing-btn">Выбрать</a>
-                </article>
-            </div>
-        </section>
-
-    <!-- Графики популярности автоматизации -->
-    <!-- 
-    <section class="charts-section fade-in-up">
+    <section id="pricing" class="pricing-section fade-in-up">
         <div class="section-header">
-            <h2 class="section-title">Тренды <span class="text-gradient">Автоматизации</span></h2>
-            <p>Рост рынка и востребованность решений</p>
+            <h2 class="section-title">Тарифы <span class="text-gradient">Nodum</span></h2>
+            <p>Выберите формат запуска под ваш масштаб и задачу</p>
         </div>
-        
-        <div class="charts-grid">
-            <div class="chart-card fade-in-up">
-                <h3 class="chart-title"><i class="fa-solid fa-chart-line"></i> Рост рынка автоматизации</h3>
-                <div class="chart-wrapper">
-                    <canvas id="popularityChart"></canvas>
+
+        <div class="pricing-grid">
+            <article class="pricing-card fade-in-up">
+                <div class="pricing-badge">ЛЁГКИЙ</div>
+                <div class="pricing-top">
+                    <div>
+                        <div class="pricing-name">Нейрон</div>
+                        <div class="pricing-price">Разовая интеграция: 18 000 ₽</div>
+                    </div>
+
+                </div>
+                <ul class="pricing-list">
+                    <li>Бот в Telegram + VK</li>
+                    <li>Отвечает на вопросы 24/7</li>
+                    <li>Принимает заявки и записи</li>
+                    <li>До 500 диалогов в месяц</li>
+                    <li>Запуск за 7-10 дней</li>
+                </ul>
+                <div class="pricing-launch">Поддержка серверов и AI-токенов: <span class="price-highlight">5&nbsp;900&nbsp;₽/мес</span></div>
+                <a href="#chat" onclick="selectTariff(event, 'Нейрон')" class="btn btn-secondary btn-sm pricing-btn">Выбрать</a>
+            </article>
+
+            <article class="pricing-card pricing-card-featured fade-in-up" style="transition-delay: 0.1s">
+                <div class="pricing-badge">ПОПУЛЯРНЫЙ</div>
+                <div class="pricing-top">
+                    <div>
+                        <div class="pricing-name">Синапс</div>
+                        <div class="pricing-price">Разовая интеграция: 30 000 ₽</div>
+                    </div>
+
+                </div>
+                <ul class="pricing-list">
+                    <li>Telegram + VK + сайт</li>
+                    <li>Дожим "думающих" клиентов</li>
+                    <li>Квалификация лидов</li>
+                    <li>До 1 500 диалогов в месяц</li>
+                    <li>Ежемесячный отчёт по вопросам и конверсии</li>
+                </ul>
+                <div class="pricing-launch">Поддержка серверов и AI-токенов: <span class="price-highlight">13&nbsp;900&nbsp;₽/мес</span></div>
+                <a href="#chat" onclick="selectTariff(event, 'Синапс')" class="btn btn-primary btn-sm pricing-btn">Выбрать</a>
+            </article>
+
+            <article class="pricing-card fade-in-up" style="transition-delay: 0.2s">
+                <div class="pricing-badge">ТЯЖЁЛЫЙ</div>
+                <div class="pricing-top">
+                    <div>
+                        <div class="pricing-name">Разум</div>
+                        <div class="pricing-price">Разовая интеграция: по договору</div>
+                    </div>
+
+                </div>
+                <ul class="pricing-list">
+                    <li>Безлимит диалогов</li>
+                    <li>Анализ звонков и коммуникаций</li>
+                    <li>Инсайты из всех касаний</li>
+                    <li>Кастомные AI-агенты</li>
+                    <li>Приоритетная поддержка</li>
+                </ul>
+                <div class="pricing-launch">Поддержка серверов и AI-токенов: <span class="price-highlight">35&nbsp;000&nbsp;₽/мес</span></div>
+                <a href="#chat" onclick="selectTariff(event, 'Разум')" class="btn btn-secondary btn-sm pricing-btn">Выбрать</a>
+            </article>
+        </div>
+    </section>
+
+    <!-- Chat Section -->
+    <section id="chat" class="chat-section fade-in-up">
+        <div class="section-header">
+            <h2 class="section-title">Прямая <span class="text-gradient">Связь</span></h2>
+            <p>Задавайте вопросы или обсудите ваш проект напрямую с нами</p>
+        </div>
+
+        <div class="chat-container">
+            <div class="chat-main">
+                <div class="chat-messages" id="main-chat-messages">
+                    <div class="message bot-message">
+                        <div class="message-avatar">
+                            <i class="fa-solid fa-robot"></i>
+                        </div>
+                        <div class="message-content">
+                            <p>Привет! Я Витя, помощник консультант компании. Уже видел представление на сайте? Если нет, это можно сделать <a href="#portfolio" class="text-gradient">ниже</a>. А так спрашивай, что интересует по ботам!</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="chat-input-area">
+                    <div class="input-wrapper">
+                        <input type="text" id="main-chat-input" placeholder="Введите ваше сообщение...">
+                        <button id="main-chat-send" class="send-btn">
+                            <i class="fa-solid fa-paper-plane"></i>
+                        </button>
+                    </div>
+                    <div class="quick-actions">
+                        <button class="quick-action-btn" data-message="Расскажите о ваших ценах">
+                            <i class="fa-solid fa-tag"></i> Цены
+                        </button>
+                        <button class="quick-action-btn" data-message="Какие технологии вы используете?">
+                            <i class="fa-solid fa-code"></i> Технологии
+                        </button>
+                        <button class="quick-action-btn" data-message="Как долго занимает разработка?">
+                            <i class="fa-solid fa-clock"></i> Сроки
+                        </button>
+                        <button class="quick-action-btn traditional-form-btn" onclick="openTraditionalForm(event)">
+                            <i class="fa-solid fa-file-lines"></i> Классическая заявка
+                        </button>
+                    </div>
                 </div>
             </div>
-            
-            <div class="chart-card fade-in-up" style="transition-delay: 0.15s">
-                <h3 class="chart-title"><i class="fa-solid fa-filter"></i> Воронка удержания клиентов</h3>
-                <div class="chart-wrapper">
-                    <canvas id="funnelChart"></canvas>
-                </div>
-            </div>
-            
-            <div class="chart-card fade-in-up" style="transition-delay: 0.3s">
-                <h3 class="chart-title"><i class="fa-solid fa-chart-pie"></i> Популярность типов ботов</h3>
-                <div class="chart-wrapper">
-                    <canvas id="engagementChart"></canvas>
+
+            <div class="chat-sidebar">
+
+                <div class="sidebar-section">
+                    <h3><i class="fa-solid fa-phone"></i> Другие контакты</h3>
+                    <div class="contact-buttons">
+                        <a href="#" target="_blank" class="contact-btn telegram">
+                            <i class="fa-brands fa-telegram"></i> Telegram
+                        </a>
+                        <a href="#" target="_blank" class="contact-btn email">
+                            <i class="fa-solid fa-envelope"></i> Email
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
     </section>
--->
-        <!-- Chat Section -->
-        <section id="chat" class="chat-section fade-in-up">
-            <div class="section-header">
-                <h2 class="section-title">Прямая <span class="text-gradient">связь</span></h2>
-                <p>Задавайте вопросы или обсудите ваш проект напрямую с нами</p>
-            </div>
-            <div class="chat-container">
-                <div class="chat-main">
-                    <div class="chat-messages" id="main-chat-messages" aria-live="polite" aria-relevant="additions text">
-                        <div class="message bot-message">
-                            <div class="message-avatar">
-                                <i class="fa-solid fa-robot"></i>
-                            </div>
-                            <div class="message-content">
-                                <p>Привет! Я Витя, помощник консультант компании. Уже видел представление на сайте? Если нет, это можно сделать <a href="#portfolio" class="text-gradient">ниже</a>. А так спрашивай, что интересует по ботам!</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="chat-input-area">
-                        <div class="model-selector">
-                            <button id="model-switch-btn" class="model-btn" type="button" aria-label="Выбрать модель">
-                                <i class="fa-solid fa-brain"></i>
-                                <span id="current-model-name">LM Studio</span>
-                                <i class="fa-solid fa-chevron-down"></i>
-                            </button>
-                            <div id="model-dropdown" class="model-dropdown">
-                                <div class="model-option" data-model="lmstudio">
-                                    <i class="fa-solid fa-server"></i>
-                                    <span>LM Studio (Local)</span>
-                                </div>
-                                <div class="model-option" data-model="gemini">
-                                    <i class="fa-solid fa-google"></i>
-                                    <span>Gemini 2.5 Flash Lite</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="input-wrapper">
-                            <label class="sr-only" for="main-chat-input">Ваше сообщение</label>
-                            <input type="text" id="main-chat-input" name="main-chat-input" placeholder="Введите ваше сообщение..." autocomplete="off">
-                            <button id="main-chat-send" class="send-btn" type="button" aria-label="Отправить сообщение">
-                                <i class="fa-solid fa-paper-plane"></i>
-                            </button>
-                        </div>
-                        <div class="quick-actions">
-                            <button class="quick-action-btn" type="button" data-message="Расскажите о ваших ценах">
-                                <i class="fa-solid fa-tag"></i> Цены
-                            </button>
-                            <button class="quick-action-btn" type="button" data-message="Какие технологии вы используете?">
-                                <i class="fa-solid fa-code"></i> Технологии
-                            </button>
-                            <button class="quick-action-btn" type="button" data-message="Как долго занимает разработка?">
-                                <i class="fa-solid fa-clock"></i> Сроки
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                <div class="chat-sidebar">
-                    <div class="sidebar-section">
-                        <h3><i class="fa-solid fa-circle-info"></i> Быстрая информация</h3>
-                        <ul class="info-list">
-                            <li><strong>Время ответа:</strong> Обычно в течение минут</li>
-                            <li><strong>Доступен:</strong> Пн-Пт, 9:00-18:00</li>
-                            <li><strong>Языки:</strong> Русский, Английский</li>
-                        </ul>
-                    </div>
-                    <div class="sidebar-section">
-                        <h3><i class="fa-solid fa-phone"></i> Другие контакты</h3>
-                        <div class="contact-buttons">
-                            <a href="#" target="_blank" rel="noopener noreferrer" class="contact-btn telegram" aria-label="Связаться через Telegram">
-                                <i class="fa-brands fa-telegram"></i> Telegram
-                            </a>
-                            <a href="#" target="_blank" rel="noopener noreferrer" class="contact-btn email" aria-label="Написать на Email">
-                                <i class="fa-solid fa-envelope"></i> Email
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
 
-        <!-- Portfolio Section -->
-        <section id="portfolio" class="portfolio fade-in-up">
-            <div class="section-header">
-                <h2 class="section-title">Экспертиза <span class="text-gradient">и решения</span></h2>
-                <p>Выбирайте модуль, который ускорит ваш бизнес</p>
-            </div>
-            <div id="bento-container" class="bento-container">
-                <!-- Cards from JS -->
-            </div>
-        </section>
+    <!-- Portfolio Section -->
+    <section id="portfolio" class="portfolio fade-in-up">
+        <div class="section-header">
+            <h2 class="section-title">Экспертиза <span class="text-gradient">& Решения</span></h2>
+            <p>Выбирайте модуль, который ускорит ваш бизнес</p>
+        </div>
 
-        <!-- Максимальный CTA Блок -->
-        <section class="mega-cta fade-in-up">
-            <div class="mega-cta-content">
-                <h2>Хватит терять клиентов <br>из-за рутины.</h2>
-                <p>Бесплатно проанализируем ваши бизнес-процессы и предложим концепт автоматизации через Telegram за 24 часа.</p>
-                <a href="#chat" class="btn btn-primary btn-large btn-glow">
-                    Запросить аудит <i class="fa-brands fa-telegram"></i>
-                </a>
+        <div id="bento-container" class="bento-container">
+            <!-- Cards from JS -->
+        </div>
+    </section>
+
+    <!-- Максимальный CTA Блок -->
+    <section class="mega-cta fade-in-up">
+        <div class="mega-cta-content">
+            <h2>Хватит терять клиентов <br>из-за рутины.</h2>
+            <p>Бесплатно проанализирую ваши бизнес-процессы и предложу концепт автоматизации через Telegram за 24 часа.</p>
+            <a href="#" target="_blank" class="btn btn-primary btn-large btn-glow">
+                Запросить аудит <i class="fa-brands fa-telegram"></i>
+            </a>
+        </div>
+    </section>
+
+    <!-- Модальное окно традиционной формы -->
+    <div id="traditional-form-modal" class="modal">
+        <div class="modal-content traditional-form-content">
+            <span class="close-modal" onclick="closeTraditionalForm()"><i class="fa-solid fa-xmark"></i></span>
+            <div class="modal-header">
+                <h2><i class="fa-solid fa-file-lines"></i> Классическая заявка</h2>
+                <p>Заполните простую форму, и мы свяжемся с вами</p>
             </div>
-        </section>
-    </main>
+            <div class="modal-body">
+                <form id="traditional-form" onsubmit="submitTraditionalForm(event)">
+                    <div class="form-group">
+                        <label for="form-field">Сфера деятельности *</label>
+                        <input type="text" id="form-field" required placeholder="Например: Салон красоты, E-commerce, IT">
+                    </div>
+                    <div class="form-group">
+                        <label for="form-contact">Телефон или Telegram *</label>
+                        <input type="text" id="form-contact" required placeholder="+7 (999) 123-45-67 или @username">
+                    </div>
+                    <div class="form-group">
+                        <label for="form-message">Дополнительная информация</label>
+                        <textarea id="form-message" rows="3" placeholder="Расскажите о вашем проекте (необязательно)"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-large">
+                        <span>Отправить заявку <i class="fa-solid fa-paper-plane"></i></span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
 
     <!-- Модальное окно (без изменений в структуре, стили обновлены) -->
     <div id="bot-modal" class="modal">
         <div class="modal-content">
-            <button type="button" class="close-modal" aria-label="Закрыть модальное окно"><i class="fa-solid fa-xmark"></i></button>
+            <span class="close-modal"><i class="fa-solid fa-xmark"></i></span>
             <div class="modal-header">
                 <div class="modal-icon"><i></i></div>
                 <h2></h2>
             </div>
             <div class="modal-body">
                 <div class="description"></div>
-                
+
                 <!-- Interactive Bot Message Section -->
                 <div class="bot-message-section">
-                    <h3><i class="fa-solid fa-comments"></i> Попробовать бота</h3>
+                    <h3><i class="fa-solid fa-comments"></i> Try the Bot</h3>
                     <div class="bot-chat-container">
                         <div class="bot-chat-messages" id="bot-chat-messages">
                             <div class="bot-message">
                                 <div class="bot-avatar"><i class="fa-solid fa-robot"></i></div>
                                 <div class="message-content">
-                                    <p>Привет! Это демо-бот модуля. Спроси меня о возможностях, цене или внедрении.</p>
+                                    <p>Hi! I'm a demo bot for this module. Ask me anything about how I work!</p>
                                 </div>
                             </div>
                         </div>
                         <div class="bot-chat-input">
-                            <label class="sr-only" for="bot-message-input">Сообщение для демонстрационного бота</label>
-                            <input type="text" id="bot-message-input" name="bot-message-input" placeholder="Спросите о возможностях, цене или внедрении..." autocomplete="off">
-                            <button id="bot-send-btn" type="button" aria-label="Отправить сообщение в демо-чат"><i class="fa-solid fa-paper-plane"></i></button>
+                            <input type="text" id="bot-message-input" placeholder="Ask about features, pricing, implementation...">
+                            <button id="bot-send-btn"><i class="fa-solid fa-paper-plane"></i></button>
                         </div>
                     </div>
                 </div>
 
                 <div class="gallery-section">
-                    <h3>Интерфейс:</h3>
+                    <h3>Interface:</h3>
                     <div class="image-gallery"></div>
                 </div>
                 <div class="features-tech-grid">
                     <div class="features">
-                        <h3>Возможности:</h3>
+                        <h3>Features:</h3>
                         <ul></ul>
                     </div>
                     <div class="tech-stack">
-                        <h3>Стек:</h3>
+                        <h3>Stack:</h3>
                         <div class="tech-tags"></div>
-                        <h3 style="margin-top:20px;">Реализация:</h3>
+                        <h3 style="margin-top:20px;">Implementation:</h3>
                         <div class="implementation-details"></div>
                     </div>
                 </div>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-primary btn-large modal-contact" type="button" style="width: 100%">Хочу такого бота</button>
+                <button class="btn btn-primary btn-large modal-contact" style="width: 100%">Хочу такого бота</button>
             </div>
         </div>
     </div>
@@ -328,11 +442,24 @@
 
     <footer>
         <div class="footer-content">
-            <div class="logo">Nodum<span class="dot">.tech</span></div>
-            <p> 2026. Code & Design.</p>
+            <div class="footer-left">
+                <div class="logo">Nodum<span class="dot">.tech</span></div>
+                <p>© 2026. Code & Design.</p>
+            </div>
+            <div class="footer-right">
+                <a href="#" target="_blank" class="footer-link">
+                    <i class="fa-brands fa-github"></i> GitHub
+                </a>
+                <a href="#" target="_blank" class="footer-link">
+                    <i class="fa-brands fa-telegram"></i> Telegram
+                </a>
+            </div>
         </div>
     </footer>
 
+    </main>
+
+    <script src="config.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
