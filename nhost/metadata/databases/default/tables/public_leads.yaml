@@ -1,0 +1,25 @@
+table:
+  name: leads
+  schema: public
+insert_permissions:
+  - role: public
+    permission:
+      check: {}
+      columns:
+        - source
+        - field
+        - contact
+        - message
+        - business_size
+        - pain_points
+        - bot_interests
+        - chat_history
+        - selected_plan
+        - messages_count
+        - session_duration_sec
+        - device_type
+        - language
+        - referrer
+        - utm_source
+        - utm_medium
+        - utm_campaign

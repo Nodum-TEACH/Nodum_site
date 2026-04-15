@@ -1,30 +1,87 @@
 
-// Use currentModel from config.js if available, otherwise default to lmstudio
-// Global completion detection function
-function checkForCompletion(botResponse) {
-    // This will be defined later in DOMContentLoaded
-    if (typeof window.checkForCompletionImpl === 'function') {
-        window.checkForCompletionImpl(botResponse);
+// ---- Session tracking (set at page load) ----
+const sessionStart = Date.now();
+let lastClickedPlan = null;
+
+function getSessionMeta() {
+    const p = new URLSearchParams(window.location.search);
+    const ua = navigator.userAgent;
+    return {
+        utm_source:           p.get('utm_source'),
+        utm_medium:           p.get('utm_medium'),
+        utm_campaign:         p.get('utm_campaign'),
+        referrer:             document.referrer || null,
+        device_type:          /Mobile|Android|iPhone|iPad/i.test(ua) ? 'mobile' : 'desktop',
+        language:             navigator.language,
+        session_duration_sec: Math.round((Date.now() - sessionStart) / 1000),
+        selected_plan:        lastClickedPlan,
+    };
+}
+
+// ---- Nhost GraphQL helper (public INSERT — no auth needed) ----
+async function nhostInsert(mutation, variables) {
+    try {
+        const res = await fetch(NHOST_GRAPHQL_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ query: mutation, variables }),
+        });
+        const data = await res.json();
+        if (data.errors) console.warn('Nhost insert error:', data.errors);
+    } catch (err) {
+        console.warn('Nhost request failed:', err);
     }
 }
 
-// Global collected info check function
-function checkCollectedInfo(botResponse) {
-    // This will be defined later in DOMContentLoaded
-    if (typeof window.checkCollectedInfoImpl === 'function') {
-        window.checkCollectedInfoImpl(botResponse);
+async function trackPageView() {
+    await nhostInsert(
+        `mutation TV($obj: page_views_insert_input!) {
+            insert_page_views_one(object: $obj) { id }
+        }`,
+        { obj: {
+            referrer:     document.referrer || null,
+            user_agent:   navigator.userAgent,
+            utm_source:   new URLSearchParams(window.location.search).get('utm_source'),
+            utm_medium:   new URLSearchParams(window.location.search).get('utm_medium'),
+            utm_campaign: new URLSearchParams(window.location.search).get('utm_campaign'),
+        }},
+    );
+}
+
+async function trackCTAClick(buttonName) {
+    if (buttonName.includes('plan') || buttonName.includes('tariff')) {
+        lastClickedPlan = buttonName;
+    }
+    await nhostInsert(
+        `mutation CTA($obj: cta_events_insert_input!) {
+            insert_cta_events_one(object: $obj) { id }
+        }`,
+        { obj: { button_name: buttonName } },
+    );
+}
+
+async function saveLeadForm({ field, contact, message }) {
+    try {
+        await fetch(SAVE_LEAD_FORM_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ field, contact, message, sessionMeta: getSessionMeta() }),
+        });
+    } catch (err) {
+        console.warn('saveLeadForm failed:', err);
     }
 }
 
 // Function to handle "Запустить проект" button click
 function startProjectChat(event) {
     event.preventDefault();
+    trackCTAClick('start_project');
 
     // Smooth scroll to chat section
     const chatSection = document.getElementById('chat');
     if (chatSection) {
         chatSection.scrollIntoView({ behavior: 'smooth' });
-
+        
         // Wait for scroll to complete, then send message
         setTimeout(() => {
             const mainChatInput = document.getElementById('main-chat-input');
@@ -38,12 +95,13 @@ function startProjectChat(event) {
 // Function to handle pricing button clicks
 function selectTariff(event, tariffName) {
     event.preventDefault();
+    trackCTAClick(`choose_plan_${tariffName}`);
 
     // Smooth scroll to chat section
     const chatSection = document.getElementById('chat');
     if (chatSection) {
         chatSection.scrollIntoView({ behavior: 'smooth' });
-
+        
         // Wait for scroll to complete, then send message
         setTimeout(() => {
             const mainChatInput = document.getElementById('main-chat-input');
@@ -74,15 +132,15 @@ function closeTraditionalForm() {
 }
 
 // Function to submit traditional form
-function submitTraditionalForm(event) {
+async function submitTraditionalForm(event) {
     event.preventDefault();
 
     const field = document.getElementById('form-field').value;
     const contact = document.getElementById('form-contact').value;
     const message = document.getElementById('form-message').value;
 
-    // Send the data to your backend or process it
-    console.log('Traditional form submitted:', { field, contact, message });
+    // Save lead to Nhost
+    await saveLeadForm({ field, contact, message });
 
     // Close the modal
     closeTraditionalForm();
@@ -98,34 +156,34 @@ function submitTraditionalForm(event) {
 
 
 
-// Новая и единственная функция для общения с Витей
-async function llmstudo(input, systemPrompt = null, chatHistory = []) {
-    try {
-        // Traefik strips /v1 and forwards to the functions service
-        const response = await fetch('https://nhost.weebx.duckdns.org/v1/chat-proxy', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                message: input,
-                chatHistory: chatHistory
-            })
-        });
+// AI calls are handled server-side via /chat-proxy.
+// Browser sends only { message, chatHistory, sessionMeta } — no API keys or system prompt.
+async function callMistralAPI(input, _systemPrompt, chatHistory = []) {
+    const res = await fetch(CHAT_PROXY_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            message: input,
+            chatHistory,
+            sessionMeta: getSessionMeta(),
+        }),
+    });
 
-        if (!response.ok) {
-            // Если 404, попробуйте по очереди: /functions/chat-proxy или /v1/chat-proxy
-            throw new Error(`Ошибка сервера Nhost: ${response.status}`);
-        }
-
-        const data = await response.json();
-        return data.reply || 'Витя не смог ответить...';
-    } catch (error) {
-        console.error('Ошибка бэкенда:', error);
-        return "Проблема со связью. Проверьте логи Docker и Caddy.";
+    if (!res.ok) {
+        throw new Error(`chat-proxy error: ${res.status}`);
     }
+
+    const data = await res.json();
+
+    // If the AI called save_lead tool — lead is already persisted server-side
+    if (data.leadSaved) {
+        setTimeout(() => disableChat(), 1500);
+    }
+
+    return data.reply || '';
 }
 
+// Smooth scroll to any hash target (added in Vercel refactor)
 function scrollToHashTarget(hash) {
     const targetId = hash.startsWith('#') ? hash.slice(1) : hash;
     if (!targetId) return false;
@@ -144,6 +202,7 @@ function scrollToHashTarget(hash) {
     return true;
 }
 
+// Global anchor click handler
 document.addEventListener('click', (event) => {
     const link = event.target.closest('a[href^="#"]');
     if (!link) return;
@@ -162,14 +221,51 @@ document.addEventListener('DOMContentLoaded', () => {
         scrollToHashTarget('#portfolio');
     };
 
-    // 2. Магнитные кнопки
+    // Инициализация обработки ссылок в сообщениях бота
+    function initializeBotMessageLinks() {
+        const botMessages = document.querySelectorAll('.message.bot-message');
+        botMessages.forEach(message => {
+            const links = message.querySelectorAll('a[href^="#"]');
+            links.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const targetId = link.getAttribute('href').substring(1);
+                    const targetElement = document.getElementById(targetId);
+                    
+                    if (targetElement) {
+                        targetElement.scrollIntoView({ behavior: 'smooth' });
+                        
+                        // Добавляем визуальное выделение целевой секции
+                        targetElement.style.transition = 'box-shadow 0.3s ease';
+                        targetElement.style.boxShadow = '0 0 30px rgba(102, 126, 234, 0.3)';
+                        
+                        setTimeout(() => {
+                            targetElement.style.boxShadow = '';
+                        }, 2000);
+                    }
+                    
+                    // Safe whitelist-based onclick handler — no eval()
+                    const onclickAttr = link.getAttribute('onclick');
+                    if (onclickAttr && onclickAttr.includes('scrollToPortfolio()')) {
+                        window.scrollToPortfolio && window.scrollToPortfolio();
+                    }
+                });
+            });
+        });
+    }
+
+    // Вызываем инициализацию при загрузке
+    initializeBotMessageLinks();
+
+
+// 2. Магнитные кнопки
     const magneticButtons = document.querySelectorAll('.btn-magnetic');
     magneticButtons.forEach(btn => {
         btn.addEventListener('mousemove', function(e) {
             const position = btn.getBoundingClientRect();
             const x = e.pageX - position.left - position.width / 2;
             const y = e.pageY - position.top - position.height / 2;
-
+            
             btn.style.transform = `translate(${x * 0.15}px, ${y * 0.15}px)`;
             const span = btn.querySelector('span');
             if(span) span.style.transform = `translate(${x * 0.05}px, ${y * 0.05}px)`;
@@ -193,14 +289,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderCards(cards) {
         const container = document.getElementById('bento-container');
-
+        
         cards.forEach((card, index) => {
             const cardEl = document.createElement('div');
             // Применяем классы сетки
             cardEl.className = `bento-card card-${index} fade-in-up`;
             // Задержка анимации для каскадного появления
             cardEl.style.transitionDelay = `${index * 0.1}s`;
-
+            
             const tagsHTML = card.tags.slice(0, 3).map(tag => `<span>${tag}</span>`).join('');
 
             cardEl.innerHTML = `
@@ -211,8 +307,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
                 <div class="card-tags">${tagsHTML}</div>
             `;
-
-
+            
+            
             cardEl.addEventListener('click', () => openModal(card));
             container.appendChild(cardEl);
         });
@@ -220,28 +316,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 4. Модальное окно (логика)
     const modal = document.getElementById('bot-modal');
-
+    
     function openModal(card) {
         modal.querySelector('.modal-icon i').className = card.icon;
         modal.querySelector('h2').textContent = card.title;
         modal.querySelector('.description').textContent = card.description;
-
+        
         // Галерея
         const gallery = modal.querySelector('.image-gallery');
         gallery.innerHTML = card.images ? card.images.map(img => `
             <div class="gallery-item"><img src="${img}" alt="Preview" loading="lazy"></div>
         `).join('') : '<p style="color:var(--text-muted)">Нет скриншотов</p>';
-
+        
         // Функции
         modal.querySelector('.features ul').innerHTML = card.features.map(f => `<li>${f}</li>`).join('');
-
+        
         // Теги и детали
         modal.querySelector('.tech-tags').innerHTML = card.tags.map(t => `<span style="background:var(--card-bg); border:1px solid var(--card-border); padding:5px 12px; border-radius:100px; font-size:0.8rem; margin-right:5px; display:inline-block; margin-bottom:5px;">${t}</span>`).join('');
         modal.querySelector('.implementation-details').textContent = card.implementation;
-
+        
         // Reset bot chat
         resetBotChat(card.title);
-
+        
         modal.style.display = 'flex';
         setTimeout(() => modal.classList.add('visible'), 10);
         document.body.style.overflow = 'hidden';
@@ -307,7 +403,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         const lowerMessage = userMessage.toLowerCase();
-
+        
         for (const [key, response] of Object.entries(responses)) {
             if (lowerMessage.includes(key)) {
                 return response;
@@ -360,16 +456,16 @@ document.addEventListener('DOMContentLoaded', () => {
     // Анимация счетчиков статистики
     function initStatCounters() {
         const statNumbers = document.querySelectorAll('.stat-number');
-
+        
         const counterObserver = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
                     const target = parseInt(entry.target.getAttribute('data-target'));
                     animateCounter(entry.target, target);
-
+                    
                     // Добавляем класс для анимации появления
                     entry.target.closest('.stat-item').classList.add('animate');
-
+                    
                     counterObserver.unobserve(entry.target);
                 }
             });
@@ -387,10 +483,10 @@ document.addEventListener('DOMContentLoaded', () => {
         function updateCounter(currentTime) {
             const elapsed = currentTime - startTime;
             const progress = Math.min(elapsed / duration, 1);
-
+            
             // Easing function - easeOutExpo
             const easeProgress = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
-
+            
             const currentValue = Math.floor(startValue + (target - startValue) * easeProgress);
             element.textContent = currentValue;
 
@@ -409,15 +505,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const mainChatSendBtn = document.getElementById('main-chat-send');
     const mainChatMessages = document.getElementById('main-chat-messages');
     const quickActionBtns = document.querySelectorAll('.quick-action-btn');
-
+    
     // Хранение истории чата
     let chatHistory = [];
-
-    // Отслеживание собранной информации
-    let collectedInfo = {
-        field: false,
-        contact: false
-    };
 
     // Флаг отключения чата
     let chatDisabled = false;
@@ -425,26 +515,21 @@ document.addEventListener('DOMContentLoaded', () => {
     // Функция очистки истории чата
     function resetMainChatHistory() {
         chatHistory = [];
-        // Сбрасываем отслеживание информации
-        collectedInfo = {
-            field: false,
-            contact: false
-        };
         chatDisabled = false;
-
+        
         // Включаем обратно элементы управления
         mainChatInput.disabled = false;
         mainChatInput.placeholder = 'Введите ваше сообщение...';
         mainChatSendBtn.disabled = false;
         mainChatSendBtn.style.opacity = '1';
         mainChatSendBtn.style.cursor = 'pointer';
-
+        
         quickActionBtns.forEach(btn => {
             btn.disabled = false;
             btn.style.opacity = '1';
             btn.style.cursor = 'pointer';
         });
-
+        
         // Удаляем класс отключения
         document.querySelector('.chat-main').classList.remove('chat-disabled');
     }
@@ -505,17 +590,14 @@ document.addEventListener('DOMContentLoaded', () => {
         mainChatMessages.scrollTop = mainChatMessages.scrollHeight;
 
         try {
-            // Вызываем llmstudo с историей сообщений
-            botResponse = await llmstudo(message, undefined, chatHistory);
+            // Вызываем callMistralAPI с историей сообщений
+            botResponse = await callMistralAPI(message, undefined, chatHistory);
 
             // Добавляем ответ бота в историю
             chatHistory.push({
                 role: 'assistant',
                 content: botResponse
             });
-
-            // Проверяем, была ли собрана информация
-            checkCollectedInfo(botResponse);
 
             // Remove typing indicator
             typingDiv.remove();
@@ -532,11 +614,40 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             `;
             mainChatMessages.appendChild(botMsgDiv);
+            
+            // Обрабатываем клики по ссылкам в сообщениях бота
+            const links = botMsgDiv.querySelectorAll('a[href^="#"]');
+            links.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const targetId = link.getAttribute('href').substring(1);
+                    const targetElement = document.getElementById(targetId);
+                    
+                    if (targetElement) {
+                        targetElement.scrollIntoView({ behavior: 'smooth' });
+                        
+                        // Добавляем визуальное выделение целевой секции
+                        targetElement.style.transition = 'box-shadow 0.3s ease';
+                        targetElement.style.boxShadow = '0 0 30px rgba(102, 126, 234, 0.3)';
+                        
+                        setTimeout(() => {
+                            targetElement.style.boxShadow = '';
+                        }, 2000);
+                    }
+                    
+                    // Safe whitelist-based onclick handler — no eval()
+                    const onclickAttr = link.getAttribute('onclick');
+                    if (onclickAttr && onclickAttr.includes('scrollToPortfolio()')) {
+                        window.scrollToPortfolio && window.scrollToPortfolio();
+                    }
+                });
+            });
+            
             mainChatMessages.scrollTop = mainChatMessages.scrollHeight;
 
         } catch (error) {
             console.error('Error calling LM Studio API:', error);
-
+            
             // Remove typing indicator
             typingDiv.remove();
 
@@ -561,7 +672,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Get bot response based on message content
     function getBotResponse(message) {
         const lowerMessage = message.toLowerCase();
-
+        
         if (lowerMessage.includes('price') || lowerMessage.includes('cost') || lowerMessage.includes('pricing')) {
             return botResponses.pricing;
         } else if (lowerMessage.includes('technology') || lowerMessage.includes('tech') || lowerMessage.includes('stack')) {
@@ -596,80 +707,30 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Add manual trigger for testing (remove in production)
-    window.testDisableChat = function() {
-        disableChat();
-    };
-
-    // Function to check collected information
-    function checkCollectedInfoImpl(botResponse) {
-        if (chatDisabled) return;
-
-        const response = botResponse.toLowerCase();
-
-        // Отслеживаем, спросил ли бот сферу или контакт
-        if (response.includes('сфер') || response.includes('бизнес') || response.includes('чем занимаетесь')) {
-            collectedInfo.field = true;
-        }
-        if (response.includes('телефон') || response.includes('telegram') || response.includes('телеграм') || response.includes('связаться')) {
-            collectedInfo.contact = true;
-        }
-    }
-
-    // Function to check if application is completed
-    function checkForCompletionImpl(botResponse) {
-        if (chatDisabled) return;
-
-        const response = botResponse.toLowerCase();
-
-        // Триггеры успешного завершения (слова, которые бот говорит В КОНЦЕ)
-        const completionKeywords =[
-            'всё записал',
-            'свяжемся',
-            'до скорого',
-            'спасибо за информацию',
-            'передам специалисту'
-        ];
-
-        const isCompletion = completionKeywords.some(keyword => response.includes(keyword));
-
-        // Отключаем чат только если бот подтвердил запись и мы ранее просили контакт
-        if (isCompletion && collectedInfo.contact) {
-            setTimeout(() => {
-                disableChat();
-            }, 1500);
-        }
-    }
-
-    // Assign to window for global access
-    window.checkForCompletionImpl = checkForCompletionImpl;
-
-    // Assign to window for global access
-    window.checkCollectedInfoImpl = checkCollectedInfoImpl;
+    // Chat completion is now triggered server-side: when the AI calls save_lead tool,
+    // chat-proxy returns { leadSaved: true } and callMistralAPI calls disableChat().
     window.sendMainChatMessageImpl = sendMainChatMessage;
-
-    console.log('Chat disable system loaded. Use testDisableChat() to test manually.');
 
     // Функция отключения чата
     function disableChat() {
         chatDisabled = true;
-
+        
         // Отключаем поле ввода
         mainChatInput.disabled = true;
         mainChatInput.placeholder = 'Чат завершен';
-
+        
         // Отключаем кнопку отправки
         mainChatSendBtn.disabled = true;
         mainChatSendBtn.style.opacity = '0.5';
         mainChatSendBtn.style.cursor = 'not-allowed';
-
+        
         // Отключаем быстрые кнопки
         quickActionBtns.forEach(btn => {
             btn.disabled = true;
             btn.style.opacity = '0.5';
             btn.style.cursor = 'not-allowed';
         });
-
+        
         // Добавляем сообщение о завершении
         const completionMsg = document.createElement('div');
         completionMsg.className = 'message bot-message completion-message';
@@ -704,7 +765,7 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
         mainChatMessages.appendChild(completionMsg);
         mainChatMessages.scrollTop = mainChatMessages.scrollHeight;
-
+        
         // Добавляем класс для стилизации
         document.querySelector('.chat-main').classList.add('chat-disabled');
     }
@@ -719,10 +780,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         function updateCards(newIndex, direction = 'next') {
             const total = cards.length;
-
+            
             cards.forEach((card, index) => {
                 card.classList.remove('active', 'prev', 'next');
-
+                
                 if (index === newIndex) {
                     card.classList.add('active');
                 } else if (direction === 'next') {
@@ -838,5 +899,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initialize reviews flip when DOM is ready
     initReviewsFlip();
+
+    // Track page view on load (fire-and-forget)
+    trackPageView();
 
 });

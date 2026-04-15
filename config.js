@@ -1,6 +1,2 @@
-// config.js
-const API_CONFIG = {
-    // URL вашего сервера (через Caddy)
-    proxyUrl: 'https://nhost.weebx.duckdns.org/v1/chat-proxy',
-    graphqlUrl: 'https://nhost.weebx.duckdns.org/v1/graphql'
-};
+// AI model config removed — keys are now server-side in Nhost environment variables.
+// See nhost/.env.example for the full list of required env vars.

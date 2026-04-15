@@ -309,7 +309,7 @@
                         <button class="quick-action-btn" data-message="Как долго занимает разработка?">
                             <i class="fa-solid fa-clock"></i> Сроки
                         </button>
-                        <button class="quick-action-btn traditional-form-btn" onclick="openTraditionalForm(event)">
+                        <button class="quick-action-btn traditional-form-btn" onclick="trackCTAClick('classic_form'); openTraditionalForm(event)">
                             <i class="fa-solid fa-file-lines"></i> Классическая заявка
                         </button>
                     </div>
@@ -350,7 +350,7 @@
         <div class="mega-cta-content">
             <h2>Хватит терять клиентов <br>из-за рутины.</h2>
             <p>Бесплатно проанализирую ваши бизнес-процессы и предложу концепт автоматизации через Telegram за 24 часа.</p>
-            <a href="#" target="_blank" class="btn btn-primary btn-large btn-glow">
+            <a href="#" target="_blank" onclick="trackCTAClick('audit')" class="btn btn-primary btn-large btn-glow">
                 Запросить аудит <i class="fa-brands fa-telegram"></i>
             </a>
         </div>
@@ -460,6 +460,7 @@
     </main>
 
     <script src="config.js"></script>
+    <script src="nhost-config.js"></script>
     <script src="script.js"></script>
 </body>
 </html>

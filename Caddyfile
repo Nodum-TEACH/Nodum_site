@@ -1,4 +1,15 @@
-nhost.weebx.duckdns.org:443 {
+# ---- LM Studio proxy (kept for direct access if needed) ----
+weebx.duckdns.org {
+    # Security headers
+    header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains"
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "DENY"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        -Server
+    }
+
+    # Preflight CORS
     @options {
         method OPTIONS
     }
@@ -6,17 +17,49 @@ nhost.weebx.duckdns.org:443 {
         header {
             Access-Control-Allow-Origin "https://nodum-teach.github.io"
             Access-Control-Allow-Methods "GET, POST, OPTIONS"
+            Access-Control-Allow-Headers "Content-Type, Authorization"
+            Access-Control-Max-Age "86400"
+        }
+        respond 204
+    }
+
+    # Proxy to LM Studio (internal only — no longer called from browser)
+    reverse_proxy 198.18.0.1:1236 {
+        header_down Access-Control-Allow-Origin "https://nodum-teach.github.io"
+        header_down Access-Control-Allow-Methods "GET, POST, OPTIONS"
+        header_down Access-Control-Allow-Headers "Content-Type, Authorization"
+    }
+}
+
+# ---- Nhost self-hosted (PostgreSQL + Hasura + Functions) ----
+nhost.weebx.duckdns.org {
+    # Security headers
+    header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains"
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "DENY"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        -Server
+    }
+
+    # Preflight CORS for frontend on GitHub Pages
+    @options {
+        method OPTIONS
+    }
+    handle @options {
+        header {
+            Access-Control-Allow-Origin "https://nodum-teach.github.io"
+            Access-Control-Allow-Methods "POST, GET, OPTIONS"
             Access-Control-Allow-Headers "Content-Type, Authorization, x-hasura-role"
             Access-Control-Max-Age "86400"
         }
         respond 204
     }
 
-    # Proxy /v1/* to Nhost functions (port 3000)
-    handle_path /v1/* {
-        reverse_proxy 127.0.0.1:3000
+    # Forward everything to Nhost gateway
+    reverse_proxy localhost:1337 {
+        header_down Access-Control-Allow-Origin "https://nodum-teach.github.io"
+        header_down Access-Control-Allow-Methods "POST, GET, OPTIONS"
+        header_down Access-Control-Allow-Headers "Content-Type, Authorization, x-hasura-role"
     }
-
-    # Proxy everything else to LM Studio (port 1236)
-    reverse_proxy 127.0.0.1:1236
 }

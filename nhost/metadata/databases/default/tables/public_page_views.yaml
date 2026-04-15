@@ -1,0 +1,13 @@
+table:
+  name: page_views
+  schema: public
+insert_permissions:
+  - role: public
+    permission:
+      check: {}
+      columns:
+        - referrer
+        - utm_source
+        - utm_medium
+        - utm_campaign
+        - user_agent
