@@ -11,11 +11,14 @@
     --font-main: 'Outfit', sans-serif;
     --radius-lg: 24px;
     --radius-md: 16px;
-    --transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    --transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1), color 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
-html { scroll-behavior: smooth; }
+html {
+    scroll-behavior: smooth;
+    color-scheme: dark;
+}
 
 body {
     background-color: var(--bg-color);
@@ -24,6 +27,57 @@ body {
     line-height: 1.6;
     overflow-x: hidden;
     cursor: default;
+    min-height: 100vh;
+}
+
+a,
+button,
+input,
+textarea,
+select,
+[role="button"] {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+}
+
+.skip-link {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    transform: translateY(-160%);
+    background: var(--text-main);
+    color: var(--bg-color);
+    padding: 12px 16px;
+    border-radius: 999px;
+    z-index: 1000;
+    text-decoration: none;
+    font-weight: 700;
+    transition: transform 0.2s ease;
+}
+
+.skip-link:focus {
+    transform: translateY(0);
+}
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
 }
 
 /* Динамический курсор-глоу (удален) */
@@ -33,7 +87,7 @@ body {
 .bg-gradient {
     position: fixed;
     top: 0; left: 0; width: 100vw; height: 100vh;
-    background: 
+    background:
         radial-gradient(circle at 15% 50%, rgba(59, 130, 246, 0.08), transparent 25%),
         radial-gradient(circle at 85% 30%, rgba(139, 92, 246, 0.08), transparent 25%);
     z-index: -3;
@@ -42,7 +96,7 @@ body {
 .grid-bg {
     position: fixed;
     top: 0; left: 0; width: 100vw; height: 100vh;
-    background-image: 
+    background-image:
         linear-gradient(var(--card-border) 1px, transparent 1px),
         linear-gradient(90deg, var(--card-border) 1px, transparent 1px);
     background-size: 60px 60px;
@@ -173,6 +227,7 @@ body {
     font-weight: 800;
     margin-bottom: 1.5rem;
     letter-spacing: -1px;
+    text-wrap: balance;
 }
 
 .text-gradient {
@@ -226,7 +281,7 @@ body {
         max-width: 300px;
         margin-inline: auto;
     }
-    
+
     .hero-buttons .btn {
         width: 100%; /* Full width buttons on mobile */
         font-size: 1rem;
@@ -260,6 +315,7 @@ body {
 .btn-secondary span {
     transition: transform 0.3s ease;
     display: inline-block;
+    font-variant-numeric: tabular-nums;
 }
 
 .btn-secondary:hover span {
@@ -848,12 +904,14 @@ body {
     font-size: 1.65rem;
     font-weight: 800;
     margin-bottom: 10px;
+    text-wrap: balance;
 }
 
 .pricing-price {
     font-size: 1.05rem;
     color: var(--text-main);
     font-weight: 700;
+    font-variant-numeric: tabular-nums;
 }
 
 .pricing-launch {
@@ -908,7 +966,7 @@ body {
 }
 
 .section-header { text-align: center; margin-bottom: 60px; }
-.section-title { font-size: clamp(2.5rem, 4vw, 3.5rem); font-weight: 800; }
+.section-title { font-size: clamp(2.5rem, 4vw, 3.5rem); font-weight: 800; text-wrap: balance; }
 .section-header p { color: var(--text-muted); font-size: 1.2rem; }
 
 /* Современный Bento Grid */
@@ -965,21 +1023,21 @@ body {
 .bento-card:hover .card-icon { transform: scale(1.1) rotate(-5deg); background: var(--accent); color: #fff;}
 
 .bento-card h3 { font-size: 1.5rem; margin-bottom: 10px; font-weight: 700; }
-.bento-card p { 
-    color: var(--text-muted); 
-    font-size: 0.95rem; 
-    margin-bottom: 20px; 
-    display: -webkit-box; 
-    -webkit-line-clamp: 3; 
+.bento-card p {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    margin-bottom: 20px;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
     line-clamp: 3;
-    -webkit-box-orient: vertical; 
+    -webkit-box-orient: vertical;
     overflow: hidden;
 }
 
 .card-0 h3 { font-size: 2.2rem; }
-.card-0 p { 
-    font-size: 1.1rem; 
-    -webkit-line-clamp: 5; 
+.card-0 p {
+    font-size: 1.1rem;
+    -webkit-line-clamp: 5;
     line-clamp: 5;
 }
 
@@ -1022,7 +1080,7 @@ body {
 
 @keyframes rotate { 100% { transform: rotate(360deg); } }
 
-.mega-cta h2 { font-size: clamp(2rem, 5vw, 4rem); font-weight: 800; line-height: 1.1; margin-bottom: 20px; }
+.mega-cta h2 { font-size: clamp(2rem, 5vw, 4rem); font-weight: 800; line-height: 1.1; margin-bottom: 20px; text-wrap: balance; }
 .mega-cta p { font-size: 1.2rem; color: var(--text-muted); max-width: 600px; margin: 0 auto 40px; }
 
 /* Modal Premium Styling */
@@ -1056,7 +1114,7 @@ body {
 .close-modal:hover { background: var(--accent); color: white; transform: rotate(90deg); }
 
 .modal-header { padding: 40px; border-bottom: 1px solid var(--card-border); display: flex; gap: 20px; align-items: center; }
-.modal-header h2 { font-size: 2.2rem; font-weight: 800; }
+.modal-header h2 { font-size: 2.2rem; font-weight: 800; text-wrap: balance; }
 .modal-body { padding: 40px; }
 .description { font-size: 1.1rem; color: var(--text-muted); margin-bottom: 40px; }
 
@@ -1326,24 +1384,24 @@ footer { padding: 40px 5%; border-top: 1px solid var(--card-border); margin-top:
 .footer-left { display: flex; flex-direction: column; gap: 8px; }
 .footer-left p { color: var(--text-muted); font-size: 0.9rem; }
 .footer-right { display: flex; gap: 16px; }
-.footer-link { 
-    display: flex; 
-    align-items: center; 
-    gap: 8px; 
-    padding: 10px 20px; 
-    background: var(--card-bg); 
-    border: 1px solid var(--card-border); 
-    border-radius: 100px; 
-    color: var(--text-muted); 
-    text-decoration: none; 
-    font-size: 0.9rem; 
-    font-weight: 500; 
-    transition: var(--transition); 
+.footer-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 100px;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: var(--transition);
 }
-.footer-link:hover { 
-    background: var(--card-hover); 
-    border-color: var(--text-main); 
-    color: var(--text-main); 
+.footer-link:hover {
+    background: var(--card-hover);
+    border-color: var(--text-main);
+    color: var(--text-main);
 }
 
 /* Адаптив */
@@ -2077,61 +2135,61 @@ footer { padding: 40px 5%; border-top: 1px solid var(--card-border); margin-top:
     .chat-section {
         padding: 60px 4%;
     }
-    
+
     .chat-container {
         grid-template-columns: 1fr;
         gap: 20px;
         margin-top: 30px;
     }
-    
+
     .chat-main {
         border-radius: var(--radius-md);
     }
-    
+
     .chat-messages {
         height: 350px;
         padding: 15px;
     }
-    
+
     .message {
         max-width: 90%;
     }
-    
+
     .message-avatar {
         width: 32px;
         height: 32px;
     }
-    
+
     .message-content {
         padding: 10px 14px;
         font-size: 0.9rem;
     }
-    
+
     .chat-input-area {
         padding: 15px;
     }
-    
+
     .input-wrapper {
         flex-direction: row;
         gap: 10px;
     }
-    
+
     .input-wrapper input {
         flex: 1;
         padding: 12px 14px;
     }
-    
+
     .send-btn {
         width: 48px;
         height: 44px;
         flex-shrink: 0;
     }
-    
+
     .quick-actions {
         justify-content: center;
         gap: 8px;
     }
-    
+
     .quick-action-btn {
         padding: 8px 12px;
         font-size: 0.8rem;
@@ -2139,25 +2197,25 @@ footer { padding: 40px 5%; border-top: 1px solid var(--card-border); margin-top:
         justify-content: center;
         min-width: calc(33.333% - 6px);
     }
-    
+
     .sidebar-section {
         padding: 16px;
         border-radius: var(--radius-md);
     }
-    
+
     .sidebar-section h3 {
         font-size: 1rem;
         margin-bottom: 12px;
     }
-    
+
     .info-list li {
         font-size: 0.85rem;
     }
-    
+
     .contact-buttons {
         gap: 8px;
     }
-    
+
     .contact-btn {
         padding: 10px 14px;
         font-size: 0.9rem;
