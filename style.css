@@ -622,6 +622,8 @@ body {
     align-items: flex-start;
     justify-content: space-between;
     gap: 20px;
+    flex-wrap: wrap;
+    flex-direction: column;
 }
 
 .pricing-name {
@@ -639,8 +641,16 @@ body {
 .pricing-launch {
     color: var(--text-muted);
     font-size: 0.92rem;
-    text-align: right;
+    white-space: normal;
+    word-wrap: break-word;
+    line-height: 1.4;
     min-width: 120px;
+}
+
+.price-highlight {
+    color: var(--accent-glow);
+    font-weight: 700;
+    white-space: nowrap;
 }
 
 .pricing-list {
