@@ -11,11 +11,14 @@
     --font-main: 'Outfit', sans-serif;
     --radius-lg: 24px;
     --radius-md: 16px;
-    --transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    --transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1), color 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
-html { scroll-behavior: smooth; }
+html {
+    scroll-behavior: smooth;
+    color-scheme: dark;
+}
 
 body {
     background-color: var(--bg-color);
@@ -24,6 +27,57 @@ body {
     line-height: 1.6;
     overflow-x: hidden;
     cursor: default;
+    min-height: 100vh;
+}
+
+a,
+button,
+input,
+textarea,
+select,
+[role="button"] {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+}
+
+.skip-link {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    transform: translateY(-160%);
+    background: var(--text-main);
+    color: var(--bg-color);
+    padding: 12px 16px;
+    border-radius: 999px;
+    z-index: 1000;
+    text-decoration: none;
+    font-weight: 700;
+    transition: transform 0.2s ease;
+}
+
+.skip-link:focus {
+    transform: translateY(0);
+}
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
 }
 
 /* Model Selector Styles */
@@ -97,7 +151,7 @@ body {
 
 .model-option:hover {
     background: var(--card-hover);
-    padding-left: 20px;
+    transform: translateX(4px);
 }
 
 .model-option.active {
@@ -181,6 +235,11 @@ body {
     transition: var(--transition);
     overflow: hidden;
     border: none;
+}
+
+.btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
 }
 
 .btn-sm { padding: 10px 20px; font-size: 0.9rem; }
@@ -302,7 +361,7 @@ body {
     cursor: pointer;
     border-radius: 16px; /* Slightly larger border radius for bigger buttons */
     font-weight: 600;
-    transition: all 0.3s ease;
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s cubic-bezier(0.16, 1, 0.3, 1), color 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -335,7 +394,7 @@ body {
     top: 50%;
     transform: translateY(-50%);
     opacity: 0;
-    transition: all 0.3s ease;
+    transition: opacity 0.25s ease, transform 0.25s ease;
     font-size: 1.2rem; /* Larger arrow */
     pointer-events: none; /* Don't interfere with clicks */
 }
@@ -350,7 +409,7 @@ body {
 }
 
 .btn-secondary span {
-    transition: transform 0.3s ease;
+    transition: transform 0.25s ease;
     display: inline-block;
 }
 
@@ -1432,7 +1491,7 @@ footer { padding: 40px 5%; border-top: 1px solid var(--card-border); margin-top:
     background: rgba(96, 165, 250, 0.15) !important;
     padding: 3px 8px !important;
     border-radius: 4px !important;
-    transition: all 0.3s ease !important;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease !important;
     cursor: pointer !important;
     position: relative !important;
     font-weight: 600 !important;
@@ -1536,7 +1595,7 @@ footer { padding: 40px 5%; border-top: 1px solid var(--card-border); margin-top:
     padding: 12px 16px;
     color: var(--text-main);
     font-family: var(--font-main);
-    font-size: 0.95rem;
+    font-size: 16px;
     transition: var(--transition);
 }
 
@@ -1657,6 +1716,25 @@ footer { padding: 40px 5%; border-top: 1px solid var(--card-border); margin-top:
     color: white;
     border-color: var(--accent);
     transform: translateY(-2px);
+}
+
+.close-modal {
+    border: 1px solid var(--card-border);
+    background: var(--card-bg);
+    color: var(--text-main);
+}
+
+.close-modal:focus-visible {
+    outline-offset: 4px;
+}
+
+section[id] {
+    scroll-margin-top: 120px;
+}
+
+a,
+button {
+    -webkit-tap-highlight-color: rgba(59, 130, 246, 0.15);
 }
 
 /* Responsive for chat section */
