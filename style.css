@@ -1213,8 +1213,8 @@ body {
 }
 
 .bot-message .message-content {
-    background: rgba(59, 130, 246, 0.1);
-    border: 1px solid rgba(59, 130, 246, 0.2);
+    background: rgba(59, 130, 246, 0.15);
+    border: 1px solid rgba(59, 130, 246, 0.3);
     padding: 12px 16px;
     border-radius: 16px;
     border-bottom-left-radius: 4px;
@@ -1561,7 +1561,24 @@ footer { padding: 40px 5%; border-top: 1px solid var(--card-border); margin-top:
     .image-gallery { grid-template-columns: 1fr; }
     .footer-content { flex-direction: column; gap: 10px; text-align: center; }
     .chat-container { grid-template-columns: 1fr; }
-    .chat-messages { height: 280px; }
+    .chat-messages {
+        height: 400px;
+    }
+    
+    .message {
+        max-width: 85%;
+    }
+    
+    .message-avatar {
+        width: 36px;
+        height: 36px;
+    }
+    
+    .message-content {
+        padding: 10px 14px;
+        font-size: 0.9rem;
+    }
+    
     .quick-actions { justify-content: flex-start; }
     .input-wrapper {
         flex-direction: column;
@@ -1721,7 +1738,7 @@ footer { padding: 40px 5%; border-top: 1px solid var(--card-border); margin-top:
     }
 
     .chat-messages {
-        height: 240px;
+        height: 350px;
         padding: 14px;
     }
 
@@ -1760,6 +1777,8 @@ footer { padding: 40px 5%; border-top: 1px solid var(--card-border); margin-top:
     padding: 80px 5%;
     max-width: 1200px;
     margin: 0 auto;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .chat-container {
@@ -1767,6 +1786,8 @@ footer { padding: 40px 5%; border-top: 1px solid var(--card-border); margin-top:
     grid-template-columns: 1fr 300px;
     gap: 30px;
     margin-top: 40px;
+    width: 100%;
+    min-width: 0;
 }
 
 .chat-main {
@@ -1774,15 +1795,22 @@ footer { padding: 40px 5%; border-top: 1px solid var(--card-border); margin-top:
     border: 1px solid var(--card-border);
     border-radius: var(--radius-lg);
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
 }
 
 .chat-messages {
-    height: 400px;
+    height: 600px;
+    max-height: 600px;
     overflow-y: auto;
+    overflow-x: hidden;
     padding: 20px;
     display: flex;
     flex-direction: column;
     gap: 15px;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
 }
 
 .message {
@@ -2089,7 +2117,7 @@ footer { padding: 40px 5%; border-top: 1px solid var(--card-border); margin-top:
     }
     
     .chat-messages {
-        height: 350px;
+        height: 450px;
         padding: 15px;
     }
     

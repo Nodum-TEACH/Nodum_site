@@ -1,7 +1,5 @@
 
-// Current selected model
-let currentModel = 'lmstudio';
-
+// Use currentModel from config.js if available, otherwise default to lmstudio
 // Global completion detection function
 function checkForCompletion(botResponse) {
     // This will be defined later in DOMContentLoaded
@@ -168,6 +166,12 @@ async function callGeminiAPI(input, systemPrompt, chatHistory = []) {
 // Function to call LM Studio API
 async function callLMStudioAPI(input, systemPrompt, chatHistory = []) {
     try {
+        // Get current model configuration
+        const modelConfig = AI_MODELS[currentModel];
+        if (!modelConfig) {
+            throw new Error(`Model ${currentModel} not found in AI_MODELS`);
+        }
+
         // Create full message array
         const messages = [
             {
@@ -177,14 +181,14 @@ async function callLMStudioAPI(input, systemPrompt, chatHistory = []) {
             ...chatHistory
         ];
 
-        const response = await fetch(`${AI_MODELS.lmstudio.baseUrl}/v1/chat/completions`, {
+        const response = await fetch(`${modelConfig.baseUrl}/v1/chat/completions`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${AI_MODELS.lmstudio.apiKey}`
+                'Authorization': `Bearer ${modelConfig.apiKey}`
             },
             body: JSON.stringify({
-                model: AI_MODELS.lmstudio.model,
+                model: modelConfig.model,
                 messages: messages
             })
         });
