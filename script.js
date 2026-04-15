@@ -587,6 +587,56 @@ document.addEventListener('DOMContentLoaded', () => {
         }, { threshold: 0.1 });
 
         document.querySelectorAll('.fade-in-up, .fade-in-top').forEach(el => observer.observe(el));
+
+        // Анимация счетчиков статистики
+        initStatCounters();
+    }
+
+    // Анимация счетчиков статистики
+    function initStatCounters() {
+        const statNumbers = document.querySelectorAll('.stat-number');
+        
+        const counterObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const target = parseInt(entry.target.getAttribute('data-target'));
+                    animateCounter(entry.target, target);
+                    
+                    // Добавляем класс для анимации появления
+                    entry.target.closest('.stat-item').classList.add('animate');
+                    
+                    counterObserver.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.5 });
+
+        statNumbers.forEach(stat => counterObserver.observe(stat));
+    }
+
+    // Функция анимации счетчика
+    function animateCounter(element, target) {
+        const duration = 1500; // 1.5 секунды
+        const startTime = performance.now();
+        const startValue = 0;
+
+        function updateCounter(currentTime) {
+            const elapsed = currentTime - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            
+            // Easing function - easeOutExpo
+            const easeProgress = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
+            
+            const currentValue = Math.floor(startValue + (target - startValue) * easeProgress);
+            element.textContent = currentValue;
+
+            if (progress < 1) {
+                requestAnimationFrame(updateCounter);
+            } else {
+                element.textContent = target;
+            }
+        }
+
+        requestAnimationFrame(updateCounter);
     }
 
     // Main Chat Section Functionality
@@ -932,5 +982,96 @@ document.addEventListener('DOMContentLoaded', () => {
         // Добавляем класс для стилизации
         document.querySelector('.chat-main').classList.add('chat-disabled');
     }
+
+    // Reviews Card Flip Animation
+    function initReviewsFlip() {
+        const cards = document.querySelectorAll('.review-card');
+        const dots = document.querySelectorAll('.review-dot');
+        let currentIndex = 0;
+        let autoFlipInterval;
+        const flipDelay = 5000; // 5 seconds between flips
+
+        function updateCards(newIndex, direction = 'next') {
+            const total = cards.length;
+            
+            cards.forEach((card, index) => {
+                card.classList.remove('active', 'prev', 'next');
+                
+                if (index === newIndex) {
+                    card.classList.add('active');
+                } else if (direction === 'next') {
+                    // When going forward, previous cards go to 'prev' position
+                    card.classList.add(index < newIndex ? 'prev' : 'next');
+                } else {
+                    // When going backward
+                    card.classList.add(index > newIndex ? 'next' : 'prev');
+                }
+            });
+
+            // Update dots
+            dots.forEach((dot, index) => {
+                dot.classList.toggle('active', index === newIndex);
+            });
+
+            currentIndex = newIndex;
+        }
+
+        function flipNext() {
+            const nextIndex = (currentIndex + 1) % cards.length;
+            updateCards(nextIndex, 'next');
+        }
+
+        function flipTo(index) {
+            if (index === currentIndex) return;
+            const direction = index > currentIndex ? 'next' : 'prev';
+            updateCards(index, direction);
+            resetAutoFlip();
+        }
+
+        function startAutoFlip() {
+            autoFlipInterval = setInterval(flipNext, flipDelay);
+        }
+
+        function stopAutoFlip() {
+            clearInterval(autoFlipInterval);
+        }
+
+        function resetAutoFlip() {
+            stopAutoFlip();
+            startAutoFlip();
+        }
+
+        // Click on dots to navigate
+        dots.forEach((dot, index) => {
+            dot.addEventListener('click', () => flipTo(index));
+        });
+
+        // Click on cards to navigate
+        cards.forEach((card) => {
+            card.addEventListener('click', () => {
+                const index = parseInt(card.dataset.index);
+                if (index !== currentIndex) {
+                    flipTo(index);
+                } else {
+                    // Click on active card goes to next
+                    flipNext();
+                    resetAutoFlip();
+                }
+            });
+        });
+
+        // Pause on hover
+        const container = document.getElementById('reviews-container');
+        if (container) {
+            container.addEventListener('mouseenter', stopAutoFlip);
+            container.addEventListener('mouseleave', startAutoFlip);
+        }
+
+        // Start auto-flip
+        startAutoFlip();
+    }
+
+    // Initialize reviews flip when DOM is ready
+    initReviewsFlip();
 
 });

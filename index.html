@@ -58,7 +58,7 @@
         </div>
     </header>
 
-    <!-- Нам доверяют -->
+    <!-- Нам доверяют 
     <section class="trust-section fade-in-up">
         <div class="trust-container">
             <h2 class="trust-title">Нам доверяют</h2>
@@ -85,37 +85,76 @@
                 </div>
             </div>
         </div>
-    </section>
+    </section>-->
 
-    <!-- Трендовая бегущая строка -->
+    <!-- Трендовая бегущая строка 
     <div class="marquee-container fade-in-up">
         <div class="marquee">
             <div class="marquee-content"><span>TELEGRAM WEBAPPS</span><i class="fa-solid fa-asterisk"></i><span>AI INTEGRATIONS</span><i class="fa-solid fa-asterisk"></i><span>PYTHON BOTS</span><i class="fa-solid fa-asterisk"></i><span>PAYMENT SYSTEMS</span><i class="fa-solid fa-asterisk"></i><span>CRM SYNC</span><i class="fa-solid fa-asterisk"></i><span>TELEGRAM WEBAPPS</span><i class="fa-solid fa-asterisk"></i><span>AI INTEGRATIONS</span><i class="fa-solid fa-asterisk"></i><span>PYTHON BOTS</span><i class="fa-solid fa-asterisk"></i><span>PAYMENT SYSTEMS</span><i class="fa-solid fa-asterisk"></i><span>CRM SYNC</span><i class="fa-solid fa-asterisk"></i></div>
         </div>
-    </div>
+    </div>-->
 
     <!-- Статистика -->
     <section class="stats-cta">
         <div class="stats-container">
             <div class="stat-item fade-in-up">
-                <div class="stat-number">50+</div>
+                <div class="stat-number" data-target="50">0</div>
                 <div class="stat-label">Успешных релизов</div>
+                <div class="stat-chart">
+                    <svg viewBox="0 0 100 40" class="chart-svg">
+                        <defs>
+                            <linearGradient id="chartGradient1" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:0.3"/>
+                                <stop offset="100%" style="stop-color:#3b82f6;stop-opacity:0"/>
+                            </linearGradient>
+                        </defs>
+                        <path class="chart-area" d="M0,35 Q10,30 20,28 T40,25 T60,18 T80,12 T100,5 L100,40 L0,40 Z" fill="url(#chartGradient1)"/>
+                        <path class="chart-line" d="M0,35 Q10,30 20,28 T40,25 T60,18 T80,12 T100,5" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round"/>
+                        <circle class="chart-dot" cx="100" cy="5" r="3" fill="#3b82f6"/>
+                    </svg>
+                </div>
             </div>
             <div class="stat-item fade-in-up" style="transition-delay: 0.1s">
-                <div class="stat-number">99%</div>
+                <div class="stat-number" data-target="99">0</div>
                 <div class="stat-label">Uptime серверов</div>
+                <div class="stat-chart">
+                    <svg viewBox="0 0 100 40" class="chart-svg">
+                        <defs>
+                            <linearGradient id="chartGradient2" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" style="stop-color:#10b981;stop-opacity:0.3"/>
+                                <stop offset="100%" style="stop-color:#10b981;stop-opacity:0"/>
+                            </linearGradient>
+                        </defs>
+                        <path class="chart-area" d="M0,35 Q15,32 30,30 T55,20 T75,15 T100,3 L100,40 L0,40 Z" fill="url(#chartGradient2)"/>
+                        <path class="chart-line" d="M0,35 Q15,32 30,30 T55,20 T75,15 T100,3" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round"/>
+                        <circle class="chart-dot" cx="100" cy="3" r="3" fill="#10b981"/>
+                    </svg>
+                </div>
             </div>
             <div class="stat-item fade-in-up" style="transition-delay: 0.2s">
-                <div class="stat-number">3+</div>
+                <div class="stat-number" data-target="3">0</div>
                 <div class="stat-label">Года экспертизы</div>
+                <div class="stat-chart">
+                    <svg viewBox="0 0 100 40" class="chart-svg">
+                        <defs>
+                            <linearGradient id="chartGradient3" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" style="stop-color:#8b5cf6;stop-opacity:0.3"/>
+                                <stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:0"/>
+                            </linearGradient>
+                        </defs>
+                        <path class="chart-area" d="M0,38 Q20,35 35,30 T60,22 T85,15 T100,8 L100,40 L0,40 Z" fill="url(#chartGradient3)"/>
+                        <path class="chart-line" d="M0,38 Q20,35 35,30 T60,22 T85,15 T100,8" fill="none" stroke="#8b5cf6" stroke-width="2" stroke-linecap="round"/>
+                        <circle class="chart-dot" cx="100" cy="8" r="3" fill="#8b5cf6"/>
+                    </svg>
+                </div>
             </div>
         </div>
 
         <!-- Отзывы клиентов -->
         <div class="reviews-widget fade-in-up" style="transition-delay: 0.3s">
             <h3 class="reviews-title">Отзывы клиентов</h3>
-            <div class="reviews-container">
-                <div class="review-card">
+            <div class="reviews-container" id="reviews-container">
+                <div class="review-card active" data-index="0">
                     <div class="review-header">
                         <div class="review-avatar">
                             <i class="fa-solid fa-user"></i>
@@ -127,7 +166,7 @@
                     </div>
                     <p class="review-text">"Бот полностью заменил администратора! Теперь запись 24/7, а клиенты в восторге от скорости ответа. За месяц окупился полностью."</p>
                 </div>
-                <div class="review-card">
+                <div class="review-card next" data-index="1">
                     <div class="review-header">
                         <div class="review-avatar">
                             <i class="fa-solid fa-user"></i>
@@ -139,7 +178,7 @@
                     </div>
                     <p class="review-text">"Разработка заняла всего 8 дней вместо обещанных 14. Качество на высоте, поддержка отличная. Рекомендую!"</p>
                 </div>
-                <div class="review-card">
+                <div class="review-card next" data-index="2">
                     <div class="review-header">
                         <div class="review-avatar">
                             <i class="fa-solid fa-user"></i>
@@ -151,6 +190,11 @@
                     </div>
                     <p class="review-text">"Интеграция с CRM прошла гладко. Бот квалифицирует лиды и отправляет их в нашу систему. Автоматизация работает идеально."</p>
                 </div>
+            </div>
+            <div class="reviews-nav">
+                <div class="review-dot active" data-index="0"></div>
+                <div class="review-dot" data-index="1"></div>
+                <div class="review-dot" data-index="2"></div>
             </div>
         </div>
     </section>

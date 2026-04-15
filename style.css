@@ -422,6 +422,34 @@ body {
 
 .stat-item {
     text-align: center;
+    padding: 30px 40px;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-lg);
+    backdrop-filter: blur(10px);
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+    min-width: 200px;
+}
+
+.stat-item::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at top right, rgba(59, 130, 246, 0.08), transparent 50%);
+    opacity: 0;
+    transition: opacity 0.4s ease;
+}
+
+.stat-item:hover {
+    transform: translateY(-8px);
+    border-color: rgba(59, 130, 246, 0.3);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+.stat-item:hover::before {
+    opacity: 1;
 }
 
 .stat-number {
@@ -433,13 +461,153 @@ body {
     background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
+    position: relative;
+    display: inline-block;
 }
 
-/* Reviews Widget */
+.stat-number::after {
+    content: '+';
+    font-size: 2rem;
+    font-weight: 600;
+    color: var(--accent);
+    margin-left: 4px;
+    vertical-align: super;
+    -webkit-text-fill-color: var(--accent);
+}
+
+.stat-number[data-target="99"]::after {
+    content: '%';
+    font-size: 2rem;
+    font-weight: 600;
+}
+
+.stat-label {
+    font-size: 0.95rem;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+    font-weight: 500;
+}
+
+/* Графики роста */
+.stat-chart {
+    width: 120px;
+    height: 50px;
+    margin: 0 auto;
+    position: relative;
+}
+
+.chart-svg {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+}
+
+.chart-line {
+    stroke-dasharray: 200;
+    stroke-dashoffset: 200;
+    animation: drawLine 1.5s ease-out forwards;
+}
+
+.chart-area {
+    opacity: 0;
+    animation: fadeInArea 1s ease-out 0.5s forwards;
+}
+
+.chart-dot {
+    opacity: 0;
+    transform: scale(0);
+    animation: popDot 0.4s ease-out 1.2s forwards;
+}
+
+@keyframes drawLine {
+    to {
+        stroke-dashoffset: 0;
+    }
+}
+
+@keyframes fadeInArea {
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes popDot {
+    0% {
+        opacity: 0;
+        transform: scale(0);
+    }
+    50% {
+        transform: scale(1.5);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Анимация счетчика */
+@keyframes countUp {
+    from {
+        transform: scale(0.8);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.stat-item.animate .stat-number {
+    animation: countUp 0.5s ease-out;
+}
+
+/* Пульсация для активных элементов */
+@keyframes statPulse {
+    0%, 100% {
+        box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.1);
+    }
+    50% {
+        box-shadow: 0 0 20px 5px rgba(59, 130, 246, 0.15);
+    }
+}
+
+.stat-item:hover {
+    animation: statPulse 2s infinite;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .stats-container {
+        gap: 20px;
+        padding: 40px 4%;
+    }
+
+    .stat-item {
+        padding: 20px 25px;
+        min-width: 140px;
+    }
+
+    .stat-number {
+        font-size: 2.5rem;
+    }
+
+    .stat-number::after,
+    .stat-number[data-target="99"]::after {
+        font-size: 1.2rem;
+    }
+
+    .stat-chart {
+        width: 100px;
+        height: 40px;
+    }
+}
+
+/* Reviews Widget with Card Flip Animation */
 .reviews-widget {
-    max-width: 1200px;
+    max-width: 500px;
     margin: 60px auto 0;
     padding: 0 5%;
+    perspective: 1000px;
 }
 
 .reviews-title {
@@ -451,22 +619,72 @@ body {
 }
 
 .reviews-container {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 24px;
+    position: relative;
+    width: 100%;
+    height: 280px;
+    perspective: 1000px;
 }
 
 .review-card {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
     background: linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.02));
     border: 1px solid var(--card-border);
     border-radius: var(--radius-md);
     padding: 24px;
-    transition: var(--transition);
+    backface-visibility: hidden;
+    transform-style: preserve-3d;
+    transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.6s ease;
+    cursor: pointer;
 }
 
 .review-card:hover {
     border-color: rgba(59, 130, 246, 0.3);
-    transform: translateY(-5px);
+}
+
+.review-card.active {
+    transform: rotateY(0deg) scale(1);
+    opacity: 1;
+    z-index: 10;
+}
+
+.review-card.prev {
+    transform: rotateY(-90deg) scale(0.9);
+    opacity: 0;
+    z-index: 5;
+}
+
+.review-card.next {
+    transform: rotateY(90deg) scale(0.9);
+    opacity: 0;
+    z-index: 5;
+}
+
+/* Card flip navigation dots */
+.reviews-nav {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+.review-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--card-border);
+    border: 1px solid var(--card-border);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.review-dot.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
 }
 
 .review-header {
@@ -522,7 +740,7 @@ body {
 /* Responsive styles for reviews widget */
 @media (max-width: 1024px) {
     .reviews-container {
-        grid-template-columns: repeat(2, 1fr);
+        height: 260px;
     }
 }
 
@@ -530,6 +748,7 @@ body {
     .reviews-widget {
         margin: 40px auto 0;
         padding: 0 4%;
+        max-width: 100%;
     }
 
     .reviews-title {
@@ -538,8 +757,7 @@ body {
     }
 
     .reviews-container {
-        grid-template-columns: 1fr;
-        gap: 16px;
+        height: 240px;
     }
 
     .review-card {
