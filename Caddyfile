@@ -17,6 +17,16 @@ nhost.weebx.duckdns.org:443 {
         reverse_proxy 127.0.0.1:3000
     }
 
+    # Serve static files (dashboard.html, index.html, etc.)
+    @staticFiles {
+        path *.html *.js *.css *.json *.jpg *.png *.svg *.ico
+    }
+    handle @staticFiles {
+        file_server {
+            root .
+        }
+    }
+
     # Proxy everything else to LM Studio (port 1236)
     reverse_proxy 127.0.0.1:1236
 }
