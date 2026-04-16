@@ -1,10 +1,6 @@
-{
-    auto_https off
-}
-
-:80 {
+nhost.weebx.duckdns.org:443 {
     header {
-        Access-Control-Allow-Origin "https://nodum-teach.github.io"
+        Access-Control-Allow-Origin "https://nodum-teach.github.io/Nodum_site/"
         Access-Control-Allow-Methods "GET, POST, OPTIONS"
         Access-Control-Allow-Headers "Content-Type, Authorization, x-hasura-role"
         Access-Control-Allow-Credentials "true"
@@ -17,17 +13,11 @@
         respond 204
     }
 
-    # Strip /v1 prefix and proxy to functions service
+    # Proxy /v1/* to Nhost functions (port 3000)
     handle_path /v1/* {
         reverse_proxy 127.0.0.1:3000
     }
-}
 
-# Блок для LM Studio тоже лучше поправить на 127.0.0.1
-weebx.duckdns.org {
-    header {
-        -Access-Control-Allow-Origin
-        Access-Control-Allow-Origin "https://nodum-teach.github.io"
-    }
+    # Proxy everything else to LM Studio (port 1236)
     reverse_proxy 127.0.0.1:1236
 }
