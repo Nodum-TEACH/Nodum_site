@@ -1,15 +1,14 @@
 nhost.weebx.duckdns.org:443 {
-    header {
-        Access-Control-Allow-Origin "https://nodum-teach.github.io/Nodum_site/"
-        Access-Control-Allow-Methods "GET, POST, OPTIONS"
-        Access-Control-Allow-Headers "Content-Type, Authorization, x-hasura-role"
-        Access-Control-Allow-Credentials "true"
-    }
-
     @options {
         method OPTIONS
     }
     handle @options {
+        header {
+            Access-Control-Allow-Origin "https://nodum-teach.github.io"
+            Access-Control-Allow-Methods "GET, POST, OPTIONS"
+            Access-Control-Allow-Headers "Content-Type, Authorization, x-hasura-role"
+            Access-Control-Max-Age "86400"
+        }
         respond 204
     }
 
