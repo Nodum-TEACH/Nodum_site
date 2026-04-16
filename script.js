@@ -793,6 +793,45 @@ document.addEventListener('DOMContentLoaded', () => {
             container.addEventListener('mouseleave', startAutoFlip);
         }
 
+        // Touch/Swipe support for mobile
+        let touchStartX = 0;
+        let touchEndX = 0;
+        const minSwipeDistance = 50;
+
+        if (container) {
+            container.addEventListener('touchstart', (e) => {
+                touchStartX = e.changedTouches[0].screenX;
+                stopAutoFlip();
+            }, { passive: true });
+
+            container.addEventListener('touchend', (e) => {
+                touchEndX = e.changedTouches[0].screenX;
+                handleSwipe();
+                startAutoFlip();
+            }, { passive: true });
+
+            // Pause auto-flip when user touches the container
+            container.addEventListener('touchstart', () => {
+                stopAutoFlip();
+            }, { passive: true });
+        }
+
+        function handleSwipe() {
+            const swipeDistance = touchEndX - touchStartX;
+
+            if (Math.abs(swipeDistance) > minSwipeDistance) {
+                if (swipeDistance > 0) {
+                    // Swiped right - go to previous
+                    const prevIndex = (currentIndex - 1 + cards.length) % cards.length;
+                    updateCards(prevIndex, 'prev');
+                } else {
+                    // Swiped left - go to next
+                    flipNext();
+                }
+                resetAutoFlip();
+            }
+        }
+
         // Start auto-flip
         startAutoFlip();
     }
