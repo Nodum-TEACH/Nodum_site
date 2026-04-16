@@ -365,19 +365,23 @@
         };
         
         // Load real data from backend
-        async function loadRealData(offset = 0, append = false) {
+        async function loadRealData(offset = 0, append = false, period = null) {
             const urlParams = new URLSearchParams(window.location.search);
             const accessToken = urlParams.get('token') || localStorage.getItem('analyticsToken');
-            
+
             if (!accessToken) {
                 document.getElementById('access-denied').style.display = 'flex';
                 return;
             }
-            
+
             try {
                 let url = 'https://nhost.weebx.duckdns.org/v1/analytics-data?token=' + accessToken;
                 url += '&limit=15&offset=' + offset;
-                
+
+                // Добавляем период если указан, иначе берем из активной кнопки
+                const selectedPeriod = period || document.querySelector('.time-filter button.active')?.getAttribute('data-period') || '7d';
+                url += '&period=' + selectedPeriod;
+
                 if (currentFilters.eventType) {
                     url += '&eventType=' + encodeURIComponent(currentFilters.eventType);
                 }
@@ -446,9 +450,11 @@
             if (accessToken) {
                 verifyToken(accessToken);
                 
-                // Auto-refresh every 30 seconds
+                // Auto-refresh every 30 seconds (only when tab is visible)
                 setInterval(() => {
-                    loadRealData();
+                    if (!document.hidden) {
+                        loadRealData();
+                    }
                 }, 30000);
             } else {
                 // Check if token is saved in localStorage
@@ -456,9 +462,11 @@
                 if (savedToken) {
                     verifyToken(savedToken);
                     
-                    // Auto-refresh every 30 seconds
+                    // Auto-refresh every 30 seconds (only when tab is visible)
                     setInterval(() => {
-                        loadRealData();
+                        if (!document.hidden) {
+                            loadRealData();
+                        }
                     }, 30000);
                 } else {
                     // No token - show access denied with login form
@@ -853,23 +861,27 @@
         
         async function exportEvents() {
             const urlParams = new URLSearchParams(window.location.search);
-            const accessToken = urlParams.get('token');
-            
+            const accessToken = urlParams.get('token') || localStorage.getItem('analyticsToken');
+
             if (!accessToken) {
                 alert('Требуется авторизация');
                 return;
             }
-            
+
             let url = 'https://nhost.weebx.duckdns.org/v1/analytics-data?token=' + accessToken;
             url += '&export=csv';
-            
+
+            // Добавляем текущий выбранный период
+            const selectedPeriod = document.querySelector('.time-filter button.active')?.getAttribute('data-period') || '7d';
+            url += '&period=' + selectedPeriod;
+
             if (currentFilters.eventType) {
                 url += '&eventType=' + encodeURIComponent(currentFilters.eventType);
             }
             if (currentFilters.userId) {
                 url += '&userId=' + encodeURIComponent(currentFilters.userId);
             }
-            
+
             try {
                 const response = await fetch(url);
                 if (response.ok) {
@@ -881,12 +893,9 @@
                     document.body.appendChild(a);
                     a.click();
                     document.body.removeChild(a);
-                    window.URL.revokeObjectURL(downloadUrl);
-                } else {
-                    alert('Ошибка при экспорте данных');
                 }
             } catch (error) {
-                console.error('Export error:', error);
+                console.error('Ошибка при экспорте:', error);
                 alert('Ошибка при экспорте данных');
             }
         }
@@ -897,13 +906,13 @@
                 btn.addEventListener('click', () => {
                     buttons.forEach(b => b.classList.remove('active'));
                     btn.classList.add('active');
-                    // В реальном проекте здесь будет загрузка данных за выбранный период
-                    refreshDashboard();
+                    const period = btn.getAttribute('data-period');
+                    refreshDashboard(period);
                 });
             });
         }
         
-        function refreshDashboard() {
+        function refreshDashboard(period = null) {
             console.log('Refreshing dashboard...');
             // Демо-анимация обновления
             const btn = document.querySelector('.refresh-btn');
@@ -911,9 +920,9 @@
             setTimeout(() => {
                 btn.style.transform = 'rotate(0deg)';
             }, 500);
-            
-            // Загружаем реальные данные
-            loadRealData();
+
+            // Загружаем реальные данные с выбранным периодом
+            loadRealData(0, false, period);
         }
     </script>
 </body>

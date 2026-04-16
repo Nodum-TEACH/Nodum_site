@@ -56,7 +56,7 @@ class DeepAnalyticsTracker {
         this.setupErrorTracking();
         this.setupChatFunnelTracking();
         this.setupFormTracking();
-        
+
         if (this.config.trackMouse) {
             this.setupMouseTracking();
         }
@@ -65,13 +65,16 @@ class DeepAnalyticsTracker {
         setInterval(() => this.flush(), this.config.flushInterval);
         window.addEventListener('visibilitychange', () => this.handleVisibilityChange());
         window.addEventListener('beforeunload', () => this.flush(true));
-        
+
         // Отправляем базовое событие входа
         this.track('session_start', {
             isNewUser: this.isNewUser,
             referrer: document.referrer || 'direct',
             landingPage: window.location.pathname
         });
+
+        // Трекаем saw_chat - пользователь увидел чат
+        this.track('chat_funnel', { step: 'saw_chat' });
     }
 
     // 1. СБОР ИНФОРМАЦИИ ОБ УСТРОЙСТВЕ И СЕТИ
@@ -182,7 +185,7 @@ class DeepAnalyticsTracker {
     // 6. ВОРОНКА ЧАТА И ВЗАИМОДЕЙСТВИЯ С ИИ
     setupChatFunnelTracking() {
         const chatInput = document.getElementById('main-chat-input');
-        
+
         if (chatInput) {
             // Трекаем "начал печатать, но стер"
             chatInput.addEventListener('input', () => {
@@ -208,9 +211,22 @@ class DeepAnalyticsTracker {
         const originalSend = window.sendMainChatMessageImpl;
         if (originalSend) {
             window.sendMainChatMessageImpl = async (msg) => {
+                // Трекаем сообщение пользователя
+                this.track('user_message', { text: msg, textLength: msg.length });
                 this.chatFunnel.messagesSent++;
+                this.chatFunnel.lastUserMessageTime = Date.now();
                 this.track('chat_funnel', { step: 'message_sent', count: this.chatFunnel.messagesSent, textLength: msg.length });
-                return originalSend(msg); // Вызов оригинальной функции
+
+                // Вызываем оригинальную функцию и ловим ответ бота
+                const result = await originalSend(msg);
+
+                // Если есть время последнего сообщения пользователя, вычисляем время ответа
+                if (this.chatFunnel.lastUserMessageTime) {
+                    const responseTime = Date.now() - this.chatFunnel.lastUserMessageTime;
+                    this.track('bot_message', { responseTime: responseTime });
+                }
+
+                return result;
             };
         }
     }
@@ -329,6 +345,19 @@ if (originalCheckCollectedInfo) {
         }
         if (botResponse.toLowerCase().includes('телефон') || botResponse.toLowerCase().includes('телеграм')) {
             window.nodumAnalytics.track('ai_extracted_contact', { text: botResponse.substring(0, 50) });
+            // Трекаем успешный сбор контактов в воронке
+            window.nodumAnalytics.track('chat_funnel', { step: 'bot_collected_contacts' });
         }
+    };
+}
+
+// Интеграция с checkForCompletion для трекинга завершения чата
+const originalCheckForCompletion = window.checkForCompletionImpl;
+if (originalCheckForCompletion) {
+    window.checkForCompletionImpl = (botResponse) => {
+        originalCheckForCompletion(botResponse);
+        // Трекаем завершение чата (успешная конверсия)
+        window.nodumAnalytics.track('chat_funnel', { step: 'chat_completed' });
+        window.nodumAnalytics.track('conversion', { type: 'chat_lead' });
     };
 }
