@@ -99,10 +99,10 @@ function submitTraditionalForm(event) {
 
 
 // Новая и единственная функция для общения с Витей
-async function callMistralAPI(input, systemPrompt = null, chatHistory = []) {
+async function llmstudo(input, systemPrompt = null, chatHistory = []) {
     try {
-        // ВАЖНО: адрес должен быть именно таким (ваш Nhost)
-        const response = await fetch('https://nhost.weebx.duckdns.org/v1/functions/chat-proxy', {
+        // Убрали /functions/ из пути, так как роут зарегистрирован напрямую
+        const response = await fetch('https://nhost.weebx.duckdns.org/v1/chat-proxy', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -114,6 +114,7 @@ async function callMistralAPI(input, systemPrompt = null, chatHistory = []) {
         });
 
         if (!response.ok) {
+            // Если всё еще 404, попробуйте 'https://nhost.weebx.duckdns.org/chat-proxy' (без v1)
             throw new Error(`Ошибка сервера Nhost: ${response.status}`);
         }
 
@@ -121,7 +122,7 @@ async function callMistralAPI(input, systemPrompt = null, chatHistory = []) {
         return data.reply || 'Витя не смог ответить...';
     } catch (error) {
         console.error('Ошибка бэкенда:', error);
-        return "Проблема со связью. Проверьте, запущен ли Docker на сервере.";
+        return "Проблема со связью. Проверьте логи Docker и Caddy.";
     }
 }
 
@@ -504,8 +505,8 @@ document.addEventListener('DOMContentLoaded', () => {
         mainChatMessages.scrollTop = mainChatMessages.scrollHeight;
 
         try {
-            // Вызываем callMistralAPI с историей сообщений
-            botResponse = await callMistralAPI(message, undefined, chatHistory);
+            // Вызываем llmstudo с историей сообщений
+            botResponse = await llmstudo(message, undefined, chatHistory);
 
             // Добавляем ответ бота в историю
             chatHistory.push({
