@@ -1,24 +1,21 @@
+# Блок для LM Studio
 weebx.duckdns.org {
-    # Обработка OPTIONS запросов (preflight)
-    @options {
-        method OPTIONS
+    header {
+        Access-Control-Allow-Origin "https://nodum-teach.github.io"
+        Access-Control-Allow-Methods "GET, POST, OPTIONS"
+        Access-Control-Allow-Headers "Content-Type, Authorization"
     }
-    handle @options {
-        header {
-            Access-Control-Allow-Origin "https://nodum-teach.github.io"
-            Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
-            Access-Control-Allow-Headers "Content-Type, Authorization"
-            Access-Control-Allow-Credentials "true"
-        }
-        respond 204
+    reverse_proxy 198.18.0.1:1236
+}
+
+# НОВЫЙ БЛОК
+nhost.weebx.duckdns.org {
+    header {
+        Access-Control-Allow-Origin "https://nodum-teach.github.io"
+        Access-Control-Allow-Methods "GET, POST, OPTIONS"
+        Access-Control-Allow-Headers "Content-Type, Authorization, x-hasura-role"
     }
 
-    # Перенаправляем весь трафик на LM Studio
-    reverse_proxy 198.18.0.1:1236 {
-        # Добавляем CORS заголовки к ответам от LM Studio
-        header_down Access-Control-Allow-Origin "https://nodum-teach.github.io"
-        header_down Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
-        header_down Access-Control-Allow-Headers "Content-Type, Authorization"
-        header_down Access-Control-Allow-Credentials "true"
-    }
+
+    reverse_proxy localhost:1337
 }
