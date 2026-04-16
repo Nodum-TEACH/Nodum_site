@@ -1,389 +1,334 @@
-// Analytics Module for Nodum.tech
-// Collects comprehensive user behavior data
+// Advanced Deep Analytics Module for Nodum.tech
+// Уровень: Enterprise (Сбор микро-взаимодействий, производительности, чат-воронок)
 
-class AnalyticsTracker {
+class DeepAnalyticsTracker {
     constructor(config = {}) {
-        this.sessionId = this.generateSessionId();
-        this.userId = this.getUserId();
-        this.startTime = Date.now();
-        this.currentPage = window.location.pathname;
+        this.version = '2.0.0';
+        this.sessionId = this.generateId('sess');
+        this.userId = this.getOrCreateUserId();
+        this.sessionStart = Date.now();
+        
+        // Буферы данных
         this.events = [];
-        this.chatEvents = [];
-        this.clickHeatmap = {};
-        this.scrollDepth = 0;
-        this.maxScrollDepth = 0;
+        this.mouseMovements = [];
+        this.chatFunnel = { startedTyping: false, messagesSent: 0, formOpened: false, goalReached: false };
+        this.performanceMetrics = {};
+        
+        // Состояния
         this.lastActiveTime = Date.now();
+        this.activeTimeOnPage = 0;
+        this.maxScrollDepth = 0;
+        this.recentClicks = []; // Для отслеживания Rage Clicks
+        
         this.config = {
-            endpoint: config.endpoint || '/api/analytics',
-            flushInterval: config.flushInterval || 30000, // 30 seconds
-            maxEvents: config.maxEvents || 100,
+            endpoint: config.endpoint || 'https://nhost.weebx.duckdns.org/v1/analytics',
+            flushInterval: 15000, // Отправка каждые 15 сек
+            maxEvents: 50,
+            trackMouse: true, // Включить слежение за мышью
             ...config
         };
-        
+
         this.init();
     }
 
-    generateSessionId() {
-        return 'sess_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    generateId(prefix) {
+        return `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).substr(2, 9)}`;
     }
 
-    getUserId() {
-        let userId = localStorage.getItem('nodum_user_id');
-        if (!userId) {
-            userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-            localStorage.setItem('nodum_user_id', userId);
+    getOrCreateUserId() {
+        let uid = localStorage.getItem('nodum_uid');
+        if (!uid) {
+            uid = this.generateId('usr');
+            localStorage.setItem('nodum_uid', uid);
+            this.isNewUser = true;
+        } else {
+            this.isNewUser = false;
         }
-        return userId;
+        return uid;
     }
 
     init() {
-        this.trackPageView();
-        this.setupClickTracking();
+        this.captureDeviceInfo();
+        this.capturePerformance();
+        this.setupActivityTracking();
+        this.setupClickAndRageTracking();
         this.setupScrollTracking();
-        this.setupTimeTracking();
-        this.setupChatTracking();
-        this.setupNavigationTracking();
+        this.setupErrorTracking();
+        this.setupChatFunnelTracking();
+        this.setupFormTracking();
         
-        // Flush events periodically
-        setInterval(() => this.flushEvents(), this.config.flushInterval);
-        
-        // Flush on page unload
-        window.addEventListener('beforeunload', () => this.flushEvents(true));
-    }
-
-    detectDeviceType() {
-        const userAgent = navigator.userAgent;
-        const width = window.screen.width;
-        
-        // Mobile detection
-        if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent)) {
-            if (/iPad/i.test(userAgent) || (width >= 768 && width <= 1024)) {
-                return 'tablet';
-            }
-            return 'mobile';
+        if (this.config.trackMouse) {
+            this.setupMouseTracking();
         }
-        
-        // Tablet detection based on screen size
-        if (width >= 768 && width <= 1024) {
-            return 'tablet';
-        }
-        
-        return 'desktop';
-    }
 
-    trackPageView() {
-        this.addEvent({
-            type: 'page_view',
-            page: this.currentPage,
-            referrer: document.referrer,
-            userAgent: navigator.userAgent,
-            deviceType: this.detectDeviceType(),
-            screen: {
-                width: window.screen.width,
-                height: window.screen.height
-            },
-            viewport: {
-                width: window.innerWidth,
-                height: window.innerHeight
-            },
-            language: navigator.language,
-            timestamp: Date.now()
+        // Жизненный цикл сессии
+        setInterval(() => this.flush(), this.config.flushInterval);
+        window.addEventListener('visibilitychange', () => this.handleVisibilityChange());
+        window.addEventListener('beforeunload', () => this.flush(true));
+        
+        // Отправляем базовое событие входа
+        this.track('session_start', {
+            isNewUser: this.isNewUser,
+            referrer: document.referrer || 'direct',
+            landingPage: window.location.pathname
         });
     }
 
-    setupClickTracking() {
+    // 1. СБОР ИНФОРМАЦИИ ОБ УСТРОЙСТВЕ И СЕТИ
+    captureDeviceInfo() {
+        this.deviceInfo = {
+            userAgent: navigator.userAgent,
+            language: navigator.language,
+            screenRes: `${window.screen.width}x${window.screen.height}`,
+            viewportRes: `${window.innerWidth}x${window.innerHeight}`,
+            colorDepth: window.screen.colorDepth,
+            connection: navigator.connection ? navigator.connection.effectiveType : 'unknown', // 4g, 3g и т.д.
+            hardwareConcurrency: navigator.hardwareConcurrency || 1,
+            deviceMemory: navigator.deviceMemory || 'unknown'
+        };
+    }
+
+    // 2. СБОР WEB VITALS И ПРОИЗВОДИТЕЛЬНОСТИ
+    capturePerformance() {
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                const navEntry = performance.getEntriesByType('navigation')[0];
+                const paintEntries = performance.getEntriesByType('paint');
+                
+                this.performanceMetrics = {
+                    pageLoadTime: navEntry ? navEntry.loadEventEnd - navEntry.startTime : 0,
+                    domInteractive: navEntry ? navEntry.domInteractive : 0,
+                    fcp: paintEntries.find(p => p.name === 'first-contentful-paint')?.startTime || 0,
+                };
+
+                this.track('performance_metrics', this.performanceMetrics);
+            }, 0);
+        });
+    }
+
+    // 3. ОТСЛЕЖИВАНИЕ RAGE CLICKS И DEAD CLICKS
+    setupClickAndRageTracking() {
         document.addEventListener('click', (e) => {
             const target = e.target;
-            const selector = this.getElementSelector(target);
-            const text = target.textContent?.trim().substring(0, 50) || '';
+            const isInteractive = target.closest('a, button, input, select, textarea, .bento-card');
             
-            // Track click
-            this.addEvent({
-                type: 'click',
-                element: selector,
-                text: text,
-                x: e.clientX,
-                y: e.clientY,
-                pageX: e.pageX,
-                pageY: e.pageY,
-                timestamp: Date.now()
-            });
+            const clickData = {
+                element: target.tagName.toLowerCase(),
+                classes: target.className,
+                id: target.id,
+                text: target.innerText?.substring(0, 30),
+                x: Math.round((e.clientX / window.innerWidth) * 100), // В % для адаптивности тепловой карты
+                y: Math.round((e.clientY / window.innerHeight) * 100)
+            };
 
-            // Update heatmap
-            const heatmapKey = Math.floor(e.pageX / 50) + '_' + Math.floor(e.pageY / 50);
-            this.clickHeatmap[heatmapKey] = (this.clickHeatmap[heatmapKey] || 0) + 1;
+            // Dead Click Check (клик по тексту/фону)
+            if (!isInteractive) {
+                this.track('dead_click', clickData);
+            } else {
+                this.track('click', clickData);
+            }
+
+            // Rage Click Logic (Яростные клики)
+            const now = Date.now();
+            this.recentClicks.push({ x: e.clientX, y: e.clientY, time: now });
+            this.recentClicks = this.recentClicks.filter(c => now - c.time < 1500); // Окно 1.5 сек
+
+            if (this.recentClicks.length >= 3) {
+                // Если 3 клика в радиусе 50px за 1.5 секунды
+                const dx = Math.abs(this.recentClicks[0].x - this.recentClicks[2].x);
+                const dy = Math.abs(this.recentClicks[0].y - this.recentClicks[2].y);
+                
+                if (dx < 50 && dy < 50) {
+                    this.track('rage_click', clickData);
+                    this.recentClicks = []; // Сброс
+                }
+            }
         }, true);
     }
 
+    // 4. ДВИЖЕНИЕ МЫШИ (Для записи сессий)
+    setupMouseTracking() {
+        let lastMove = 0;
+        document.addEventListener('mousemove', (e) => {
+            const now = Date.now();
+            if (now - lastMove > 250) { // Пишем координаты макс 4 раза в секунду
+                this.mouseMovements.push({
+                    x: Math.round((e.clientX / window.innerWidth) * 100),
+                    y: Math.round((e.clientY / window.innerHeight) * 100),
+                    t: now - this.sessionStart
+                });
+                lastMove = now;
+            }
+        });
+    }
+
+    // 5. РЕАЛЬНОЕ ВРЕМЯ НА САЙТЕ (Без учета свернутой вкладки)
+    setupActivityTracking() {
+        setInterval(() => {
+            if (!document.hidden) {
+                this.activeTimeOnPage += 5; // прибавляем 5 сек
+            }
+        }, 5000);
+    }
+
+    handleVisibilityChange() {
+        if (document.hidden) {
+            this.track('tab_hidden', { activeTime: this.activeTimeOnPage });
+        } else {
+            this.track('tab_visible');
+        }
+    }
+
+    // 6. ВОРОНКА ЧАТА И ВЗАИМОДЕЙСТВИЯ С ИИ
+    setupChatFunnelTracking() {
+        const chatInput = document.getElementById('main-chat-input');
+        
+        if (chatInput) {
+            // Трекаем "начал печатать, но стер"
+            chatInput.addEventListener('input', () => {
+                if (!this.chatFunnel.startedTyping) {
+                    this.chatFunnel.startedTyping = true;
+                    this.track('chat_funnel', { step: 'started_typing' });
+                }
+            });
+
+            chatInput.addEventListener('focus', () => {
+                this.chatFunnel.focusStart = Date.now();
+            });
+
+            chatInput.addEventListener('blur', () => {
+                if (this.chatFunnel.focusStart) {
+                    const timeSpent = Date.now() - this.chatFunnel.focusStart;
+                    this.track('chat_input_focused', { durationMs: timeSpent });
+                }
+            });
+        }
+
+        // Перехват отправки сообщений (интеграция с вашим script.js)
+        const originalSend = window.sendMainChatMessageImpl;
+        if (originalSend) {
+            window.sendMainChatMessageImpl = async (msg) => {
+                this.chatFunnel.messagesSent++;
+                this.track('chat_funnel', { step: 'message_sent', count: this.chatFunnel.messagesSent, textLength: msg.length });
+                return originalSend(msg); // Вызов оригинальной функции
+            };
+        }
+    }
+
+    // 7. СБОР ОШИБОК (Frontend Monitoring)
+    setupErrorTracking() {
+        window.addEventListener('error', (e) => {
+            this.track('js_error', { message: e.message, file: e.filename, line: e.lineno });
+        });
+
+        window.addEventListener('unhandledrejection', (e) => {
+            this.track('promise_rejection', { reason: e.reason?.toString() || 'Unknown' });
+        });
+    }
+
+    // 8. СКРОЛЛ С УЧЕТОМ СКОРОСТИ
     setupScrollTracking() {
         let scrollTimeout;
         window.addEventListener('scroll', () => {
-            clearTimeout(scrollTimeout);
+            if (scrollTimeout) clearTimeout(scrollTimeout);
             scrollTimeout = setTimeout(() => {
-                const scrollTop = window.scrollY;
-                const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-                const scrollPercent = Math.round((scrollTop / docHeight) * 100);
-                
-                if (scrollPercent > this.maxScrollDepth) {
-                    this.maxScrollDepth = scrollPercent;
-                    
-                    this.addEvent({
-                        type: 'scroll_milestone',
-                        depth: scrollPercent,
-                        timestamp: Date.now()
-                    });
-                }
-            }, 100);
-        });
-    }
-
-    setupTimeTracking() {
-        // Track time on page
-        this.timeOnPage = 0;
-        setInterval(() => {
-            const now = Date.now();
-            const timeSinceLastActive = now - this.lastActiveTime;
-            
-            // Consider inactive if no activity for 30 seconds
-            if (timeSinceLastActive < 30000) {
-                this.timeOnPage += 10;
-            }
-            
-            this.lastActiveTime = now;
-        }, 10000);
-
-        // Track visibility changes
-        document.addEventListener('visibilitychange', () => {
-            if (document.hidden) {
-                this.addEvent({
-                    type: 'page_hidden',
-                    timeOnPage: this.timeOnPage,
-                    timestamp: Date.now()
-                });
-            } else {
-                this.addEvent({
-                    type: 'page_visible',
-                    timestamp: Date.now()
-                });
-                this.lastActiveTime = Date.now();
-            }
-        });
-    }
-
-    setupChatTracking() {
-        // Track chat interactions
-        const observer = new MutationObserver((mutations) => {
-            mutations.forEach((mutation) => {
-                mutation.addedNodes.forEach((node) => {
-                    if (node.nodeType === 1) {
-                        // Check if it's a chat message
-                        if (node.classList?.contains('message')) {
-                            const isUserMessage = node.classList?.contains('user-message');
-                            const isBotMessage = node.classList?.contains('bot-message');
-                            const text = node.textContent?.trim() || '';
-                            
-                            this.chatEvents.push({
-                                type: isUserMessage ? 'user_message' : 'bot_message',
-                                text: text.substring(0, 200),
-                                timestamp: Date.now(),
-                                messageId: this.generateMessageId()
-                            });
-
-                            // Calculate response time for bot
-                            if (isBotMessage && this.lastUserMessageTime) {
-                                const responseTime = Date.now() - this.lastUserMessageTime;
-                                this.chatEvents.push({
-                                    type: 'bot_response_time',
-                                    responseTime: responseTime,
-                                    timestamp: Date.now()
-                                });
-                            }
-
-                            if (isUserMessage) {
-                                this.lastUserMessageTime = Date.now();
-                            }
-                        }
+                const depth = Math.round((window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100);
+                if (depth > this.maxScrollDepth) {
+                    this.maxScrollDepth = depth;
+                    // Шлем только значимые майлстоуны: 25, 50, 75, 100
+                    if ([25, 50, 75, 90, 100].includes(Math.round(depth/5)*5)) {
+                        this.track('scroll_milestone', { depth: depth });
                     }
-                });
-            });
-        });
-
-        // Observe chat messages container
-        const chatMessages = document.getElementById('main-chat-messages');
-        if (chatMessages) {
-            observer.observe(chatMessages, { childList: true, subtree: true });
-        }
-
-        // Track quick action button clicks
-        document.querySelectorAll('.quick-action-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const message = btn.getAttribute('data-message');
-                this.chatEvents.push({
-                    type: 'quick_action',
-                    message: message,
-                    timestamp: Date.now()
-                });
-            });
-        });
-
-        // Track traditional form submission
-        const traditionalForm = document.getElementById('traditional-form');
-        if (traditionalForm) {
-            traditionalForm.addEventListener('submit', () => {
-                this.chatEvents.push({
-                    type: 'form_submission',
-                    formType: 'traditional',
-                    timestamp: Date.now()
-                });
-            });
-        }
-    }
-
-    setupNavigationTracking() {
-        // Track navigation to different sections
-        document.querySelectorAll('a[href^="#"]').forEach(link => {
-            link.addEventListener('click', (e) => {
-                const href = link.getAttribute('href');
-                this.addEvent({
-                    type: 'section_navigation',
-                    target: href,
-                    text: link.textContent?.trim().substring(0, 50),
-                    timestamp: Date.now()
-                });
-            });
-        });
-
-        // Track modal opens
-        const modalButtons = document.querySelectorAll('.pricing-btn');
-        modalButtons.forEach(btn => {
-            btn.addEventListener('click', () => {
-                const card = btn.closest('.pricing-card');
-                const tariffName = card?.querySelector('.pricing-name')?.textContent;
-                this.addEvent({
-                    type: 'tariff_click',
-                    tariff: tariffName,
-                    timestamp: Date.now()
-                });
-            });
-        });
-
-        // Track portfolio card clicks
-        const observer = new MutationObserver(() => {
-            document.querySelectorAll('.bento-card').forEach(card => {
-                if (!card.dataset.analyticsTracked) {
-                    card.dataset.analyticsTracked = 'true';
-                    card.addEventListener('click', () => {
-                        const title = card.querySelector('h3')?.textContent;
-                        this.addEvent({
-                            type: 'portfolio_click',
-                            module: title,
-                            timestamp: Date.now()
-                        });
-                    });
                 }
-            });
+            }, 500);
         });
-        
-        observer.observe(document.getElementById('bento-container') || document.body, { childList: true, subtree: true });
     }
 
-    addEvent(event) {
-        this.events.push({
-            ...event,
-            sessionId: this.sessionId,
-            userId: this.userId
-        });
-
-        // Flush if we have too many events
-        if (this.events.length >= this.config.maxEvents) {
-            this.flushEvents();
+    // ОТСЛЕЖИВАНИЕ ФОРМ (Классическая заявка)
+    setupFormTracking() {
+        const form = document.getElementById('traditional-form');
+        if (form) {
+            form.querySelectorAll('input, textarea').forEach(input => {
+                input.addEventListener('change', () => {
+                    this.track('form_field_filled', { fieldId: input.id });
+                });
+            });
         }
     }
 
-    generateMessageId() {
-        return 'msg_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    // === БАЗОВЫЕ МЕТОДЫ ОТПРАВКИ ===
+
+    track(eventName, eventData = {}) {
+        const event = {
+            id: this.generateId('evt'),
+            type: eventName,
+            data: eventData,
+            timestamp: Date.now(),
+            url: window.location.pathname
+        };
+
+        this.events.push(event);
+        if (this.events.length >= this.config.maxEvents) this.flush();
     }
 
-    getElementSelector(element) {
-        if (element.id) return '#' + element.id;
-        if (element.className) return '.' + element.className.split(' ')[0];
-        return element.tagName.toLowerCase();
-    }
-
-    async flushEvents(isSync = false) {
-        if (this.events.length === 0 && this.chatEvents.length === 0) return;
+    async flush(isUnload = false) {
+        if (this.events.length === 0 && this.mouseMovements.length === 0) return;
 
         const payload = {
             sessionId: this.sessionId,
             userId: this.userId,
-            events: this.events,
-            chatEvents: this.chatEvents,
-            clickHeatmap: this.clickHeatmap,
-            maxScrollDepth: this.maxScrollDepth,
-            timeOnPage: this.timeOnPage,
-            sessionDuration: Date.now() - this.startTime,
-            timestamp: Date.now()
+            device: this.deviceInfo,
+            activeTime: this.activeTimeOnPage,
+            events: [...this.events],
+            mouseData: [...this.mouseMovements] // Данные для тепловой карты
         };
 
-        if (isSync) {
-            // Use navigator.sendBeacon for reliable sending on page unload
-            const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
-            navigator.sendBeacon(this.config.endpoint, blob);
+        // Очищаем буферы
+        this.events = [];
+        this.mouseMovements = [];
+
+        if (isUnload && navigator.sendBeacon) {
+            payload.events.push({ type: 'session_end', timestamp: Date.now() });
+            navigator.sendBeacon(this.config.endpoint, new Blob([JSON.stringify(payload)], { type: 'application/json' }));
         } else {
             try {
                 await fetch(this.config.endpoint, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
-            } catch (error) {
-                console.error('Failed to send analytics:', error);
-                // Store in localStorage for retry
+            } catch (err) {
+                // Если нет сети, сохраняем локально, отправим потом
                 this.storeOffline(payload);
             }
         }
-
-        // Clear events after sending
-        this.events = [];
-        this.chatEvents = [];
     }
 
     storeOffline(payload) {
-        const offlineData = JSON.parse(localStorage.getItem('nodum_offline_analytics') || '[]');
-        offlineData.push(payload);
-        localStorage.setItem('nodum_offline_analytics', JSON.stringify(offlineData));
-    }
-
-    // Public method to track custom events
-    trackCustomEvent(eventName, data = {}) {
-        this.addEvent({
-            type: 'custom',
-            eventName: eventName,
-            data: data,
-            timestamp: Date.now()
-        });
-    }
-
-    // Get session summary
-    getSessionSummary() {
-        return {
-            sessionId: this.sessionId,
-            userId: this.userId,
-            eventsCount: this.events.length,
-            chatEventsCount: this.chatEvents.length,
-            timeOnPage: this.timeOnPage,
-            maxScrollDepth: this.maxScrollDepth,
-            sessionDuration: Date.now() - this.startTime
-        };
+        let offline = JSON.parse(localStorage.getItem('nodum_offline_analytics') || '[]');
+        if (offline.length < 50) { // Избегаем переполнения LocalStorage
+            offline.push(payload);
+            localStorage.setItem('nodum_offline_analytics', JSON.stringify(offline));
+        }
     }
 }
 
-// Initialize analytics
-const analytics = new AnalyticsTracker({
-    endpoint: 'https://nhost.weebx.duckdns.org/v1/analytics'
-});
+// Инициализация
+const deepAnalytics = new DeepAnalyticsTracker();
+window.nodumAnalytics = deepAnalytics;
 
-// Make available globally for debugging
-window.analytics = analytics;
+// Интеграция с существующим кодом (для отслеживания ИИ-событий)
+// Вызовите это в скрипте там, где бот получает информацию
+const originalCheckCollectedInfo = window.checkCollectedInfoImpl;
+if (originalCheckCollectedInfo) {
+    window.checkCollectedInfoImpl = (botResponse) => {
+        originalCheckCollectedInfo(botResponse);
+        // Трекаем успешный сбор данных
+        if (botResponse.toLowerCase().includes('сфер') || botResponse.toLowerCase().includes('бизнес')) {
+            window.nodumAnalytics.track('ai_extracted_field', { text: botResponse.substring(0, 50) });
+        }
+        if (botResponse.toLowerCase().includes('телефон') || botResponse.toLowerCase().includes('телеграм')) {
+            window.nodumAnalytics.track('ai_extracted_contact', { text: botResponse.substring(0, 50) });
+        }
+    };
+}
