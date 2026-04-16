@@ -98,134 +98,18 @@ function submitTraditionalForm(event) {
 
 
 
-// Function to call Gemini API
-async function callGeminiAPI(input, systemPrompt, chatHistory = []) {
-    try {
-        // Convert chat history to Gemini format
-        const contents = [];
-
-        // Add system prompt as first user message
-        if (systemPrompt) {
-            contents.push({
-                role: "user",
-                parts: [{ text: `System instructions: ${systemPrompt}` }]
-            });
-            contents.push({
-                role: "model",
-                parts: [{ text: "I understand. I'll follow these instructions." }]
-            });
-        }
-
-        // Add chat history
-        chatHistory.forEach(msg => {
-            contents.push({
-                role: msg.role === 'assistant' ? 'model' : 'user',
-                parts: [{ text: msg.content }]
-            });
-        });
-
-        // Add current input
-        contents.push({
-            role: "user",
-            parts: [{ text: input }]
-        });
-
-        const response = await fetch(`${AI_MODELS.gemini.baseUrl}/v1beta/models/${AI_MODELS.gemini.model}:generateContent?key=${AI_MODELS.gemini.apiKey}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                contents: contents,
-                generationConfig: {
-                    temperature: 0.7,
-                    topK: 40,
-                    topP: 0.95,
-                    maxOutputTokens: 8192,
-                }
-            })
-        });
-
-        if (!response.ok) {
-            throw new Error(`Gemini API error: ${response.status} ${response.statusText}`);
-        }
-
-        const data = await response.json();
-        const botResponse = data.candidates?.[0]?.content?.parts?.[0]?.text || 'No response received';
-
-        // Check if this is a completion response
-        checkForCompletion(botResponse);
-
-        return botResponse;
-    } catch (error) {
-        console.error('Error calling Gemini API:', error);
-        throw error;
-    }
-}
-
-// Function to call LM Studio API
-async function callLMStudioAPI(input, systemPrompt, chatHistory = []) {
-    try {
-        // Get current model configuration
-        const modelConfig = AI_MODELS[currentModel];
-        if (!modelConfig) {
-            throw new Error(`Model ${currentModel} not found in AI_MODELS`);
-        }
-
-        // Create full message array
-        const messages = [
-            {
-                role: 'system',
-                content: systemPrompt
-            },
-            ...chatHistory
-        ];
-
-        const response = await fetch(`${modelConfig.baseUrl}/v1/chat/completions`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${modelConfig.apiKey}`
-            },
-            body: JSON.stringify({
-                model: modelConfig.model,
-                messages: messages
-            })
-        });
-
-        if (!response.ok) {
-            throw new Error(`LM Studio API error: ${response.status} ${response.statusText}`);
-        }
-
-        const data = await response.json();
-        const botResponse = data.choices?.[0]?.message?.content || 'No response received';
-
-        // Check if this is a completion response
-        checkForCompletion(botResponse);
-
-        return botResponse;
-    } catch (error) {
-        console.error('Error calling LM Studio API:', error);
-        throw error;
-    }
-}
-
+// Новая и единственная функция для общения с Витей
 async function callMistralAPI(input, systemPrompt = null, chatHistory = []) {
     try {
-        // Отправляем запрос на ВАШ прокси-сервер
-        const response = await fetch(API_CONFIG.proxyUrl, {
+        // Мы стучимся в нашу функцию Nhost, которая сама знает, что делать
+        const response = await fetch('https://nhost.weebx.duckdns.org/v1/functions/chat-proxy', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
                 message: input,
-                chatHistory: chatHistory,
-                // Дополнительная инфа для базы данных
-                sessionMeta: {
-                    url: window.location.href,
-                    device_type: /Mobi|Android/i.test(navigator.userAgent) ? 'mobile' : 'desktop'
-                }
+                chatHistory: chatHistory
             })
         });
 
@@ -236,13 +120,15 @@ async function callMistralAPI(input, systemPrompt = null, chatHistory = []) {
         const data = await response.json();
         const botResponse = data.reply || 'Извините, произошла ошибка.';
 
-        // Проверяем завершение диалога (ваша логика в скрипте)
-        checkForCompletion(botResponse);
+        // Проверяем завершение (логика в конце вашего script.js)
+        if (typeof checkForCompletion === 'function') {
+            checkForCompletion(botResponse);
+        }
 
         return botResponse;
     } catch (error) {
-        console.error('Ошибка при обращении к прокси:', error);
-        throw error;
+        console.error('Ошибка бэкенда:', error);
+        return "Витя сейчас отдыхает, попробуйте через минуту. (Проверьте, запущен ли Docker и Caddy)";
     }
 }
 
