@@ -101,8 +101,8 @@ function submitTraditionalForm(event) {
 // Новая и единственная функция для общения с Витей
 async function llmstudo(input, systemPrompt = null, chatHistory = []) {
     try {
-        // Убрали /functions/ из пути, так как роут зарегистрирован напрямую
-        const response = await fetch('https://nhost.weebx.duckdns.org/v1/chat-proxy', {
+        // Стандартный формат Nhost: шлюз отрезает /v1/functions/ и передает /chat-proxy в контейнер
+        const response = await fetch('https://nhost.weebx.duckdns.org/v1/functions/chat-proxy', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -114,7 +114,7 @@ async function llmstudo(input, systemPrompt = null, chatHistory = []) {
         });
 
         if (!response.ok) {
-            // Если всё еще 404, попробуйте 'https://nhost.weebx.duckdns.org/chat-proxy' (без v1)
+            // Если 404, попробуйте по очереди: /functions/chat-proxy или /v1/chat-proxy
             throw new Error(`Ошибка сервера Nhost: ${response.status}`);
         }
 
