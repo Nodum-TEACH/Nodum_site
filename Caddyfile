@@ -1,15 +1,22 @@
+# Блок для нейросети (на всякий случай, если будете юзать напрямую)
 weebx.duckdns.org {
-    # Удаляем заголовки, которые может слать LM Studio, чтобы не было дублей
     header {
         -Access-Control-Allow-Origin
-        -Access-Control-Allow-Methods
-        -Access-Control-Allow-Headers
+        Access-Control-Allow-Origin "https://nodum-teach.github.io"
+    }
+    reverse_proxy 198.18.0.1:1236
+}
+
+# Основной блок для бэкенда
+nhost.weebx.duckdns.org {
+    header {
+        -Access-Control-Allow-Origin
         Access-Control-Allow-Origin "https://nodum-teach.github.io"
         Access-Control-Allow-Methods "GET, POST, OPTIONS"
-        Access-Control-Allow-Headers "Content-Type, Authorization"
+        Access-Control-Allow-Headers "Content-Type, Authorization, x-hasura-role"
     }
-
-    # Обработка preflight-запросов
+    
+    # Обработка OPTIONS, чтобы браузер не ругался
     @options {
         method OPTIONS
     }
@@ -17,14 +24,5 @@ weebx.duckdns.org {
         respond 204
     }
 
-    reverse_proxy 198.18.0.1:1236
-}
-
-nhost.weebx.duckdns.org {
-    header {
-        Access-Control-Allow-Origin "https://nodum-teach.github.io"
-        Access-Control-Allow-Methods "GET, POST, OPTIONS"
-        Access-Control-Allow-Headers "Content-Type, Authorization, x-hasura-role"
-    }
     reverse_proxy localhost:1337
 }

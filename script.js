@@ -101,7 +101,7 @@ function submitTraditionalForm(event) {
 // Новая и единственная функция для общения с Витей
 async function callMistralAPI(input, systemPrompt = null, chatHistory = []) {
     try {
-        // Мы стучимся в нашу функцию Nhost, которая сама знает, что делать
+        // ВАЖНО: адрес должен быть именно таким (ваш Nhost)
         const response = await fetch('https://nhost.weebx.duckdns.org/v1/functions/chat-proxy', {
             method: 'POST',
             headers: {
@@ -114,21 +114,14 @@ async function callMistralAPI(input, systemPrompt = null, chatHistory = []) {
         });
 
         if (!response.ok) {
-            throw new Error(`Ошибка сервера: ${response.status}`);
+            throw new Error(`Ошибка сервера Nhost: ${response.status}`);
         }
 
         const data = await response.json();
-        const botResponse = data.reply || 'Извините, произошла ошибка.';
-
-        // Проверяем завершение (логика в конце вашего script.js)
-        if (typeof checkForCompletion === 'function') {
-            checkForCompletion(botResponse);
-        }
-
-        return botResponse;
+        return data.reply || 'Витя не смог ответить...';
     } catch (error) {
         console.error('Ошибка бэкенда:', error);
-        return "Витя сейчас отдыхает, попробуйте через минуту. (Проверьте, запущен ли Docker и Caddy)";
+        return "Проблема со связью. Проверьте, запущен ли Docker на сервере.";
     }
 }
 
