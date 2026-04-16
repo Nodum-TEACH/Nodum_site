@@ -102,7 +102,7 @@ function submitTraditionalForm(event) {
 async function llmstudo(input, systemPrompt = null, chatHistory = []) {
     try {
         // Traefik strips /v1 and forwards to the functions service
-        const response = await fetch('http://nhost.weebx.duckdns.org/v1/chat-proxy', {
+        const response = await fetch('https://nhost.weebx.duckdns.org/v1/chat-proxy', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
