@@ -1271,8 +1271,8 @@ select:focus-visible {
 }
 
 .bot-message .message-content {
-    background: rgba(59, 130, 246, 0.1);
-    border: 1px solid rgba(59, 130, 246, 0.2);
+    background: rgba(59, 130, 246, 0.15);
+    border: 1px solid rgba(59, 130, 246, 0.3);
     padding: 12px 16px;
     border-radius: 16px;
     border-bottom-left-radius: 4px;
@@ -1619,7 +1619,24 @@ footer { padding: 40px 5%; border-top: 1px solid var(--card-border); margin-top:
     .image-gallery { grid-template-columns: 1fr; }
     .footer-content { flex-direction: column; gap: 10px; text-align: center; }
     .chat-container { grid-template-columns: 1fr; }
-    .chat-messages { height: 280px; }
+    .chat-messages {
+        height: 400px;
+    }
+    
+    .message {
+        max-width: 85%;
+    }
+    
+    .message-avatar {
+        width: 36px;
+        height: 36px;
+    }
+    
+    .message-content {
+        padding: 10px 14px;
+        font-size: 0.9rem;
+    }
+    
     .quick-actions { justify-content: flex-start; }
     .input-wrapper {
         flex-direction: column;
@@ -1674,10 +1691,11 @@ footer { padding: 40px 5%; border-top: 1px solid var(--card-border); margin-top:
 
 @media (max-width: 480px) {
     .hero {
-        padding-top: 100px;
-        padding-bottom: 40px;
-        padding-left: 5%;
-        padding-right: 5%;
+        padding-top: 90px;
+        padding-bottom: 50px;
+        padding-left: 4%;
+        padding-right: 4%;
+        min-height: auto;
     }
 
     .hero-content {
@@ -1685,71 +1703,132 @@ footer { padding: 40px 5%; border-top: 1px solid var(--card-border); margin-top:
     }
 
     .badge-modern {
-        font-size: 0.65rem;
-        padding: 5px 10px;
-        margin-bottom: 1rem;
-        gap: 5px;
+        font-size: 0.7rem;
+        padding: 6px 12px;
+        margin-bottom: 1.25rem;
+        gap: 6px;
+        letter-spacing: 0.5px;
     }
 
     .pulse-dot {
-        width: 5px;
-        height: 5px;
+        width: 6px;
+        height: 6px;
     }
 
     .hero-title {
-        font-size: clamp(1.8rem, 8vw, 2.5rem);
-        line-height: 1.15;
-        margin-bottom: 1rem;
+        font-size: clamp(1.9rem, 10vw, 2.6rem);
+        line-height: 1.1;
+        margin-bottom: 1.25rem;
+        letter-spacing: -0.5px;
+    }
+
+    .hero-title br {
+        display: none;
     }
 
     .hero-subtitle {
-        font-size: 0.9rem;
-        margin-bottom: 1.5rem;
-        line-height: 1.4;
+        font-size: 1rem;
+        margin-bottom: 2rem;
+        line-height: 1.5;
+        padding: 0 2%;
     }
 
     .logo {
-        font-size: 1.5rem;
+        font-size: 1.3rem;
     }
 
     .nav-links {
-        justify-content: flex-start;
+        gap: 8px;
     }
 
-    .btn {
-        width: 100%;
+    .nav-link {
+        font-size: 0;
+        padding: 8px;
+    }
+
+    .nav-link i {
+        font-size: 1.2rem;
+        margin: 0;
     }
 
     .btn-sm {
-        padding-left: 16px;
-        padding-right: 16px;
+        padding: 10px 16px;
+        font-size: 0.85rem;
     }
 
     .hero-buttons {
-        gap: 10px;
+        gap: 12px;
+        max-width: 100%;
     }
 
     .hero-buttons .btn {
-        font-size: 0.9rem;
-        padding: 12px 18px;
-        gap: 6px;
+        font-size: 1rem;
+        padding: 16px 24px;
+        gap: 8px;
+        min-height: 52px;
     }
 
     .section-title {
-        font-size: clamp(2rem, 11vw, 2.6rem);
+        font-size: clamp(1.8rem, 10vw, 2.4rem);
     }
 
     .section-header p {
         font-size: 1rem;
+        padding: 0 2%;
     }
 
     .stats-container {
-        padding-top: 28px;
-        padding-bottom: 28px;
+        padding: 32px 4%;
+        gap: 16px;
+    }
+
+    .stat-item {
+        padding: 20px 16px;
+        min-width: unset;
+        width: 100%;
     }
 
     .stat-number {
-        font-size: 2.4rem;
+        font-size: 2.8rem;
+    }
+
+    .stat-label {
+        font-size: 0.9rem;
+    }
+
+    .reviews-widget {
+        margin-top: 32px;
+    }
+
+    .reviews-title {
+        font-size: 1.3rem;
+        margin-bottom: 24px;
+    }
+
+    .reviews-container {
+        height: auto;
+        min-height: 200px;
+    }
+
+    .review-card {
+        padding: 16px;
+        height: auto;
+        min-height: 180px;
+    }
+
+    .review-avatar {
+        width: 40px;
+        height: 40px;
+        font-size: 1rem;
+    }
+
+    .review-name {
+        font-size: 0.95rem;
+    }
+
+    .review-text {
+        font-size: 0.9rem;
+        line-height: 1.5;
     }
 
     .pricing-card,
@@ -1760,56 +1839,426 @@ footer { padding: 40px 5%; border-top: 1px solid var(--card-border); margin-top:
         padding-right: 16px;
     }
 
+    .pricing-section,
+    .portfolio,
+    .chat-section,
+    .mega-cta {
+        padding: 60px 4%;
+    }
+
+    .pricing-grid {
+        gap: 16px;
+    }
+
+    .pricing-card {
+        padding: 20px 16px;
+        gap: 16px;
+    }
+
+    .pricing-badge {
+        font-size: 0.7rem;
+        padding: 6px 10px;
+    }
+
+    .pricing-name {
+        font-size: 1.4rem;
+    }
+
+    .pricing-price {
+        font-size: 0.95rem;
+    }
+
     .pricing-list {
         gap: 10px;
     }
 
+    .pricing-list li {
+        font-size: 0.9rem;
+        padding-left: 18px;
+    }
+
+    .pricing-btn {
+        min-height: 48px;
+        font-size: 1rem;
+    }
+
+    .bento-card {
+        padding: 20px;
+        min-height: 200px;
+    }
+
     .bento-card h3 {
-        font-size: 1.25rem;
+        font-size: 1.2rem;
     }
 
     .card-0 h3 {
-        font-size: 1.7rem;
-    }
-
-    .card-icon {
-        width: 52px;
-        height: 52px;
         font-size: 1.5rem;
     }
 
+    .bento-card p {
+        font-size: 0.9rem;
+        -webkit-line-clamp: 4;
+        line-clamp: 4;
+    }
+
+    .card-icon {
+        width: 48px;
+        height: 48px;
+        font-size: 1.4rem;
+    }
+
+    .card-tags span {
+        font-size: 0.7rem;
+        padding: 5px 10px;
+    }
+
+    .mega-cta-content {
+        padding: 40px 20px;
+        border-radius: 20px;
+    }
+
+    .mega-cta h2 {
+        font-size: clamp(1.6rem, 9vw, 2.2rem);
+    }
+
+    .mega-cta h2 br {
+        display: none;
+    }
+
+    .mega-cta p {
+        font-size: 1rem;
+    }
+
+    .btn-large {
+        padding: 16px 28px;
+        font-size: 1rem;
+        width: 100%;
+    }
+
     .chat-messages {
-        height: 240px;
-        padding: 14px;
+        height: 400px;
+        padding: 12px;
     }
 
     .message {
-        max-width: 100%;
+        max-width: 92%;
+        gap: 8px;
     }
 
-    .quick-action-btn,
+    .message-avatar {
+        width: 32px;
+        height: 32px;
+        font-size: 0.85rem;
+    }
+
+    .message-content {
+        padding: 10px 14px;
+    }
+
+    .message-content p {
+        font-size: 0.9rem;
+        line-height: 1.4;
+    }
+
+    .chat-input-area {
+        padding: 12px;
+    }
+
+    .input-wrapper {
+        gap: 8px;
+    }
+
+    .input-wrapper input {
+        padding: 14px 16px;
+        font-size: 16px;
+        min-height: 48px;
+    }
+
+    .send-btn {
+        width: 48px;
+        height: 48px;
+        min-width: 48px;
+        min-height: 48px;
+    }
+
+    .quick-actions {
+        gap: 8px;
+        justify-content: flex-start;
+    }
+
+    .quick-action-btn {
+        padding: 10px 14px;
+        font-size: 0.85rem;
+        flex: 1 1 calc(50% - 4px);
+        min-width: unset;
+        justify-content: center;
+        min-height: 40px;
+    }
+
+    .sidebar-section {
+        padding: 16px;
+    }
+
+    .contact-buttons {
+        gap: 10px;
+    }
+
     .contact-btn {
-        width: 100%;
+        padding: 14px 16px;
+        font-size: 0.95rem;
+        min-height: 48px;
         justify-content: center;
     }
 
+    .modal {
+        padding: 8px;
+        align-items: flex-end;
+    }
+
+    .modal-content {
+        border-radius: 20px 20px 16px 16px;
+        max-height: 92vh;
+    }
+
+    .modal-header {
+        padding: 24px 20px 16px;
+        flex-direction: row;
+        align-items: center;
+    }
+
+    .modal-header h2 {
+        font-size: 1.5rem;
+    }
+
+    .close-modal {
+        top: 16px;
+        right: 16px;
+        width: 36px;
+        height: 36px;
+    }
+
     .modal-body {
-        padding-top: 24px;
+        padding: 16px 20px;
+    }
+
+    .modal-footer {
+        padding: 16px 20px;
+    }
+
+    .modal .btn-large {
+        min-height: 52px;
+    }
+
+    .description {
+        font-size: 1rem;
+        margin-bottom: 24px;
+    }
+
+    .features-tech-grid {
+        gap: 24px;
+    }
+
+    .features h3,
+    .tech-stack h3,
+    .gallery-section h3 {
+        font-size: 1.1rem;
+        margin-bottom: 12px;
+    }
+
+    .features li {
+        font-size: 0.9rem;
+        padding: 8px 0;
+    }
+
+    .tech-tags {
+        gap: 6px;
+    }
+
+    .tech-tag {
+        padding: 6px 12px;
+        font-size: 0.8rem;
+    }
+
+    .bot-message-section {
+        padding: 16px;
+        margin: 20px 0;
+    }
+
+    .bot-message-section h3 {
+        font-size: 1.1rem;
+        margin-bottom: 16px;
     }
 
     .bot-chat-messages {
-        max-height: 240px;
-        padding: 14px;
+        max-height: 200px;
+        padding: 12px;
+    }
+
+    .bot-chat-input {
+        padding: 12px;
+        flex-direction: row;
+    }
+
+    #bot-message-input {
+        padding: 12px 16px;
+        font-size: 16px;
+    }
+
+    #bot-send-btn {
+        width: 44px;
+        height: 44px;
+        min-width: 44px;
+        min-height: 44px;
+    }
+
+    .traditional-form-content {
+        max-width: 100%;
+    }
+
+    .traditional-form-content .modal-header {
+        padding: 24px 20px 16px;
+    }
+
+    .traditional-form-content .modal-header h2 {
+        font-size: 1.4rem;
+    }
+
+    .traditional-form-content .modal-body {
+        padding: 16px 20px 24px;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-group label {
+        font-size: 0.9rem;
+        margin-bottom: 6px;
+    }
+
+    .form-group input,
+    .form-group textarea {
+        padding: 14px 16px;
+        font-size: 16px;
+        min-height: 48px;
+    }
+
+    .form-group textarea {
+        min-height: 100px;
     }
 
     .completion-card,
     .bot-message-section {
-        padding: 18px;
+        padding: 16px;
+    }
+
+    .completion-card h3 {
+        font-size: 1.15rem;
+    }
+
+    .completion-card p {
+        font-size: 0.95rem;
+    }
+
+    .completion-stats {
+        grid-template-columns: 1fr;
+        gap: 8px;
+        padding: 12px;
+    }
+
+    .completion-stats .stat-item {
+        font-size: 0.85rem;
+    }
+
+    .next-steps {
+        padding: 14px;
+    }
+
+    .next-steps h4 {
+        font-size: 1rem;
+    }
+
+    .next-steps li {
+        font-size: 0.9rem;
+        padding: 6px 0 6px 24px;
     }
 
     footer {
-        padding-left: 4%;
-        padding-right: 4%;
+        padding: 32px 4%;
+        margin-top: 40px;
+    }
+
+    .footer-content {
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .footer-left {
+        align-items: center;
+    }
+
+    .footer-right {
+        flex-direction: row;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .footer-link {
+        padding: 12px 20px;
+        font-size: 0.9rem;
+        min-height: 44px;
+    }
+}
+
+/* Ultra small screens (360px and below) */
+@media (max-width: 360px) {
+    .hero {
+        padding-top: 80px;
+        padding-left: 3%;
+        padding-right: 3%;
+    }
+
+    .hero-title {
+        font-size: 1.6rem;
+    }
+
+    .hero-subtitle {
+        font-size: 0.9rem;
+    }
+
+    .hero-buttons .btn {
+        font-size: 0.9rem;
+        padding: 14px 20px;
+    }
+
+    .section-title {
+        font-size: 1.6rem;
+    }
+
+    .stat-number {
+        font-size: 2.4rem;
+    }
+
+    .pricing-name {
+        font-size: 1.25rem;
+    }
+
+    .bento-card h3 {
+        font-size: 1.1rem;
+    }
+
+    .quick-action-btn {
+        font-size: 0.8rem;
+        padding: 8px 12px;
+    }
+
+    .quick-action-btn i {
+        display: none;
+    }
+
+    .mega-cta h2 {
+        font-size: 1.4rem;
     }
 }
 
@@ -1818,6 +2267,8 @@ footer { padding: 40px 5%; border-top: 1px solid var(--card-border); margin-top:
     padding: 80px 5%;
     max-width: 1200px;
     margin: 0 auto;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .chat-container {
@@ -1825,6 +2276,8 @@ footer { padding: 40px 5%; border-top: 1px solid var(--card-border); margin-top:
     grid-template-columns: 1fr 300px;
     gap: 30px;
     margin-top: 40px;
+    width: 100%;
+    min-width: 0;
 }
 
 .chat-main {
@@ -1832,15 +2285,22 @@ footer { padding: 40px 5%; border-top: 1px solid var(--card-border); margin-top:
     border: 1px solid var(--card-border);
     border-radius: var(--radius-lg);
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
 }
 
 .chat-messages {
-    height: 400px;
+    height: 600px;
+    max-height: 600px;
     overflow-y: auto;
+    overflow-x: hidden;
     padding: 20px;
     display: flex;
     flex-direction: column;
     gap: 15px;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
 }
 
 .message {
@@ -2147,7 +2607,7 @@ footer { padding: 40px 5%; border-top: 1px solid var(--card-border); margin-top:
     }
 
     .chat-messages {
-        height: 350px;
+        height: 450px;
         padding: 15px;
     }
 
