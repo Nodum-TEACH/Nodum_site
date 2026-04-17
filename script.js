@@ -18,20 +18,18 @@ function checkCollectedInfo(botResponse) {
     }
 }
 
-// Function to handle "Запустить проект" button click
+// Function to handle hero CTA button click
 function startProjectChat(event) {
     event.preventDefault();
 
-    // Smooth scroll to chat section
     const chatSection = document.getElementById('chat');
     if (chatSection) {
         chatSection.scrollIntoView({ behavior: 'smooth' });
 
-        // Wait for scroll to complete, then send message
         setTimeout(() => {
             const mainChatInput = document.getElementById('main-chat-input');
             if (mainChatInput && typeof window.sendMainChatMessageImpl === 'function') {
-                window.sendMainChatMessageImpl('Хочу обсудить запуск проекта');
+                window.sendMainChatMessageImpl('Хочу получить бесплатный разбор');
             }
         }, 500);
     }
@@ -50,10 +48,34 @@ function selectTariff(event, tariffName) {
         setTimeout(() => {
             const mainChatInput = document.getElementById('main-chat-input');
             if (mainChatInput && typeof window.sendMainChatMessageImpl === 'function') {
-                window.sendMainChatMessageImpl(`Меня интересует тариф ${tariffName}`);
+                window.sendMainChatMessageImpl(`Я выбрал тариф ${tariffName}`);
             }
         }, 500);
     }
+}
+
+// Functions for "Личный кабинет" modal
+function openCabinetModal() {
+    const modal = document.getElementById('cabinet-modal');
+    if (!modal) return;
+    modal.style.display = 'flex';
+    setTimeout(() => modal.classList.add('visible'), 10);
+    document.body.style.overflow = 'hidden';
+}
+
+function closeCabinetModal() {
+    const modal = document.getElementById('cabinet-modal');
+    if (!modal) return;
+    modal.classList.remove('visible');
+    setTimeout(() => { modal.style.display = 'none'; document.body.style.overflow = ''; }, 300);
+}
+
+function submitCabinetForm(event) {
+    event.preventDefault();
+    const email = document.getElementById('cabinet-email').value;
+    console.log('[cabinet] Email submitted:', email);
+    closeCabinetModal();
+    document.getElementById('cabinet-form').reset();
 }
 
 // Function to open traditional form modal
@@ -411,24 +433,35 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderCards(cards) {
         const container = document.getElementById('bento-container');
 
+        const tariffColors = {
+            'Нейрон': 'tariff-neuron',
+            'Синапс': 'tariff-synapse',
+            'Разум': 'tariff-razum'
+        };
+
         cards.forEach((card, index) => {
             const cardEl = document.createElement('div');
-            // Применяем классы сетки
             cardEl.className = `bento-card card-${index} fade-in-up`;
-            // Задержка анимации для каскадного появления
             cardEl.style.transitionDelay = `${index * 0.1}s`;
+
+            const tariffClass = tariffColors[card.tariff] || '';
+            const tariffBadge = card.tariff
+                ? `<span class="card-tariff-badge ${tariffClass}">${card.tariff}</span>`
+                : '';
 
             const tagsHTML = card.tags.slice(0, 3).map(tag => `<span>${tag}</span>`).join('');
 
             cardEl.innerHTML = `
                 <div>
-                    <div class="card-icon"><i class="${card.icon}"></i></div>
+                    <div class="card-icon-row">
+                        <div class="card-icon"><i class="${card.icon}"></i></div>
+                        ${tariffBadge}
+                    </div>
                     <h3>${card.title}</h3>
                     <p>${card.description}</p>
                 </div>
                 <div class="card-tags">${tagsHTML}</div>
             `;
-
 
             cardEl.addEventListener('click', () => openModal(card));
             container.appendChild(cardEl);
@@ -449,11 +482,10 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="gallery-item"><img src="${img}" alt="Preview" loading="lazy"></div>
         `).join('') : '<p style="color:var(--text-muted)">Нет скриншотов</p>';
 
-        // Функции
+        // Что получает бизнес
         modal.querySelector('.features ul').innerHTML = card.features.map(f => `<li>${f}</li>`).join('');
 
-        // Теги и детали
-        modal.querySelector('.tech-tags').innerHTML = card.tags.map(t => `<span style="background:var(--card-bg); border:1px solid var(--card-border); padding:5px 12px; border-radius:100px; font-size:0.8rem; margin-right:5px; display:inline-block; margin-bottom:5px;">${t}</span>`).join('');
+        // Как это работает
         modal.querySelector('.implementation-details').textContent = card.implementation;
 
         // Reset bot chat
@@ -475,6 +507,12 @@ document.addEventListener('DOMContentLoaded', () => {
     modal.querySelector('.close-modal').addEventListener('click', closeModal);
     modal.addEventListener('click', e => { if(e.target === modal) closeModal(); });
     document.addEventListener('keydown', e => { if(e.key === 'Escape') closeModal(); });
+
+    // Cabinet modal close on backdrop click
+    const cabinetModal = document.getElementById('cabinet-modal');
+    if (cabinetModal) {
+        cabinetModal.addEventListener('click', e => { if (e.target === cabinetModal) closeCabinetModal(); });
+    }
 
     // Bot Chat Functionality
     const botInput = document.getElementById('bot-message-input');
@@ -897,7 +935,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="message-content">
                 <div class="completion-card">
                     <h3><i class="fa-solid fa-clipboard-check"></i> Заявка принята!</h3>
-                    <p>Спасибо! Витя передал всю информацию нашей команде. Мы свяжемся с вами в ближайшее время, чтобы обсудить детали автоматизации вашего бизнеса.</p>
+                    <p>Спасибо! Заявка передана нашей команде. Свяжемся с вами в ближайшее время, чтобы обсудить детали автоматизации вашего бизнеса.</p>
                     <div class="completion-stats">
                         <div class="stat-item">
                             <i class="fa-solid fa-briefcase"></i>

@@ -4,21 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#030712">
-    <title>Nodum.tech</title>
+    <title>Nodum.tech — AI-агенты для бизнеса</title>
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>">
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://nodum.tech/">
-    <meta property="og:title" content="Nodum.tech - AI Bots для бизнеса">
-    <meta property="og:description" content="Создаём ботов нового уровня. Архитектура, автоматизация и UX/UI, которые конвертируют пользователей в клиентов. От WebApp витрин до AI-ассистентов.">
+    <meta property="og:title" content="Nodum.tech — AI-агенты для бизнеса">
+    <meta property="og:description" content="Агент отвечает клиентам, принимает заявки и освобождает команду от рутины — пока вы занимаетесь бизнесом.">
     <meta property="og:image" content="https://nodum.tech/images/bot-main.jpg">
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
     <meta property="twitter:url" content="https://nodum.tech/">
-    <meta property="twitter:title" content="Nodum.tech - AI Bots для бизнеса">
-    <meta property="twitter:description" content="Создаём ботов нового уровня. Архитектура, автоматизация и UX/UI, которые конвертируют пользователей в клиентов.">
+    <meta property="twitter:title" content="Nodum.tech — AI-агенты для бизнеса">
+    <meta property="twitter:description" content="Агент отвечает клиентам, принимает заявки и освобождает команду от рутины — пока вы занимаетесь бизнесом.">
     <meta property="twitter:image" content="https://nodum.tech/images/bot-main.jpg">
 
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;800;900&display=swap" rel="stylesheet">
@@ -35,174 +35,70 @@
     <nav class="navbar fade-in-top">
         <div class="logo">Nodum<span class="dot">.tech</span></div>
         <div class="nav-links">
-            <a href="https://github.com/Nodum-TEACH/Nodum_site" target="_blank" rel="noopener noreferrer" class="nav-link"><i class="fa-brands fa-github"></i> GitHub</a>
-            <a href="#pricing" class="btn btn-outline btn-sm">Выбрать тариф</a>
+            <a href="#portfolio" class="nav-link">Сценарии</a>
+            <a href="#pricing" class="nav-link">Тарифы</a>
+            <a href="#chat" class="nav-link">Связаться</a>
+            <button onclick="openCabinetModal()" class="btn btn-outline btn-sm">Личный кабинет</button>
         </div>
     </nav>
 
     <main id="main-content">
+
     <!-- Главный экран -->
     <header class="hero">
         <div class="hero-content fade-in-up">
-            <div class="badge-modern">
-                <span class="pulse-dot"></span> Доступен для новых проектов
-            </div>
-            <h1 class="hero-title">Создаём <span class="text-gradient">Ботов</span><br> нового уровня</h1>
-            <p class="hero-subtitle">Архитектура, автоматизация и UX/UI, которые конвертируют пользователей в клиентов. От витрин до AI-ассистентов.</p>
+            <h1 class="hero-title">AI-агенты для <span class="text-gradient">вашего бизнеса</span></h1>
+            <p class="hero-subtitle">Агент отвечает клиентам, принимает заявки и освобождает команду от рутины — пока вы занимаетесь бизнесом.</p>
 
             <div class="hero-buttons">
                 <a href="#chat" onclick="startProjectChat(event)" class="btn btn-primary">
-                    <span>Запустить проект <i class="fa-solid fa-arrow-right"></i></span>
+                    <span>Получить бесплатный разбор <i class="fa-solid fa-arrow-right"></i></span>
                 </a>
-                <button onclick="scrollToPortfolio()" class="btn btn-secondary">
-                    <span>Смотреть кейсы</span>
-                    <i class="fa-solid fa-arrow-down scroll-arrow"></i>
-                </button>
             </div>
+            <p class="hero-micro">Расскажем, какой сценарий подойдёт вашему бизнесу — за 24 часа, бесплатно</p>
         </div>
     </header>
 
-    <!-- Нам доверяют
-    <section class="trust-section fade-in-up">
-        <div class="trust-container">
-            <h2 class="trust-title">Нам доверяют</h2>
-            <div class="trust-logos">
-                <div class="trust-logo">
-                    <div class="logo-placeholder"><i class="fa-solid fa-building"></i></div>
-                    <span>ТехСтарт</span>
-                </div>
-                <div class="trust-logo">
-                    <div class="logo-placeholder"><i class="fa-solid fa-store"></i></div>
-                    <span>БьютиПро</span>
-                </div>
-                <div class="trust-logo">
-                    <div class="logo-placeholder"><i class="fa-solid fa-graduation-cap"></i></div>
-                    <span>ОбразовательныйЦентр</span>
-                </div>
-                <div class="trust-logo">
-                    <div class="logo-placeholder"><i class="fa-solid fa-briefcase"></i></div>
-                    <span>КонсалтХаб</span>
-                </div>
-                <div class="trust-logo">
-                    <div class="logo-placeholder"><i class="fa-solid fa-utensils"></i></div>
-                    <span>ДоставкаЕды</span>
+    <!-- Три шага -->
+    <section class="steps-section fade-in-up">
+        <div class="steps-container">
+            <div class="step-item fade-in-up">
+                <div class="step-number">01</div>
+                <div class="step-content">
+                    <h3>Разбираемся</h3>
+                    <p>Изучаем ваши процессы, воронку, типовые вопросы клиентов. Не ставим шаблон — вникаем в бизнес.</p>
                 </div>
             </div>
-        </div>
-    </section>-->
-
-    <!-- Трендовая бегущая строка
-    <div class="marquee-container fade-in-up">
-        <div class="marquee">
-            <div class="marquee-content"><span>TELEGRAM WEBAPPS</span><i class="fa-solid fa-asterisk"></i><span>AI INTEGRATIONS</span><i class="fa-solid fa-asterisk"></i><span>PYTHON BOTS</span><i class="fa-solid fa-asterisk"></i><span>PAYMENT SYSTEMS</span><i class="fa-solid fa-asterisk"></i><span>CRM SYNC</span><i class="fa-solid fa-asterisk"></i><span>TELEGRAM WEBAPPS</span><i class="fa-solid fa-asterisk"></i><span>AI INTEGRATIONS</span><i class="fa-solid fa-asterisk"></i><span>PYTHON BOTS</span><i class="fa-solid fa-asterisk"></i><span>PAYMENT SYSTEMS</span><i class="fa-solid fa-asterisk"></i><span>CRM SYNC</span><i class="fa-solid fa-asterisk"></i></div>
-        </div>
-    </div>-->
-
-    <!-- Статистика -->
-    <section class="stats-cta">
-        <div class="stats-container">
-            <div class="stat-item fade-in-up">
-                <div class="stat-number" data-target="50">0</div>
-                <div class="stat-label">Успешных релизов</div>
-                <div class="stat-chart">
-                    <svg viewBox="0 0 100 40" class="chart-svg">
-                        <defs>
-                            <linearGradient id="chartGradient1" x1="0%" y1="0%" x2="0%" y2="100%">
-                                <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:0.3"/>
-                                <stop offset="100%" style="stop-color:#3b82f6;stop-opacity:0"/>
-                            </linearGradient>
-                        </defs>
-                        <path class="chart-area" d="M0,35 Q10,30 20,28 T40,25 T60,18 T80,12 T100,5 L100,40 L0,40 Z" fill="url(#chartGradient1)"/>
-                        <path class="chart-line" d="M0,35 Q10,30 20,28 T40,25 T60,18 T80,12 T100,5" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round"/>
-                        <circle class="chart-dot" cx="100" cy="5" r="3" fill="#3b82f6"/>
-                    </svg>
+            <div class="step-item fade-in-up" style="transition-delay: 0.1s">
+                <div class="step-number">02</div>
+                <div class="step-content">
+                    <h3>Настраиваем</h3>
+                    <p>Обучаем агента под ваши сценарии, тестируем на реальных ситуациях, запускаем.</p>
                 </div>
             </div>
-            <div class="stat-item fade-in-up" style="transition-delay: 0.1s">
-                <div class="stat-number" data-target="99">0</div>
-                <div class="stat-label">Uptime серверов</div>
-                <div class="stat-chart">
-                    <svg viewBox="0 0 100 40" class="chart-svg">
-                        <defs>
-                            <linearGradient id="chartGradient2" x1="0%" y1="0%" x2="0%" y2="100%">
-                                <stop offset="0%" style="stop-color:#10b981;stop-opacity:0.3"/>
-                                <stop offset="100%" style="stop-color:#10b981;stop-opacity:0"/>
-                            </linearGradient>
-                        </defs>
-                        <path class="chart-area" d="M0,35 Q15,32 30,30 T55,20 T75,15 T100,3 L100,40 L0,40 Z" fill="url(#chartGradient2)"/>
-                        <path class="chart-line" d="M0,35 Q15,32 30,30 T55,20 T75,15 T100,3" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round"/>
-                        <circle class="chart-dot" cx="100" cy="3" r="3" fill="#10b981"/>
-                    </svg>
+            <div class="step-item fade-in-up" style="transition-delay: 0.2s">
+                <div class="step-number">03</div>
+                <div class="step-content">
+                    <h3>Ведём</h3>
+                    <p>Следим за качеством диалогов, улучшаем, даём отчёты. Вы не остаётесь один на один с агентом.</p>
                 </div>
-            </div>
-            <div class="stat-item fade-in-up" style="transition-delay: 0.2s">
-                <div class="stat-number" data-target="3">0</div>
-                <div class="stat-label">Года экспертизы</div>
-                <div class="stat-chart">
-                    <svg viewBox="0 0 100 40" class="chart-svg">
-                        <defs>
-                            <linearGradient id="chartGradient3" x1="0%" y1="0%" x2="0%" y2="100%">
-                                <stop offset="0%" style="stop-color:#8b5cf6;stop-opacity:0.3"/>
-                                <stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:0"/>
-                            </linearGradient>
-                        </defs>
-                        <path class="chart-area" d="M0,38 Q20,35 35,30 T60,22 T85,15 T100,8 L100,40 L0,40 Z" fill="url(#chartGradient3)"/>
-                        <path class="chart-line" d="M0,38 Q20,35 35,30 T60,22 T85,15 T100,8" fill="none" stroke="#8b5cf6" stroke-width="2" stroke-linecap="round"/>
-                        <circle class="chart-dot" cx="100" cy="8" r="3" fill="#8b5cf6"/>
-                    </svg>
-                </div>
-            </div>
-        </div>
-
-        <!-- Отзывы клиентов -->
-        <div class="reviews-widget fade-in-up" style="transition-delay: 0.3s">
-            <h3 class="reviews-title">Отзывы клиентов</h3>
-            <div class="reviews-container" id="reviews-container">
-                <div class="review-card active" data-index="0">
-                    <div class="review-header">
-                        <div class="review-avatar">
-                            <i class="fa-solid fa-user"></i>
-                        </div>
-                        <div class="review-info">
-                            <div class="review-name">Алексей М.</div>
-                            <div class="review-source"><i class="fa-brands fa-telegram"></i> Telegram</div>
-                        </div>
-                    </div>
-                    <p class="review-text">"Бот полностью заменил администратора! Теперь запись 24/7, а клиенты в восторге от скорости ответа. За месяц окупился полностью."</p>
-                </div>
-                <div class="review-card next" data-index="1">
-                    <div class="review-header">
-                        <div class="review-avatar">
-                            <i class="fa-solid fa-user"></i>
-                        </div>
-                        <div class="review-info">
-                            <div class="review-name">Мария К.</div>
-                            <div class="review-source"><i class="fa-brands fa-telegram"></i> Telegram</div>
-                        </div>
-                    </div>
-                    <p class="review-text">"Разработка заняла всего 8 дней вместо обещанных 14. Качество на высоте, поддержка отличная. Рекомендую!"</p>
-                </div>
-                <div class="review-card next" data-index="2">
-                    <div class="review-header">
-                        <div class="review-avatar">
-                            <i class="fa-solid fa-user"></i>
-                        </div>
-                        <div class="review-info">
-                            <div class="review-name">Дмитрий В.</div>
-                            <div class="review-source"><i class="fa-brands fa-telegram"></i> Telegram</div>
-                        </div>
-                    </div>
-                    <p class="review-text">"Интеграция с CRM прошла гладко. Бот квалифицирует лиды и отправляет их в нашу систему. Автоматизация работает идеально."</p>
-                </div>
-            </div>
-            <div class="reviews-nav">
-                <div class="review-dot active" data-index="0"></div>
-                <div class="review-dot" data-index="1"></div>
-                <div class="review-dot" data-index="2"></div>
             </div>
         </div>
     </section>
 
+    <!-- Сценарии -->
+    <section id="portfolio" class="portfolio fade-in-up">
+        <div class="section-header">
+            <h2 class="section-title">Сценарии <span class="text-gradient">автоматизации</span></h2>
+            <p>Выберите сценарий, который подходит вашему бизнесу — кликните для демо</p>
+        </div>
+
+        <div id="bento-container" class="bento-container">
+            <!-- Cards from JS -->
+        </div>
+    </section>
+
+    <!-- Тарифы -->
     <section id="pricing" class="pricing-section fade-in-up">
         <div class="section-header">
             <h2 class="section-title">Тарифы <span class="text-gradient">Nodum</span></h2>
@@ -211,72 +107,75 @@
 
         <div class="pricing-grid">
             <article class="pricing-card fade-in-up">
-                <div class="pricing-badge">ЛЁГКИЙ</div>
                 <div class="pricing-top">
                     <div>
                         <div class="pricing-name">Нейрон</div>
-                        <div class="pricing-price">Разовая интеграция: 18 000 ₽</div>
+                        <div class="pricing-tagline">Для тех, кто хочет начать без сложной интеграции</div>
+                        <div class="pricing-price">Разовое внедрение: 18 000 ₽</div>
                     </div>
-
                 </div>
                 <ul class="pricing-list">
-                    <li>Бот в Telegram + VK</li>
-                    <li>Отвечает на вопросы 24/7</li>
-                    <li>Принимает заявки и записи</li>
-                    <li>До 500 диалогов в месяц</li>
-                    <li>Запуск за 7-10 дней</li>
+                    <li>AI-агент в Telegram + VK</li>
+                    <li>Отвечает на вопросы 24/7, принимает заявки</li>
+                    <li>Настройка под ваш бизнес, запуск за 7–10 дней</li>
+                    <li>Базовая статистика диалогов</li>
+                    <li>До 500 диалогов в месяц*</li>
                 </ul>
-                <div class="pricing-launch">Поддержка серверов и AI-токенов: <span class="price-highlight">5&nbsp;900&nbsp;₽/мес</span></div>
-                <a href="#chat" onclick="selectTariff(event, 'Нейрон')" class="btn btn-secondary btn-sm pricing-btn">Выбрать</a>
+                <div class="pricing-launch">Сопровождение: <span class="price-highlight">от&nbsp;5&nbsp;900&nbsp;₽/мес</span></div>
+                <a href="#chat" onclick="selectTariff(event, 'Нейрон')" class="btn btn-secondary btn-sm pricing-btn">Выбрать →</a>
             </article>
 
             <article class="pricing-card pricing-card-featured fade-in-up" style="transition-delay: 0.1s">
-                <div class="pricing-badge">ПОПУЛЯРНЫЙ</div>
+                <div class="pricing-badge">ПОПУЛЯРНЫЙ ВЫБОР</div>
                 <div class="pricing-top">
                     <div>
                         <div class="pricing-name">Синапс</div>
-                        <div class="pricing-price">Разовая интеграция: 30 000 ₽</div>
+                        <div class="pricing-tagline">Для тех, кому важна конверсия, а не только обработка входящих</div>
+                        <div class="pricing-price">Разовое внедрение: 30 000 ₽</div>
                     </div>
-
                 </div>
                 <ul class="pricing-list">
-                    <li>Telegram + VK + сайт</li>
-                    <li>Дожим "думающих" клиентов</li>
-                    <li>Квалификация лидов</li>
-                    <li>До 1 500 диалогов в месяц</li>
-                    <li>Ежемесячный отчёт по вопросам и конверсии</li>
+                    <li>Всё из Нейрона + сайт</li>
+                    <li>Квалификация лидов с передачей портрета клиента</li>
+                    <li>Дожим тех, кто ушёл думать</li>
+                    <li>Ежемесячный отчёт: топ вопросов, возражения, где обрываются диалоги</li>
+                    <li>Анализ звонков менеджеров — опционально</li>
+                    <li>До 1 500 диалогов в месяц*</li>
                 </ul>
-                <div class="pricing-launch">Поддержка серверов и AI-токенов: <span class="price-highlight">13&nbsp;900&nbsp;₽/мес</span></div>
-                <a href="#chat" onclick="selectTariff(event, 'Синапс')" class="btn btn-primary btn-sm pricing-btn">Выбрать</a>
+                <div class="pricing-launch">Сопровождение: <span class="price-highlight">от&nbsp;13&nbsp;900&nbsp;₽/мес</span></div>
+                <a href="#chat" onclick="selectTariff(event, 'Синапс')" class="btn btn-primary btn-sm pricing-btn">Выбрать →</a>
             </article>
 
             <article class="pricing-card fade-in-up" style="transition-delay: 0.2s">
-                <div class="pricing-badge">ТЯЖЁЛЫЙ</div>
                 <div class="pricing-top">
                     <div>
                         <div class="pricing-name">Разум</div>
-                        <div class="pricing-price">Разовая интеграция: по договору</div>
+                        <div class="pricing-tagline">Для тех, кому нужна глубокая интеграция AI в процессы</div>
+                        <div class="pricing-price">Внедрение и сопровождение: по договору</div>
                     </div>
-
                 </div>
                 <ul class="pricing-list">
-                    <li>Безлимит диалогов</li>
-                    <li>Анализ звонков и коммуникаций</li>
-                    <li>Инсайты из всех касаний</li>
-                    <li>Кастомные AI-агенты</li>
+                    <li>Кастомные агенты под вашу задачу</li>
+                    <li>Внутренние сценарии и мультиагентные системы</li>
+                    <li>Аналитика всех коммуникаций</li>
                     <li>Приоритетная поддержка</li>
+                    <li>Условия обсуждаем индивидуально</li>
                 </ul>
-                <div class="pricing-launch">Поддержка серверов и AI-токенов: <span class="price-highlight">35&nbsp;000&nbsp;₽/мес</span></div>
-                <a href="#chat" onclick="selectTariff(event, 'Разум')" class="btn btn-secondary btn-sm pricing-btn">Выбрать</a>
+                <a href="#chat" onclick="selectTariff(event, 'Разум')" class="btn btn-secondary btn-sm pricing-btn">Обсудить задачу →</a>
             </article>
+        </div>
+
+        <div class="pricing-footnote">
+            <p>* До 500 / 1&nbsp;500 диалогов — стартовый порог. При превышении переходим на следующий тариф или договариваемся индивидуально. Агент не отключится в разгар сезона.</p>
+            <p><strong>CRM-интеграция</strong> — подключение к amoCRM, Битрикс24 и другим. +15&nbsp;000&nbsp;₽ разово, для любого тарифа.</p>
         </div>
     </section>
 
-    <!-- Chat Section -->
+    <!-- Прямая связь -->
     <section id="chat" class="chat-section fade-in-up">
         <div class="section-header">
-            <h2 class="section-title">Прямая <span class="text-gradient">Связь</span></h2>
-            <p>Задавайте вопросы или обсудите ваш проект напрямую с нами</p>
+            <h2 class="section-title">Расскажите о <span class="text-gradient">своей задаче</span></h2>
+            <p>Напишите — разберёмся, что подойдёт вашему бизнесу</p>
         </div>
 
         <div class="chat-container">
@@ -287,7 +186,7 @@
                             <i class="fa-solid fa-robot"></i>
                         </div>
                         <div class="message-content">
-                            <p>Привет! Я Витя, помощник консультант компании. Уже видел представление на сайте? Если нет, это можно сделать <a href="#portfolio" class="text-gradient">ниже</a>. А так спрашивай, что интересует по ботам!</p>
+                            <p>Привет! Расскажите о своём бизнесе — помогу понять, какой сценарий автоматизации подойдёт. Или задайте любой вопрос.</p>
                         </div>
                     </div>
                 </div>
@@ -310,21 +209,20 @@
                             <i class="fa-solid fa-clock"></i> Сроки
                         </button>
                         <button class="quick-action-btn traditional-form-btn" onclick="openTraditionalForm(event)">
-                            <i class="fa-solid fa-file-lines"></i> Классическая заявка
+                            <i class="fa-solid fa-file-lines"></i> Оставить заявку
                         </button>
                     </div>
                 </div>
             </div>
 
             <div class="chat-sidebar">
-
                 <div class="sidebar-section">
                     <h3><i class="fa-solid fa-phone"></i> Другие контакты</h3>
                     <div class="contact-buttons">
-                        <a href="#" target="_blank" class="contact-btn telegram">
+                        <a href="https://t.me/nodumtech" target="_blank" class="contact-btn telegram">
                             <i class="fa-brands fa-telegram"></i> Telegram
                         </a>
-                        <a href="#" target="_blank" class="contact-btn email">
+                        <a href="mailto:hello@nodum.tech" target="_blank" class="contact-btn email">
                             <i class="fa-solid fa-envelope"></i> Email
                         </a>
                     </div>
@@ -333,35 +231,12 @@
         </div>
     </section>
 
-    <!-- Portfolio Section -->
-    <section id="portfolio" class="portfolio fade-in-up">
-        <div class="section-header">
-            <h2 class="section-title">Экспертиза <span class="text-gradient">& Решения</span></h2>
-            <p>Выбирайте модуль, который ускорит ваш бизнес</p>
-        </div>
-
-        <div id="bento-container" class="bento-container">
-            <!-- Cards from JS -->
-        </div>
-    </section>
-
-    <!-- Максимальный CTA Блок -->
-    <section class="mega-cta fade-in-up">
-        <div class="mega-cta-content">
-            <h2>Хватит терять клиентов <br>из-за рутины.</h2>
-            <p>Бесплатно проанализирую ваши бизнес-процессы и предложу концепт автоматизации через Telegram за 24 часа.</p>
-            <a href="#" target="_blank" class="btn btn-primary btn-large btn-glow">
-                Запросить аудит <i class="fa-brands fa-telegram"></i>
-            </a>
-        </div>
-    </section>
-
     <!-- Модальное окно традиционной формы -->
     <div id="traditional-form-modal" class="modal">
         <div class="modal-content traditional-form-content">
             <span class="close-modal" onclick="closeTraditionalForm()"><i class="fa-solid fa-xmark"></i></span>
             <div class="modal-header">
-                <h2><i class="fa-solid fa-file-lines"></i> Классическая заявка</h2>
+                <h2><i class="fa-solid fa-file-lines"></i> Оставить заявку</h2>
                 <p>Заполните простую форму, и мы свяжемся с вами</p>
             </div>
             <div class="modal-body">
@@ -386,7 +261,7 @@
         </div>
     </div>
 
-    <!-- Модальное окно (без изменений в структуре, стили обновлены) -->
+    <!-- Модальное окно сценария (бент-карточки) -->
     <div id="bot-modal" class="modal">
         <div class="modal-content">
             <span class="close-modal"><i class="fa-solid fa-xmark"></i></span>
@@ -399,59 +274,81 @@
 
                 <!-- Interactive Bot Message Section -->
                 <div class="bot-message-section">
-                    <h3><i class="fa-solid fa-comments"></i> Try the Bot</h3>
+                    <h3><i class="fa-solid fa-comments"></i> Демо-диалог</h3>
                     <div class="bot-chat-container">
                         <div class="bot-chat-messages" id="bot-chat-messages">
                             <div class="bot-message">
                                 <div class="bot-avatar"><i class="fa-solid fa-robot"></i></div>
                                 <div class="message-content">
-                                    <p>Hi! I'm a demo bot for this module. Ask me anything about how I work!</p>
+                                    <p>Привет! Расскажите что вас интересует — отвечу на вопросы и помогу оставить заявку.</p>
                                 </div>
                             </div>
                         </div>
                         <div class="bot-chat-input">
-                            <input type="text" id="bot-message-input" placeholder="Ask about features, pricing, implementation...">
+                            <input type="text" id="bot-message-input" placeholder="Задайте вопрос...">
                             <button id="bot-send-btn"><i class="fa-solid fa-paper-plane"></i></button>
                         </div>
                     </div>
                 </div>
 
                 <div class="gallery-section">
-                    <h3>Interface:</h3>
+                    <h3>Интерфейс:</h3>
                     <div class="image-gallery"></div>
                 </div>
                 <div class="features-tech-grid">
                     <div class="features">
-                        <h3>Features:</h3>
+                        <h3>Что получает бизнес:</h3>
                         <ul></ul>
                     </div>
                     <div class="tech-stack">
-                        <h3>Stack:</h3>
-                        <div class="tech-tags"></div>
-                        <h3 style="margin-top:20px;">Implementation:</h3>
+                        <h3>Как это работает:</h3>
                         <div class="implementation-details"></div>
                     </div>
                 </div>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-primary btn-large modal-contact" style="width: 100%">Хочу такого бота</button>
+                <button class="btn btn-primary btn-large modal-contact" style="width: 100%">Хочу такого агента</button>
             </div>
         </div>
     </div>
 
+    <!-- Модальное окно "Личный кабинет" -->
+    <div id="cabinet-modal" class="modal">
+        <div class="modal-content cabinet-modal-content">
+            <span class="close-modal" onclick="closeCabinetModal()"><i class="fa-solid fa-xmark"></i></span>
+            <div class="modal-header">
+                <div class="modal-icon"><i class="fa-solid fa-user-circle"></i></div>
+                <h2>Личный кабинет</h2>
+            </div>
+            <div class="modal-body">
+                <p style="color: var(--text-muted); margin-bottom: 24px; line-height: 1.6;">
+                    Личный кабинет — в разработке. Здесь будет управление тарифом, аналитика диалогов и потребление токенов.
+                </p>
+                <form id="cabinet-form" onsubmit="submitCabinetForm(event)">
+                    <div class="form-group">
+                        <label for="cabinet-email">Ваш email</label>
+                        <input type="email" id="cabinet-email" required placeholder="you@example.com">
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-large" style="width: 100%">
+                        <span>Уведомить о запуске <i class="fa-solid fa-bell"></i></span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
 
     <footer>
         <div class="footer-content">
             <div class="footer-left">
                 <div class="logo">Nodum<span class="dot">.tech</span></div>
-                <p>© 2026. Code & Design.</p>
+                <p>© 2026. AI-агенты для бизнеса.</p>
             </div>
             <div class="footer-right">
-                <a href="#" target="_blank" class="footer-link">
-                    <i class="fa-brands fa-github"></i> GitHub
-                </a>
-                <a href="#" target="_blank" class="footer-link">
+                <a href="https://t.me/nodumtech" target="_blank" class="footer-link">
                     <i class="fa-brands fa-telegram"></i> Telegram
+                </a>
+                <a href="mailto:hello@nodum.tech" class="footer-link">
+                    <i class="fa-solid fa-envelope"></i> Email
                 </a>
             </div>
         </div>

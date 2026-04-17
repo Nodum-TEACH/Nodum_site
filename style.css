@@ -2374,3 +2374,162 @@ footer { padding: 40px 5%; border-top: 1px solid var(--card-border); margin-top:
 ::-webkit-scrollbar-track { background: var(--bg-color); }
 ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
 ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+
+/* ========================
+   REDESIGN v2 — NEW STYLES
+   ======================== */
+
+/* Hero micro-text */
+.hero-micro {
+    margin-top: 16px;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    opacity: 0.8;
+    letter-spacing: 0.01em;
+}
+
+/* Three steps section */
+.steps-section {
+    max-width: 1200px;
+    margin: 0 auto 80px;
+    padding: 0 24px;
+}
+
+.steps-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2px;
+    background: var(--card-border);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+}
+
+.step-item {
+    display: flex;
+    gap: 20px;
+    padding: 36px 32px;
+    background: var(--card-bg);
+    transition: background 0.25s ease;
+}
+
+.step-item:hover {
+    background: var(--card-hover);
+}
+
+.step-number {
+    font-size: 2.5rem;
+    font-weight: 900;
+    color: var(--accent);
+    opacity: 0.5;
+    line-height: 1;
+    flex-shrink: 0;
+    letter-spacing: -0.03em;
+}
+
+.step-content h3 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: var(--text-main);
+}
+
+.step-content p {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+}
+
+@media (max-width: 768px) {
+    .steps-container {
+        grid-template-columns: 1fr;
+        gap: 1px;
+    }
+    .step-item {
+        padding: 24px 20px;
+    }
+}
+
+/* Pricing tagline ("для кого") */
+.pricing-tagline {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+    line-height: 1.4;
+}
+
+/* Pricing footnote */
+.pricing-footnote {
+    max-width: 900px;
+    margin: 32px auto 0;
+    padding: 20px 24px;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+}
+
+.pricing-footnote p + p {
+    margin-top: 8px;
+}
+
+/* Nav links */
+.nav-link {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: color 0.2s ease;
+    padding: 4px 8px;
+}
+
+.nav-link:hover {
+    color: var(--text-main);
+}
+
+/* Scenario card tariff badge */
+.card-icon-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.card-tariff-badge {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: 100px;
+    border: 1px solid;
+}
+
+.card-tariff-badge.tariff-neuron {
+    color: #60a5fa;
+    border-color: rgba(59, 130, 246, 0.4);
+    background: rgba(59, 130, 246, 0.08);
+}
+
+.card-tariff-badge.tariff-synapse {
+    color: #a78bfa;
+    border-color: rgba(139, 92, 246, 0.4);
+    background: rgba(139, 92, 246, 0.08);
+}
+
+.card-tariff-badge.tariff-razum {
+    color: #34d399;
+    border-color: rgba(16, 185, 129, 0.4);
+    background: rgba(16, 185, 129, 0.08);
+}
+
+/* Move card-icon margin to card-icon-row */
+.card-icon-row .card-icon {
+    margin-bottom: 0;
+}
+
+/* Cabinet modal sizing */
+.cabinet-modal-content {
+    max-width: 480px;
+}
