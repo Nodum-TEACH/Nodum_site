@@ -99,12 +99,6 @@
                 <div class="metric-change positive"><i class="fa-solid fa-arrow-up"></i> +22.7%</div>
             </div>
             
-            <div class="metric-card">
-                <div class="metric-icon"><i class="fa-solid fa-robot"></i></div>
-                <div class="metric-value" id="bot-response-time">0s</div>
-                <div class="metric-label">Среднее время ответа бота</div>
-                <div class="metric-change positive"><i class="fa-solid fa-arrow-down"></i> -5.4%</div>
-            </div>
         </div>
         
         <div class="charts-grid">
@@ -371,7 +365,7 @@
 
             if (!accessToken) {
                 document.getElementById('access-denied').style.display = 'flex';
-                return;
+                return Promise.resolve();
             }
 
             try {
@@ -401,14 +395,17 @@
                         // Render heatmap with real data if available
                         if (data.heatmapData && data.heatmapData.length > 0) {
                             const canvas = document.getElementById('heatmapCanvas');
-                            const points = data.heatmapData.map(p => ({
-                                x: (p.x / 100) * canvas.offsetWidth,
-                                y: (p.y / 100) * canvas.offsetHeight,
-                                intensity: p.intensity,
-                                radius: 30,
-                                type: p.type || 'normal'
-                            }));
-                            renderHeatmap(points);
+                            // Ensure canvas has dimensions before rendering
+                            if (canvas.offsetWidth > 0 && canvas.offsetHeight > 0) {
+                                const points = data.heatmapData.map(p => ({
+                                    x: (p.x / 100) * canvas.offsetWidth,
+                                    y: (p.y / 100) * canvas.offsetHeight,
+                                    intensity: p.intensity,
+                                    radius: 30,
+                                    type: p.type || 'normal'
+                                }));
+                                renderHeatmap(points);
+                            }
                         } else {
                             // Clear heatmap and show no data
                             const canvas = document.getElementById('heatmapCanvas');
@@ -481,8 +478,7 @@
             document.getElementById('avg-time').textContent = formatTime(data.avgTime);
             document.getElementById('total-clicks').textContent = data.totalClicks.toLocaleString();
             document.getElementById('chat-messages').textContent = data.chatMessages.toLocaleString();
-            document.getElementById('bot-response-time').textContent = data.botResponseTime + 's';
-            
+
             // Bot performance
             document.getElementById('bot-total-messages').textContent = data.botMetrics.totalMessages;
             document.getElementById('bot-avg-response').textContent = data.botMetrics.avgResponse + 's';
@@ -528,137 +524,262 @@
         }
         
         function initCharts(data) {
-            // Destroy existing charts before creating new ones
-            const chartIds = ['sessionsChart', 'chatActivityChart', 'devicesChart', 'scrollChart'];
-            chartIds.forEach(id => {
-                const chart = Chart.getChart(id);
-                if (chart) {
-                    chart.destroy();
-                }
-            });
+            console.log('initCharts called with data:', data);
 
             // Sessions over time
-            const sessionsCtx = document.getElementById('sessionsChart').getContext('2d');
-            new Chart(sessionsCtx, {
-                type: 'line',
-                data: {
-                    labels: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'],
-                    datasets: [{
-                        label: 'Сессии',
-                        data: data.sessionsOverTime,
-                        borderColor: '#667eea',
-                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
-                        fill: true,
-                        tension: 0.4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            grid: { color: 'rgba(255,255,255,0.1)' }
-                        },
-                        x: {
-                            grid: { display: false }
-                        }
+            const sessionsCanvas = document.getElementById('sessionsChart');
+            if (!sessionsCanvas) {
+                console.error('Sessions canvas not found');
+            } else {
+                const sessionsChart = Chart.getChart('sessionsChart');
+                const sessionsLabels = data.sessionsOverTimeLabels || ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+                const sessionsData = data.sessionsOverTime || [0, 0, 0, 0, 0, 0, 0];
+
+                console.log('Sessions labels:', sessionsLabels, 'data:', sessionsData);
+
+                // Ensure labels and data have same length
+                const maxLength = Math.max(sessionsLabels.length, sessionsData.length);
+                const normalizedLabels = sessionsLabels.slice(0, maxLength);
+                const normalizedData = sessionsData.slice(0, maxLength);
+
+                try {
+                    if (sessionsChart) {
+                        sessionsChart.data.labels = normalizedLabels;
+                        sessionsChart.data.datasets[0].data = normalizedData;
+                        sessionsChart.update();
+                    } else {
+                        const sessionsCtx = sessionsCanvas.getContext('2d');
+                        new Chart(sessionsCtx, {
+                            type: 'line',
+                            data: {
+                                labels: normalizedLabels,
+                                datasets: [{
+                                    label: 'Сессии',
+                                    data: normalizedData,
+                                    borderColor: '#667eea',
+                                    backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                                    fill: true,
+                                    tension: 0.4
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: {
+                                    legend: { display: false }
+                                },
+                                scales: {
+                                    y: {
+                                        beginAtZero: true,
+                                        grid: { color: 'rgba(255,255,255,0.1)' }
+                                    },
+                                    x: {
+                                        grid: { display: false }
+                                    }
+                                }
+                            }
+                        });
                     }
+                } catch (error) {
+                    console.error('Error updating sessions chart:', error);
+                    // Fallback: destroy and recreate
+                    if (sessionsChart) {
+                        sessionsChart.destroy();
+                    }
+                    const sessionsCtx = sessionsCanvas.getContext('2d');
+                    new Chart(sessionsCtx, {
+                        type: 'line',
+                        data: {
+                            labels: normalizedLabels,
+                            datasets: [{
+                                label: 'Сессии',
+                                data: normalizedData,
+                                borderColor: '#667eea',
+                                backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                                fill: true,
+                                tension: 0.4
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { display: false }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    grid: { color: 'rgba(255,255,255,0.1)' }
+                                },
+                                x: {
+                                    grid: { display: false }
+                                }
+                            }
+                        }
+                    });
                 }
-            });
-            
+            }
+
             // Chat activity
-            const chatCtx = document.getElementById('chatActivityChart').getContext('2d');
-            new Chart(chatCtx, {
-                type: 'bar',
-                data: {
-                    labels: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'],
-                    datasets: [{
-                        label: 'Сообщения',
-                        data: data.chatActivity,
-                        backgroundColor: 'rgba(102, 126, 234, 0.8)',
-                        borderRadius: 8
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            grid: { color: 'rgba(255,255,255,0.1)' }
-                        },
-                        x: {
-                            grid: { display: false }
-                        }
+            const chatCanvas = document.getElementById('chatActivityChart');
+            if (!chatCanvas) {
+                console.error('Chat activity canvas not found');
+            } else {
+                const chatChart = Chart.getChart('chatActivityChart');
+                const chatLabels = data.chatActivityLabels || ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+                const chatData = data.chatActivity || [0, 0, 0, 0, 0, 0, 0];
+
+                console.log('Chat labels:', chatLabels, 'data:', chatData);
+
+                // Ensure labels and data have same length
+                const chatMaxLength = Math.max(chatLabels.length, chatData.length);
+                const normalizedChatLabels = chatLabels.slice(0, chatMaxLength);
+                const normalizedChatData = chatData.slice(0, chatMaxLength);
+
+                try {
+                    if (chatChart) {
+                        chatChart.data.labels = normalizedChatLabels;
+                        chatChart.data.datasets[0].data = normalizedChatData;
+                        chatChart.update();
+                    } else {
+                        const chatCtx = chatCanvas.getContext('2d');
+                        new Chart(chatCtx, {
+                            type: 'bar',
+                            data: {
+                                labels: normalizedChatLabels,
+                                datasets: [{
+                                    label: 'Сообщения',
+                                    data: normalizedChatData,
+                                    backgroundColor: 'rgba(102, 126, 234, 0.8)',
+                                    borderRadius: 8
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: {
+                                    legend: { display: false }
+                                },
+                                scales: {
+                                    y: {
+                                        beginAtZero: true,
+                                        grid: { color: 'rgba(255,255,255,0.1)' }
+                                    },
+                                    x: {
+                                        grid: { display: false }
+                                    }
+                                }
+                            }
+                        });
                     }
+                } catch (error) {
+                    console.error('Error updating chat chart:', error);
+                    // Fallback: destroy and recreate
+                    if (chatChart) {
+                        chatChart.destroy();
+                    }
+                    const chatCtx = chatCanvas.getContext('2d');
+                    new Chart(chatCtx, {
+                        type: 'bar',
+                        data: {
+                            labels: normalizedChatLabels,
+                            datasets: [{
+                                label: 'Сообщения',
+                                data: normalizedChatData,
+                                backgroundColor: 'rgba(102, 126, 234, 0.8)',
+                                borderRadius: 8
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { display: false }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    grid: { color: 'rgba(255,255,255,0.1)' }
+                                },
+                                x: {
+                                    grid: { display: false }
+                                }
+                            }
+                        }
+                    });
                 }
-            });
-            
+            }
+
             // Devices distribution
-            const devicesCtx = document.getElementById('devicesChart').getContext('2d');
-            new Chart(devicesCtx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Desktop', 'Mobile', 'Tablet'],
-                    datasets: [{
-                        data: [data.devices.desktop, data.devices.mobile, data.devices.tablet],
-                        backgroundColor: ['#667eea', '#764ba2', '#f093fb']
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom'
-                        }
-                    }
-                }
-            });
-            
-            // Scroll depth
-            const scrollCtx = document.getElementById('scrollChart').getContext('2d');
-            new Chart(scrollCtx, {
-                type: 'bar',
-                data: {
-                    labels: ['0-20%', '20-40%', '40-60%', '60-80%', '80-100%'],
-                    datasets: [{
-                        label: 'Пользователи',
-                        data: data.scrollDepth,
-                        backgroundColor: [
-                            'rgba(102, 126, 234, 0.4)',
-                            'rgba(102, 126, 234, 0.5)',
-                            'rgba(102, 126, 234, 0.6)',
-                            'rgba(102, 126, 234, 0.7)',
-                            'rgba(102, 126, 234, 0.8)'
-                        ],
-                        borderRadius: 8
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false }
+            const devicesChart = Chart.getChart('devicesChart');
+            if (devicesChart) {
+                devicesChart.data.datasets[0].data = [data.devices.desktop, data.devices.mobile, data.devices.tablet];
+                devicesChart.update();
+            } else {
+                const devicesCtx = document.getElementById('devicesChart').getContext('2d');
+                new Chart(devicesCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Desktop', 'Mobile', 'Tablet'],
+                        datasets: [{
+                            data: [data.devices.desktop, data.devices.mobile, data.devices.tablet],
+                            backgroundColor: ['#667eea', '#764ba2', '#f093fb']
+                        }]
                     },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            grid: { color: 'rgba(255,255,255,0.1)' }
-                        },
-                        x: {
-                            grid: { display: false }
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom'
+                            }
                         }
                     }
-                }
-            });
+                });
+            }
+
+            // Scroll depth
+            const scrollChart = Chart.getChart('scrollChart');
+            if (scrollChart) {
+                scrollChart.data.datasets[0].data = data.scrollDepth;
+                scrollChart.update();
+            } else {
+                const scrollCtx = document.getElementById('scrollChart').getContext('2d');
+                new Chart(scrollCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['0-20%', '20-40%', '40-60%', '60-80%', '80-100%'],
+                        datasets: [{
+                            label: 'Пользователи',
+                            data: data.scrollDepth,
+                            backgroundColor: [
+                                'rgba(102, 126, 234, 0.4)',
+                                'rgba(102, 126, 234, 0.5)',
+                                'rgba(102, 126, 234, 0.6)',
+                                'rgba(102, 126, 234, 0.7)',
+                                'rgba(102, 126, 234, 0.8)'
+                            ],
+                            borderRadius: 8
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                grid: { color: 'rgba(255,255,255,0.1)' }
+                            },
+                            x: {
+                                grid: { display: false }
+                            }
+                        }
+                    }
+                });
+            }
         }
         
         function renderHeatmap(realData = null) {
@@ -912,8 +1033,18 @@
             });
         }
         
+        let isRefreshing = false;
+
         function refreshDashboard(period = null) {
+            // Prevent multiple simultaneous refresh calls
+            if (isRefreshing) {
+                console.log('Dashboard is already refreshing, skipping...');
+                return;
+            }
+
+            isRefreshing = true;
             console.log('Refreshing dashboard...');
+
             // Демо-анимация обновления
             const btn = document.querySelector('.refresh-btn');
             btn.style.transform = 'rotate(360deg)';
@@ -922,7 +1053,9 @@
             }, 500);
 
             // Загружаем реальные данные с выбранным периодом
-            loadRealData(0, false, period);
+            loadRealData(0, false, period).finally(() => {
+                isRefreshing = false;
+            });
         }
     </script>
 </body>
