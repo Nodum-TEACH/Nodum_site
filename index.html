@@ -34,11 +34,16 @@
     <!-- Навигация -->
     <nav class="navbar fade-in-top">
         <div class="logo">Nodum<span class="dot">.tech</span></div>
+        <button class="burger-menu" aria-label="Меню">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
         <div class="nav-links">
+            <button onclick="openCabinetModal()" class="btn btn-outline btn-sm">Личный кабинет</button>
             <a href="#portfolio" class="nav-link">Сценарии</a>
             <a href="#pricing" class="nav-link">Тарифы</a>
             <a href="#chat" class="nav-link">Связаться</a>
-            <button onclick="openCabinetModal()" class="btn btn-outline btn-sm">Личный кабинет</button>
         </div>
     </nav>
 
@@ -225,6 +230,9 @@
                         <a href="mailto:hello@nodum.tech" target="_blank" class="contact-btn email">
                             <i class="fa-solid fa-envelope"></i> Email
                         </a>
+                        <button class="contact-btn form-btn big-contact-btn" onclick="openTraditionalForm(event)">
+                            <i class="fa-solid fa-file-lines"></i> Оставить заявку
+                        </button>
                     </div>
                 </div>
             </div>

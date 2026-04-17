@@ -96,26 +96,50 @@ function closeTraditionalForm() {
 }
 
 // Function to submit traditional form
-function submitTraditionalForm(event) {
+async function submitTraditionalForm(event) {
     event.preventDefault();
 
     const field = document.getElementById('form-field').value;
     const contact = document.getElementById('form-contact').value;
     const message = document.getElementById('form-message').value;
 
-    // Send the data to your backend or process it
-    console.log('Traditional form submitted:', { field, contact, message });
+    try {
+        // Send the data to backend endpoint
+        const response = await fetch('https://nhost.weebx.duckdns.org/v1/lead-submit', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                field,
+                contact,
+                message
+            })
+        });
 
-    // Close the modal
-    closeTraditionalForm();
+        const data = await response.json();
 
-    // Show success message in chat
-    if (typeof window.sendMainChatMessageImpl === 'function') {
-        window.sendMainChatMessageImpl(`Оставил классическую заявку. Сфера: ${field}, Контакт: ${contact}`);
+        if (data.success) {
+            console.log('[traditional-form] Form submitted successfully:', { field, contact, message });
+            
+            // Close the modal
+            closeTraditionalForm();
+
+            // Show success message in chat
+            if (typeof window.sendMainChatMessageImpl === 'function') {
+                window.sendMainChatMessageImpl(`Оставил классическую заявку. Сфера: ${field}, Контакт: ${contact}`);
+            }
+
+            // Reset form
+            document.getElementById('traditional-form').reset();
+        } else {
+            console.error('[traditional-form] Error submitting form:', data.error);
+            alert('Ошибка при отправке заявки. Пожалуйста, попробуйте позже.');
+        }
+    } catch (error) {
+        console.error('[traditional-form] Network error:', error);
+        alert('Ошибка соединения. Пожалуйста, попробуйте позже.');
     }
-
-    // Reset form
-    document.getElementById('traditional-form').reset();
 }
 
 
@@ -178,6 +202,41 @@ document.addEventListener('click', (event) => {
 });
 
 document.addEventListener('DOMContentLoaded', () => {
+
+    // Burger Menu Toggle
+    const burgerMenu = document.querySelector('.burger-menu');
+    const navLinks = document.querySelector('.nav-links');
+
+    if (burgerMenu && navLinks) {
+        burgerMenu.addEventListener('click', () => {
+            burgerMenu.classList.toggle('active');
+            navLinks.classList.toggle('active');
+        });
+
+        // Close menu when clicking a link
+        navLinks.querySelectorAll('.nav-link, .btn').forEach(link => {
+            link.addEventListener('click', () => {
+                burgerMenu.classList.remove('active');
+                navLinks.classList.remove('active');
+            });
+        });
+
+        // Close menu on escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && navLinks.classList.contains('active')) {
+                burgerMenu.classList.remove('active');
+                navLinks.classList.remove('active');
+            }
+        });
+
+        // Close menu when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!burgerMenu.contains(e.target) && !navLinks.contains(e.target)) {
+                burgerMenu.classList.remove('active');
+                navLinks.classList.remove('active');
+            }
+        });
+    }
 
     // Плавный скролл
     window.scrollToPortfolio = function() {
