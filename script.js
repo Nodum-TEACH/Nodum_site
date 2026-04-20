@@ -519,6 +519,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // Флаг отключения чата
     let chatDisabled = false;
 
+    // Флаг обработки сообщения
+    let isProcessing = false;
+
     // Функция очистки истории чата
     function resetMainChatHistory() {
         chatHistory = [];
@@ -557,6 +560,20 @@ document.addEventListener('DOMContentLoaded', () => {
     // Send message function
     async function sendMainChatMessage(message) {
         if (!message || !message.trim()) return;
+
+        // Защита от спама - не отправляем если уже идет обработка
+        if (isProcessing) {
+            console.log('[chat] Message blocked: already processing');
+            return;
+        }
+
+        isProcessing = true;
+
+        // Блокируем UI во время обработки
+        mainChatInput.disabled = true;
+        mainChatSendBtn.disabled = true;
+        mainChatSendBtn.style.opacity = '0.5';
+        mainChatSendBtn.style.cursor = 'not-allowed';
 
         // Добавляем сообщение пользователя в историю
         chatHistory.push({
@@ -652,6 +669,15 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
             mainChatMessages.appendChild(botMsgDiv);
             mainChatMessages.scrollTop = mainChatMessages.scrollHeight;
+        } finally {
+            // Разблокируем UI после завершения запроса
+            isProcessing = false;
+            if (!chatDisabled) {
+                mainChatInput.disabled = false;
+                mainChatSendBtn.disabled = false;
+                mainChatSendBtn.style.opacity = '1';
+                mainChatSendBtn.style.cursor = 'pointer';
+            }
         }
     }
 
