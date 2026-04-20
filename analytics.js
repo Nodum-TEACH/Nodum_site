@@ -329,35 +329,53 @@ class DeepAnalyticsTracker {
     }
 }
 
-// Инициализация
-const deepAnalytics = new DeepAnalyticsTracker();
-window.nodumAnalytics = deepAnalytics;
+// Analytics will only initialize when cookie consent is given
+// This is controlled by cookie-consent.js
 
-// Интеграция с существующим кодом (для отслеживания ИИ-событий)
-// Вызовите это в скрипте там, где бот получает информацию
-const originalCheckCollectedInfo = window.checkCollectedInfoImpl;
-if (originalCheckCollectedInfo) {
-    window.checkCollectedInfoImpl = (botResponse) => {
-        originalCheckCollectedInfo(botResponse);
-        // Трекаем успешный сбор данных
-        if (botResponse.toLowerCase().includes('сфер') || botResponse.toLowerCase().includes('бизнес')) {
-            window.nodumAnalytics.track('ai_extracted_field', { text: botResponse.substring(0, 50) });
-        }
-        if (botResponse.toLowerCase().includes('телефон') || botResponse.toLowerCase().includes('телеграм')) {
-            window.nodumAnalytics.track('ai_extracted_contact', { text: botResponse.substring(0, 50) });
-            // Трекаем успешный сбор контактов в воронке
-            window.nodumAnalytics.track('chat_funnel', { step: 'bot_collected_contacts' });
-        }
-    };
+function initAnalytics() {
+    const deepAnalytics = new DeepAnalyticsTracker();
+    window.nodumAnalytics = deepAnalytics;
+
+    // Интеграция с существующим кодом (для отслеживания ИИ-событий)
+    // Вызовите это в скрипте там, где бот получает информацию
+    const originalCheckCollectedInfo = window.checkCollectedInfoImpl;
+    if (originalCheckCollectedInfo) {
+        window.checkCollectedInfoImpl = (botResponse) => {
+            originalCheckCollectedInfo(botResponse);
+            // Трекаем успешный сбор данных
+            if (botResponse.toLowerCase().includes('сфер') || botResponse.toLowerCase().includes('бизнес')) {
+                window.nodumAnalytics.track('ai_extracted_field', { text: botResponse.substring(0, 50) });
+            }
+            if (botResponse.toLowerCase().includes('телефон') || botResponse.toLowerCase().includes('телеграм')) {
+                window.nodumAnalytics.track('ai_extracted_contact', { text: botResponse.substring(0, 50) });
+                // Трекаем успешный сбор контактов в воронке
+                window.nodumAnalytics.track('chat_funnel', { step: 'bot_collected_contacts' });
+            }
+        };
+    }
+
+    // Интеграция с checkForCompletion для трекинга завершения чата
+    const originalCheckForCompletion = window.checkForCompletionImpl;
+    if (originalCheckForCompletion) {
+        window.checkForCompletionImpl = (botResponse) => {
+            originalCheckForCompletion(botResponse);
+            // Трекаем завершение чата (успешная конверсия)
+            window.nodumAnalytics.track('chat_funnel', { step: 'chat_completed' });
+            window.nodumAnalytics.track('conversion', { type: 'chat_lead' });
+        };
+    }
+
+    console.log('[Analytics] Initialized with cookie consent');
 }
 
-// Интеграция с checkForCompletion для трекинга завершения чата
-const originalCheckForCompletion = window.checkForCompletionImpl;
-if (originalCheckForCompletion) {
-    window.checkForCompletionImpl = (botResponse) => {
-        originalCheckForCompletion(botResponse);
-        // Трекаем завершение чата (успешная конверсия)
-        window.nodumAnalytics.track('chat_funnel', { step: 'chat_completed' });
-        window.nodumAnalytics.track('conversion', { type: 'chat_lead' });
-    };
+// Listen for cookie consent event
+window.addEventListener('cookieConsentApplied', (e) => {
+    if (e.detail && e.detail.analytics) {
+        initAnalytics();
+    }
+});
+
+// Also check if consent already exists (for cases where script loads after consent)
+if (window.cookieConsent && window.cookieConsent.hasConsent('analytics')) {
+    initAnalytics();
 }
