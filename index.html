@@ -364,8 +364,106 @@
 
     </main>
 
+    <!-- Cookie Consent Banner -->
+    <div id="cookie-consent-banner" class="cookie-banner" style="display: none;">
+        <div class="cookie-banner-content">
+            <div class="cookie-banner-text">
+                <h3>Мы используем файлы cookie</h3>
+                <p>Мы используем cookie для аналитики и улучшения работы сайта. Вы можете выбрать, какие cookie разрешить.</p>
+                <button class="cookie-settings-toggle" onclick="window.cookieConsent.showSettings()">
+                    <i class="fa-solid fa-cog"></i> Настройки
+                </button>
+            </div>
+            <div class="cookie-banner-buttons">
+                <button class="btn btn-secondary cookie-reject" onclick="window.cookieConsent.rejectAll()">
+                    Отклонить все
+                </button>
+                <button class="btn btn-primary cookie-accept" onclick="window.cookieConsent.acceptAll()">
+                    Принять все
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cookie Settings Modal -->
+    <div id="cookie-settings-modal" class="modal cookie-modal" style="display: none;">
+        <div class="modal-content cookie-modal-content">
+            <span class="close-modal" onclick="window.cookieConsent.hideSettings()"><i class="fa-solid fa-xmark"></i></span>
+            <div class="modal-header">
+                <h2><i class="fa-solid fa-cookie-bite"></i> Настройки cookie</h2>
+                <p>Выберите, какие типы cookie вы разрешаете использовать</p>
+            </div>
+            <div class="modal-body">
+                <div class="cookie-category">
+                    <div class="cookie-category-header">
+                        <div>
+                            <h4>Необходимые cookie</h4>
+                            <p class="cookie-description">Обязательны для работы сайта. Не могут быть отключены.</p>
+                        </div>
+                        <div class="cookie-toggle cookie-toggle-disabled">
+                            <i class="fa-solid fa-check"></i> Всегда включены
+                        </div>
+                    </div>
+                </div>
+
+                <div class="cookie-category">
+                    <div class="cookie-category-header">
+                        <div>
+                            <h4>Аналитические cookie</h4>
+                            <p class="cookie-description">Помогают нам понять, как посетители используют сайт, для улучшения его работы.</p>
+                        </div>
+                        <label class="cookie-toggle-switch">
+                            <input type="checkbox" id="analytics-toggle">
+                            <span class="cookie-slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="cookie-category">
+                    <div class="cookie-category-header">
+                        <div>
+                            <h4>Функциональные cookie</h4>
+                            <p class="cookie-description">Запоминают ваши настройки для улучшения пользовательского опыта.</p>
+                        </div>
+                        <label class="cookie-toggle-switch">
+                            <input type="checkbox" id="functional-toggle">
+                            <span class="cookie-slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="cookie-modal-buttons">
+                    <button class="btn btn-secondary" onclick="window.cookieConsent.saveCustom()">
+                        Сохранить выбор
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cookie Preferences Link in Footer -->
+    <script>
+        // Add cookie preferences link to footer after page load
+        document.addEventListener('DOMContentLoaded', () => {
+            const footerRight = document.querySelector('.footer-right');
+            if (footerRight) {
+                const cookieLink = document.createElement('a');
+                cookieLink.href = '#';
+                cookieLink.className = 'footer-link';
+                cookieLink.innerHTML = '<i class="fa-solid fa-cookie-bite"></i> Настройки cookie';
+                cookieLink.onclick = (e) => {
+                    e.preventDefault();
+                    if (window.cookieConsent) {
+                        window.cookieConsent.showSettings();
+                    }
+                };
+                footerRight.appendChild(cookieLink);
+            }
+        });
+    </script>
+
     <script src="config.js"></script>
+    <script src="cookie-consent.js"></script>
     <script src="script.js"></script>
-    <script src="analytics.js"></script>
 </body>
 </html>
