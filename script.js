@@ -513,7 +513,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Отслеживание собранной информации
     let collectedInfo = {
         field: false,
-        contact: false
+        contact: false,
+        time: false
     };
 
     // Флаг отключения чата
@@ -528,7 +529,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // Сбрасываем отслеживание информации
         collectedInfo = {
             field: false,
-            contact: false
+            contact: false,
+            time: false
         };
         chatDisabled = false;
 
@@ -737,6 +739,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (response.includes('телефон') || response.includes('telegram') || response.includes('телеграм') || response.includes('связаться')) {
             collectedInfo.contact = true;
         }
+        if (response.includes('время') || response.includes('день') || response.includes('удобнее всего') || response.includes('когда')) {
+            collectedInfo.time = true;
+        }
     }
 
     // Function to check if application is completed
@@ -748,16 +753,18 @@ document.addEventListener('DOMContentLoaded', () => {
         // Триггеры успешного завершения (слова, которые бот говорит В КОНЦЕ)
         const completionKeywords =[
             'всё записал',
-            'свяжемся',
+            'до связи',
             'до скорого',
             'спасибо за информацию',
-            'передам специалисту'
+            'передал информацию',
+            'передам специалисту',
+            'рад был пообщаться'
         ];
 
         const isCompletion = completionKeywords.some(keyword => response.includes(keyword));
 
-        // Отключаем чат только если бот подтвердил запись и мы ранее просили контакт
-        if (isCompletion && collectedInfo.contact) {
+        // Отключаем чат когда бот подтвердил запись и собраны все данные (контакт, время, сфера)
+        if (isCompletion && collectedInfo.contact && collectedInfo.time && collectedInfo.field) {
             setTimeout(() => {
                 disableChat();
             }, 1500);
