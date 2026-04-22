@@ -113,7 +113,8 @@ async function submitTraditionalForm(event) {
             body: JSON.stringify({
                 field,
                 contact,
-                message
+                message,
+                formType: 'traditional'
             })
         });
 
