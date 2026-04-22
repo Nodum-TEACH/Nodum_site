@@ -479,7 +479,7 @@ window.ClinicSync = {
         this.renderState();
     },
 
-    // Рендер текущего состояния
+    // Рендер текущего состояния (XSS-safe)
     renderState: function() {
         const state = this.states[this.session.step];
         const chat = document.getElementById('sync-chat');
@@ -490,26 +490,69 @@ window.ClinicSync = {
         // Вызываем onEnter если есть
         if (state.onEnter) state.onEnter();
 
-        // Добавляем сообщение бота
+        // Добавляем сообщение бота - БЕЗОПАСНО через textContent + разрешенные br
         const message = typeof state.message === 'function' ? state.message() : state.message;
         const botMsg = document.createElement('div');
         botMsg.className = 'sync-message bot';
-        botMsg.innerHTML = message;
+        // Безопасно вставляем текст с поддержкой переносов строк
+        this.setSafeHtml(botMsg, message);
         chat.appendChild(botMsg);
+
+        // Показываем tooltip при ключевых этапах
+        this.showStepTooltip();
 
         // Прокрутка вниз
         chat.scrollTop = chat.scrollHeight;
 
-        // Рендерим кнопки
+        // Рендерим кнопки - БЕЗОПАСНО
         setTimeout(() => {
             state.buttons.forEach(btn => {
                 const button = document.createElement('button');
                 button.className = 'sync-btn' + (btn.primary ? ' primary' : '');
-                button.innerHTML = `<i class="fa-solid ${btn.icon}"></i> ${btn.text}`;
+                // Иконка через className (безопасно)
+                const icon = document.createElement('i');
+                icon.className = 'fa-solid ' + btn.icon;
+                button.appendChild(icon);
+                // Текст через textContent (XSS-safe)
+                const textSpan = document.createElement('span');
+                textSpan.textContent = ' ' + btn.text.replace(/<[^>]*>/g, ''); // Убираем HTML из текста кнопки
+                button.appendChild(textSpan);
                 button.onclick = () => this.handleAction(btn.action);
                 controls.appendChild(button);
             });
         }, 100);
+    },
+
+    // Безопасная вставка HTML с разрешенными тегами
+    setSafeHtml: function(element, html) {
+        if (!html) return;
+        // Разрешаем только br теги, остальное экранируем
+        const parts = html.split(/<br\s*\/?>/gi);
+        parts.forEach((part, index) => {
+            if (index > 0) {
+                element.appendChild(document.createElement('br'));
+            }
+            if (part) {
+                element.appendChild(document.createTextNode(part));
+            }
+        });
+    },
+
+    // Показать tooltip на ключевом этапе
+    showStepTooltip: function() {
+        const tooltips = {
+            'booking': 'Бот сам создаст сделку в CRM',
+            'datetime': 'ИИ только что сэкономил вам 15 минут',
+            'success': 'Запись подтверждена автоматически!'
+        };
+
+        const tooltipText = tooltips[this.session.step];
+        if (tooltipText && typeof showDemoTooltip === 'function') {
+            const chat = document.getElementById('sync-chat');
+            if (chat) {
+                showDemoTooltip(chat, tooltipText, 3000);
+            }
+        }
     },
 
     // CRM функции
@@ -697,15 +740,6 @@ document.addEventListener('DOMContentLoaded', () => {
         })
         .catch(err => console.error('Ошибка:', err));
 
-    // Маппинг карточек к типам демо
-    const cardDemoMapping = {
-        0: 'ai_agent',      // Агент принимает заявки
-        1: 'clinic_sync',   // Clinic Bot + CRM Sync — Split Screen
-        2: 'crm',           // Агент возвращает тех, кто ушёл думать
-        3: 'ai_agent',      // Два агента
-        4: 'ai_agent'       // Агент-модератор
-    };
-
     function renderCards(cards) {
         const container = document.getElementById('bento-container');
         if (!container) return;
@@ -726,25 +760,54 @@ document.addEventListener('DOMContentLoaded', () => {
                 ? `<span class="card-tariff-badge ${tariffClass}">${card.tariff}</span>`
                 : '';
 
-            const tagsHTML = card.tags.slice(0, 3).map(tag => `<span>${tag}</span>`).join('');
+            // Benefit badge по типу выгоды
+            const benefitBadge = card.benefitType && card.benefit
+                ? `<span class="benefit-badge ${card.benefitType}"><i class="fa-solid fa-bolt"></i> ${card.benefit}</span>`
+                : '';
+
+            const tagsHTML = card.tags.slice(0, 3).map(tag => `<span>${escapeHtml(tag)}</span>`).join('');
+
+            // Используем demoType из data.json напрямую
+            const demoType = card.demoType || 'ai_agent';
 
             cardEl.innerHTML = `
                 <div>
                     <div class="card-icon-row">
-                        <div class="card-icon"><i class="${card.icon}"></i></div>
+                        <div class="card-icon"><i class="${escapeHtml(card.icon)}"></i></div>
                         ${tariffBadge}
                     </div>
-                    <h3>${card.title}</h3>
-                    <p>${card.description}</p>
+                    ${benefitBadge}
+                    <h3>${escapeHtml(card.title)}</h3>
+                    <p>${escapeHtml(card.description)}</p>
+                    <button class="card-demo-btn" data-demo="${escapeHtml(demoType)}">
+                        Попробовать демо <i class="fa-solid fa-arrow-right"></i>
+                    </button>
                 </div>
                 <div class="card-tags">${tagsHTML}</div>
             `;
 
-            // При клике открываем модалку с соответствующим демо
-            const demoType = cardDemoMapping[index] || 'ai_agent';
+            // При клике на карточку или кнопку открываем модалку
+            const demoBtn = cardEl.querySelector('.card-demo-btn');
+            if (demoBtn) {
+                demoBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    openScenarioModal(card, demoType);
+                });
+            }
             cardEl.addEventListener('click', () => openScenarioModal(card, demoType));
             container.appendChild(cardEl);
         });
+    }
+
+    // XSS-защита: экранирование HTML
+    function escapeHtml(text) {
+        if (!text || typeof text !== 'string') return text || '';
+        return text
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
     }
 
     // 4. Модальное окно сценария с интерактивной песочницей
@@ -887,7 +950,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 frameClass: "macbook",
                 render: () => `
                     <div class="clinic-sync-demo" id="clinic-sync-container">
-                        <div class="sync-simulator">
+                        <!-- Toggle для мобильных -->
+                        <div class="simulator-view-toggle mobile-only" style="display:none;">
+                            <span class="client-label active">Вид клиента</span>
+                            <div class="toggle-switch" id="viewToggle" onclick="toggleSimulatorView()"></div>
+                            <span class="director-label">Вид директора</span>
+                        </div>
+                        <div class="sync-simulator" id="syncSimulator">
                             <div class="sync-phone">
                                 <div class="sync-phone-header">
                                     <i class="fa-brands fa-telegram"></i>
@@ -944,6 +1013,61 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                     </div>
                 `
+            },
+            calculator: {
+                title: "Бизнес-Калькулятор",
+                frameClass: "iphone",
+                render: () => `
+                    <div class="calculator-demo">
+                        <div class="calculator-header">
+                            <h4>Калькулятор рейсов</h4>
+                            <p>Манипулятор 5 тонн</p>
+                        </div>
+                        <div class="calculator-display">
+                            <div class="calculator-total" id="calcTotal">0 ₽</div>
+                            <div class="calculator-label">Итоговая стоимость</div>
+                        </div>
+                        <div class="calculator-controls">
+                            <div class="calc-row">
+                                <div class="calc-row-info">
+                                    <span class="calc-row-label">Рейс в черте города</span>
+                                    <span class="calc-row-price">5 000 ₽ / рейс</span>
+                                </div>
+                                <div class="calc-row-controls">
+                                    <button class="calc-btn" onclick="updateCalc(-1, 5000, 'city')">−</button>
+                                    <span class="calc-count" id="countCity">0</span>
+                                    <button class="calc-btn" onclick="updateCalc(1, 5000, 'city')">+</button>
+                                </div>
+                            </div>
+                            <div class="calc-row">
+                                <div class="calc-row-info">
+                                    <span class="calc-row-label">Рейс за город (до 20 км)</span>
+                                    <span class="calc-row-price">7 000 ₽ / рейс</span>
+                                </div>
+                                <div class="calc-row-controls">
+                                    <button class="calc-btn" onclick="updateCalc(-1, 7000, 'suburb')">−</button>
+                                    <span class="calc-count" id="countSuburb">0</span>
+                                    <button class="calc-btn" onclick="updateCalc(1, 7000, 'suburb')">+</button>
+                                </div>
+                            </div>
+                            <div class="calc-row">
+                                <div class="calc-row-info">
+                                    <span class="calc-row-label">Погрузка/разгрузка</span>
+                                    <span class="calc-row-price">1 500 ₽ / час</span>
+                                </div>
+                                <div class="calc-row-controls">
+                                    <button class="calc-btn" onclick="updateCalc(-1, 1500, 'loading')">−</button>
+                                    <span class="calc-count" id="countLoading">0</span>
+                                    <button class="calc-btn" onclick="updateCalc(1, 1500, 'loading')">+</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="calculator-actions">
+                            <button class="calc-btn-primary" onclick="submitCalculator()">Заказать расчёт</button>
+                            <button class="calc-btn-secondary" onclick="resetCalculator()">Сбросить</button>
+                        </div>
+                    </div>
+                `
             }
         };
 
@@ -957,8 +1081,206 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => {
             content.innerHTML = demo.render();
             content.style.opacity = 1;
+
+            // Показываем toggle на мобильных для clinic_sync
+            if (type === 'clinic_sync' && window.innerWidth <= 768) {
+                const toggle = content.querySelector('.simulator-view-toggle');
+                if (toggle) toggle.style.display = 'flex';
+                const simulator = content.querySelector('.sync-simulator');
+                if (simulator) simulator.classList.add('mobile-client-view');
+            }
+
+            // Инициализируем калькулятор
+            if (type === 'calculator') {
+                window.calcState = { city: 0, suburb: 0, loading: 0, total: 0 };
+            }
+
+            // Инициализируем ClinicSync
+            if (type === 'clinic_sync' && typeof ClinicSync !== 'undefined') {
+                ClinicSync.init();
+            }
         }, 200);
     }
+
+    // Toggle для симулятора (мобильный вид)
+    window.toggleSimulatorView = function() {
+        const toggle = document.getElementById('viewToggle');
+        const simulator = document.getElementById('syncSimulator');
+        const clientLabel = document.querySelector('.client-label');
+        const directorLabel = document.querySelector('.director-label');
+
+        if (!toggle || !simulator) return;
+
+        toggle.classList.toggle('active');
+
+        if (toggle.classList.contains('active')) {
+            // Вид директора (CRM)
+            simulator.classList.remove('mobile-client-view');
+            simulator.classList.add('mobile-crm-view');
+            if (clientLabel) clientLabel.classList.remove('active');
+            if (directorLabel) directorLabel.classList.add('active');
+        } else {
+            // Вид клиента (Telegram)
+            simulator.classList.remove('mobile-crm-view');
+            simulator.classList.add('mobile-client-view');
+            if (clientLabel) clientLabel.classList.add('active');
+            if (directorLabel) directorLabel.classList.remove('active');
+        }
+    };
+
+    // Функции калькулятора
+    window.updateCalc = function(delta, price, type) {
+        if (!window.calcState) window.calcState = { city: 0, suburb: 0, loading: 0, total: 0 };
+
+        const current = window.calcState[type] || 0;
+        const newValue = Math.max(0, current + delta);
+        window.calcState[type] = newValue;
+
+        // Обновляем счетчик
+        const countEl = document.getElementById(`count${type.charAt(0).toUpperCase() + type.slice(1)}`);
+        if (countEl) countEl.textContent = newValue;
+
+        // Пересчитываем итог
+        window.calcState.total = (window.calcState.city * 5000) +
+                                  (window.calcState.suburb * 7000) +
+                                  (window.calcState.loading * 1500);
+
+        // Анимируем итог
+        const totalEl = document.getElementById('calcTotal');
+        if (totalEl) {
+            totalEl.classList.add('updating');
+            totalEl.textContent = window.calcState.total.toLocaleString('ru-RU') + ' ₽';
+            setTimeout(() => totalEl.classList.remove('updating'), 300);
+        }
+    };
+
+    window.resetCalculator = function() {
+        window.calcState = { city: 0, suburb: 0, loading: 0, total: 0 };
+        ['city', 'suburb', 'loading'].forEach(type => {
+            const countEl = document.getElementById(`count${type.charAt(0).toUpperCase() + type.slice(1)}`);
+            if (countEl) countEl.textContent = '0';
+        });
+        const totalEl = document.getElementById('calcTotal');
+        if (totalEl) totalEl.textContent = '0 ₽';
+    };
+
+    window.submitCalculator = function() {
+        const total = window.calcState?.total || 0;
+        showNotification('Заявка отправлена', `Мы свяжемся с вами для подтверждения заказа на ${total.toLocaleString('ru-RU')} ₽`, 'success');
+        showFinalCTAModal('calculator');
+    };
+
+    // Глобальная функция для показа помощи при Rage Click
+    window.showHelpPrompt = function() {
+        // Удаляем существующий prompt если есть
+        const existing = document.querySelector('.help-prompt-overlay');
+        if (existing) return; // Уже показан
+
+        const overlay = document.createElement('div');
+        overlay.className = 'help-prompt-overlay';
+        overlay.innerHTML = `
+            <div class="help-prompt-modal">
+                <div class="help-prompt-icon"><i class="fa-solid fa-hand-holding-heart"></i></div>
+                <div class="help-prompt-title">Похоже, возникли трудности?</div>
+                <div class="help-prompt-text">
+                    Давайте я просто пришлю вам видео-обзор этой системы или перезвоню лично
+                </div>
+                <div class="help-prompt-actions">
+                    <button class="help-btn-video" onclick="handleHelpVideo()">
+                        <i class="fa-solid fa-play"></i> Получить видео-обзор
+                    </button>
+                    <button class="help-btn-call" onclick="handleHelpCall()">
+                        <i class="fa-solid fa-phone"></i> Заказать звонок
+                    </button>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(overlay);
+
+        // Закрытие по клику на фон
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) {
+                overlay.classList.remove('show');
+                setTimeout(() => overlay.remove(), 300);
+            }
+        });
+
+        // Показываем с анимацией
+        requestAnimationFrame(() => {
+            overlay.classList.add('show');
+        });
+
+        // Трекаем событие
+        if (window.nodumAnalytics) {
+            window.nodumAnalytics.track('help_prompt_shown', { trigger: 'rage_click' });
+        }
+    };
+
+    // Обработчики кнопок помощи
+    window.handleHelpVideo = function() {
+        const overlay = document.querySelector('.help-prompt-overlay');
+        if (overlay) {
+            overlay.classList.remove('show');
+            setTimeout(() => overlay.remove(), 300);
+        }
+        showNotification('Видео отправлено', 'Ссылка на видео-обзор отправлена вам в Telegram/email', 'success');
+        // Открываем форму с предзаполненным типом
+        openTraditionalForm({ preventDefault: () => {} });
+    };
+
+    window.handleHelpCall = function() {
+        const overlay = document.querySelector('.help-prompt-overlay');
+        if (overlay) {
+            overlay.classList.remove('show');
+            setTimeout(() => overlay.remove(), 300);
+        }
+        // Открываем форму с фокусом на контакт
+        openTraditionalForm({ preventDefault: () => {} });
+        const contactField = document.getElementById('form-contact');
+        if (contactField) {
+            setTimeout(() => contactField.focus(), 100);
+        }
+    };
+
+    // Глобальная функция для показа tooltip'ов в демо
+    window.showDemoTooltip = function(targetElement, text, duration = 3000) {
+        // Удаляем существующие tooltip'ы
+        const existing = document.querySelectorAll('.demo-tooltip');
+        existing.forEach(t => t.remove());
+
+        const tooltip = document.createElement('div');
+        tooltip.className = 'demo-tooltip';
+        tooltip.textContent = text;
+        document.body.appendChild(tooltip);
+
+        // Позиционируем
+        const rect = targetElement.getBoundingClientRect();
+        const tooltipRect = tooltip.getBoundingClientRect();
+
+        let top = rect.top - tooltipRect.height - 10;
+        let left = rect.left + (rect.width / 2) - (tooltipRect.width / 2);
+
+        // Если выходит за верх, показываем снизу
+        if (top < 10) {
+            top = rect.bottom + 10;
+            tooltip.classList.add('top');
+        }
+
+        tooltip.style.top = `${top}px`;
+        tooltip.style.left = `${left}px`;
+
+        // Показываем
+        requestAnimationFrame(() => {
+            tooltip.classList.add('show');
+        });
+
+        // Авто-скрытие
+        setTimeout(() => {
+            tooltip.classList.remove('show');
+            setTimeout(() => tooltip.remove(), 300);
+        }, duration);
+    };
 
     // XSS-защита: экранирование HTML для модальных функций
     function escapeHtmlModal(text) {

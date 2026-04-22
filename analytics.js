@@ -147,16 +147,26 @@ class DeepAnalyticsTracker {
 
             // Rage Click Logic (Яростные клики)
             const now = Date.now();
-            this.recentClicks.push({ x: e.clientX, y: e.clientY, time: now });
+            this.recentClicks.push({ x: e.clientX, y: e.clientY, time: now, target: target });
             this.recentClicks = this.recentClicks.filter(c => now - c.time < 1500); // Окно 1.5 сек
 
             if (this.recentClicks.length >= 3) {
                 // Если 3 клика в радиусе 50px за 1.5 секунды
                 const dx = Math.abs(this.recentClicks[0].x - this.recentClicks[2].x);
                 const dy = Math.abs(this.recentClicks[0].y - this.recentClicks[2].y);
-                
+
                 if (dx < 50 && dy < 50) {
                     this.track('rage_click', clickData);
+
+                    // Проверяем, произошел ли rage click в области симулятора
+                    const isInSimulator = this.recentClicks.some(c =>
+                        c.target.closest('.simulator-frame, .sync-simulator, .calculator-demo, .clinic-sync-demo')
+                    );
+
+                    if (isInSimulator && typeof showHelpPrompt === 'function') {
+                        showHelpPrompt();
+                    }
+
                     this.recentClicks = []; // Сброс
                 }
             }
