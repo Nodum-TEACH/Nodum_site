@@ -56,6 +56,18 @@
             </button>
         </div>
         
+        <!-- Tab Navigation -->
+        <div class="tab-navigation">
+            <button class="tab-btn active" data-tab="analytics" onclick="switchTab('analytics')">
+                <i class="fa-solid fa-chart-line"></i> Аналитика
+            </button>
+            <button class="tab-btn" data-tab="leads" onclick="switchTab('leads')">
+                <i class="fa-solid fa-user-plus"></i> Лиды и заявки
+            </button>
+        </div>
+        
+        <!-- Analytics Tab -->
+        <div id="tab-analytics" class="tab-content active">
         <div class="time-filter">
             <button data-period="24h">24 часа</button>
             <button data-period="7d">7 дней</button>
@@ -265,6 +277,40 @@
                 <button onclick="exportEvents()"><i class="fa-solid fa-download"></i> Экспорт в CSV</button>
             </div>
         </div>
+        </div>
+        
+        <!-- Leads Tab -->
+        <div id="tab-leads" class="tab-content" style="display: none;">
+        <!-- Leads Section -->
+        <div class="table-container">
+            <h3><i class="fa-solid fa-user-plus"></i> Лиды <span id="leadsCount" style="font-size: 0.85rem; color: var(--text-muted); font-weight: normal;"></span></h3>
+            <div class="events-filters">
+                <input type="text" id="leadIdFilter" placeholder="ID лида" style="width: 150px;">
+                <button onclick="filterLeadsById()"><i class="fa-solid fa-search"></i> Найти по ID</button>
+                <button onclick="loadLeads()"><i class="fa-solid fa-sync"></i> Обновить</button>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th><input type="checkbox" id="selectAllLeads" onchange="toggleAllLeads(this)"></th>
+                        <th>ID</th>
+                        <th>Контакт</th>
+                        <th>Сфера</th>
+                        <th>Сообщений</th>
+                        <th>Визитов</th>
+                        <th>Дата</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody id="leadsTable">
+                    <!-- Лиды будут добавлены через JS -->
+                </tbody>
+            </table>
+            <div class="events-actions">
+                <button onclick="copySelectedLeadsToTelegram()"><i class="fa-brands fa-telegram"></i> Копировать выбранные в Telegram</button>
+            </div>
+        </div>
+        </div>
     </div>
     
     <button class="refresh-btn" onclick="refreshDashboard()">
@@ -308,10 +354,15 @@
             await verifyToken(token);
         });
         
+        // Backend URL - use local for development, remote for production
+        const BACKEND_URL = window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost'
+            ? 'http://localhost:3000'
+            : 'https://nhost.weebx.duckdns.org/v1';
+
         // Verify token with backend
         async function verifyToken(token) {
             try {
-                const response = await fetch('https://nhost.weebx.duckdns.org/v1/analytics-data?token=' + token);
+                const response = await fetch(BACKEND_URL + '/analytics-data?token=' + token);
                 if (response.ok) {
                     // Token valid - save to localStorage and show dashboard
                     localStorage.setItem('analyticsToken', token);
@@ -369,7 +420,7 @@
             }
 
             try {
-                let url = 'https://nhost.weebx.duckdns.org/v1/analytics-data?token=' + accessToken;
+                let url = BACKEND_URL + '/analytics-data?token=' + accessToken;
                 url += '&limit=15&offset=' + offset;
 
                 // Добавляем период если указан, иначе берем из активной кнопки
@@ -989,7 +1040,7 @@
                 return;
             }
 
-            let url = 'https://nhost.weebx.duckdns.org/v1/analytics-data?token=' + accessToken;
+            let url = BACKEND_URL + '/analytics-data?token=' + accessToken;
             url += '&export=csv';
 
             // Добавляем текущий выбранный период
@@ -1056,6 +1107,246 @@
             loadRealData(0, false, period).finally(() => {
                 isRefreshing = false;
             });
+        }
+
+        // Leads management functions
+        let leadsOffset = 0;
+        const leadsLimit = 50;
+        let selectedLeads = new Set();
+
+        async function loadLeads(leadId = null) {
+            const urlParams = new URLSearchParams(window.location.search);
+            const accessToken = urlParams.get('token') || localStorage.getItem('analyticsToken');
+
+            if (!accessToken) {
+                alert('Требуется авторизация');
+                return;
+            }
+
+            try {
+                let url = BACKEND_URL + '/leads-data?token=' + accessToken;
+                url += '&limit=' + leadsLimit + '&offset=' + leadsOffset;
+
+                if (leadId) {
+                    url += '&leadId=' + encodeURIComponent(leadId);
+                }
+
+                const response = await fetch(url);
+                if (response.ok) {
+                    const data = await response.json();
+                    renderLeads(data.leads || []);
+                    document.getElementById('leadsCount').textContent = `(всего: ${data.leads?.length || 0})`;
+                } else if (response.status === 401) {
+                    localStorage.removeItem('analyticsToken');
+                    document.getElementById('access-denied').style.display = 'flex';
+                    document.getElementById('dashboard-content').style.display = 'none';
+                } else {
+                    console.error('Error loading leads:', response.statusText);
+                }
+            } catch (error) {
+                console.error('Error loading leads:', error);
+            }
+        }
+
+        function renderLeads(leads) {
+            const table = document.getElementById('leadsTable');
+            table.innerHTML = '';
+
+            leads.forEach(lead => {
+                const row = document.createElement('tr');
+                const date = new Date(lead.created_at).toLocaleString('ru-RU');
+                row.innerHTML = `
+                    <td><input type="checkbox" class="lead-checkbox" data-lead-id="${lead.display_id}" onchange="toggleLeadSelection('${lead.display_id}', this.checked)"></td>
+                    <td>${lead.display_id}</td>
+                    <td>${lead.contact}</td>
+                    <td>${lead.field || '—'}</td>
+                    <td>${lead.message_count}</td>
+                    <td>${lead.visit_count}</td>
+                    <td>${date}</td>
+                    <td>
+                        <button onclick="triggerLeadAnalysis('${lead.display_id}')" style="padding: 4px 8px; margin-right: 5px; border: 1px solid rgba(255,255,255,0.3); border-radius: 4px; background: rgba(102, 126, 234, 0.3); color: white; cursor: pointer; font-size: 0.8rem;">
+                            <i class="fa-solid fa-chart-line"></i> Анализ
+                        </button>
+                    </td>
+                `;
+                table.appendChild(row);
+            });
+
+            // Reset select all checkbox
+            document.getElementById('selectAllLeads').checked = false;
+        }
+
+        function filterLeadsById() {
+            const leadId = document.getElementById('leadIdFilter').value.trim();
+            leadsOffset = 0;
+            if (leadId) {
+                loadLeads(leadId);
+            } else {
+                loadLeads();
+            }
+        }
+
+        async function triggerLeadAnalysis(leadId) {
+            const urlParams = new URLSearchParams(window.location.search);
+            const accessToken = urlParams.get('token') || localStorage.getItem('analyticsToken');
+
+            if (!accessToken) {
+                alert('Требуется авторизация');
+                return;
+            }
+
+            if (!confirm(`Запустить анализ для лида #${leadId}?`)) {
+                return;
+            }
+
+            try {
+                const url = 'http://localhost:3000/v1/functions/chat-proxy?triggerAnalysis=' + leadId;
+                const response = await fetch(url, { method: 'GET' });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success) {
+                        alert('Анализ успешно запущен!');
+                    } else {
+                        alert('Ошибка при запуске анализа: ' + (data.error || 'Неизвестная ошибка'));
+                    }
+                } else {
+                    alert('Ошибка при запуске анализа: ' + response.statusText);
+                }
+            } catch (error) {
+                console.error('Error triggering analysis:', error);
+                alert('Ошибка при запуске анализа. Убедитесь, что functions сервис запущен на localhost:3000');
+            }
+        }
+
+        function toggleLeadSelection(leadId, isSelected) {
+            if (isSelected) {
+                selectedLeads.add(leadId);
+            } else {
+                selectedLeads.delete(leadId);
+            }
+        }
+
+        function toggleAllLeads(checkbox) {
+            const checkboxes = document.querySelectorAll('.lead-checkbox');
+            checkboxes.forEach(cb => {
+                cb.checked = checkbox.checked;
+                const leadId = cb.getAttribute('data-lead-id');
+                if (checkbox.checked) {
+                    selectedLeads.add(leadId);
+                } else {
+                    selectedLeads.delete(leadId);
+                }
+            });
+        }
+
+        async function copySelectedLeadsToTelegram() {
+            if (selectedLeads.size === 0) {
+                alert('Выберите хотя бы один лид');
+                return;
+            }
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const accessToken = urlParams.get('token') || localStorage.getItem('analyticsToken');
+
+            if (!accessToken) {
+                alert('Требуется авторизация');
+                return;
+            }
+
+            try {
+                let url = BACKEND_URL + '/leads-data?token=' + accessToken;
+                
+                // Fetch all selected leads
+                const leadsData = [];
+                for (const leadId of selectedLeads) {
+                    const response = await fetch(url + '&leadId=' + encodeURIComponent(leadId));
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.leads && data.leads.length > 0) {
+                            leadsData.push(data.leads[0]);
+                        }
+                    }
+                }
+
+                if (leadsData.length === 0) {
+                    alert('Не удалось загрузить данные лидов');
+                    return;
+                }
+
+                // Format for Telegram
+                let telegramMessage = `📊 <b>Выбранные лиды (${leadsData.length})</b>\n\n`;
+                
+                leadsData.forEach(lead => {
+                    telegramMessage += `🆔 <b>ID:</b> ${lead.display_id}\n`;
+                    telegramMessage += `👤 <b>Сфера:</b> ${lead.field || '—'}\n`;
+                    telegramMessage += `📱 <b>Контакт:</b> ${lead.contact}\n`;
+                    telegramMessage += `📊 <b>Визитов:</b> ${lead.visit_count}\n`;
+                    telegramMessage += `💬 <b>Сообщений:</b> ${lead.message_count}\n`;
+                    telegramMessage += `🕐 <b>Дата:</b> ${new Date(lead.created_at).toLocaleString('ru-RU')}\n`;
+                    telegramMessage += `─────────\n`;
+                });
+
+                // Copy to clipboard
+                await navigator.clipboard.writeText(telegramMessage);
+                alert(`Скопировано ${leadsData.length} лидов в буфер обмена для Telegram`);
+                
+                // Clear selection
+                selectedLeads.clear();
+                document.querySelectorAll('.lead-checkbox').forEach(cb => cb.checked = false);
+                document.getElementById('selectAllLeads').checked = false;
+
+            } catch (error) {
+                console.error('Error copying leads:', error);
+                alert('Ошибка при копировании лидов');
+            }
+        }
+
+        // Load leads on dashboard initialization
+        document.addEventListener('DOMContentLoaded', () => {
+            // After token verification, load leads
+            const checkTokenAndLoadLeads = setInterval(() => {
+                const accessToken = urlParams.get('token') || localStorage.getItem('analyticsToken');
+                if (accessToken && document.getElementById('dashboard-content').style.display !== 'none') {
+                    clearInterval(checkTokenAndLoadLeads);
+                    loadLeads();
+                }
+            }, 1000);
+        });
+
+        // Tab switching function
+        function switchTab(tabName) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+                tab.style.display = 'none';
+            });
+
+            // Remove active class from all tab buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // Show selected tab content
+            const selectedTab = document.getElementById('tab-' + tabName);
+            if (selectedTab) {
+                selectedTab.classList.add('active');
+                selectedTab.style.display = 'block';
+            }
+
+            // Add active class to selected button
+            const selectedBtn = document.querySelector(`.tab-btn[data-tab="${tabName}"]`);
+            if (selectedBtn) {
+                selectedBtn.classList.add('active');
+            }
+
+            // Load leads data when switching to leads tab
+            if (tabName === 'leads') {
+                const accessToken = urlParams.get('token') || localStorage.getItem('analyticsToken');
+                if (accessToken) {
+                    loadLeads();
+                }
+            }
         }
     </script>
 </body>
