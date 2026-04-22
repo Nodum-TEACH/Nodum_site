@@ -835,6 +835,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function closeScenarioModal() {
+        // Очищаем все состояния и таймеры симуляторов
+        if (typeof DemoState !== 'undefined' && DemoState.reset) {
+            DemoState.reset();
+        }
+
         // Очищаем симулятор
         const content = document.getElementById('modal-simulator-content');
         const frameTitle = document.getElementById('modal-frame-title');
@@ -894,212 +899,81 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (!frame || !content || !title) return;
 
-        const demoData = {
+        // Очищаем предыдущее состояние
+        DemoState.reset();
+        DemoState.currentType = type;
+
+        // Router для новых продвинутых симуляторов
+        const modalDemoRouter = {
             ai_agent: {
-                title: "Анализ документа: Регламент_Тюмень.pdf",
+                title: "AI-Агент с RAG Intelligence",
                 frameClass: "macbook",
-                render: () => `
-                    <div class="ai-chat-demo">
-                        <div class="chat-messages-sim" id="modal-chat-flow">
-                            <div class="msg-sim bot">Привет! Я ИИ-ассистент Nodum. Я изучил ваш регламент. Задайте любой вопрос.</div>
-                        </div>
-                        <div id="modal-typing-indicator" class="typing-sim">AI ищет ответ в документе...</div>
-                        <div class="chat-hints">
-                            <button class="hint-btn-sim" onclick="askAiModal('Какая гарантия на насосы?', 'Согласно разделу 4.2, гарантийный срок составляет 24 месяца с даты ввода в эксплуатацию.')">Какая гарантия?</button>
-                            <button class="hint-btn-sim" onclick="askAiModal('Срок поставки в Сургут?', 'В приложении №3 указано: логистика до ХМАО занимает 3-5 рабочих дней.')">Срок поставки?</button>
-                        </div>
-                    </div>
-                `
+                init: () => {
+                    content.innerHTML = RAGAgent.render();
+                    RAGAgent.bindEvents();
+                }
             },
             crm: {
-                title: "Nodum CRM — Автоматизация отдела продаж",
+                title: "Live CRM Sync с AI Insights",
                 frameClass: "macbook",
-                render: () => `
-                    <div style="height:100%">
-                        <button class="hint-btn-sim" style="margin-bottom:15px; width:100%" onclick="addCrmLeadModal()">➕ Добавить лид из Telegram</button>
-                        <div class="crm-board">
-                            <div class="crm-col"><h4>Новые</h4><div id="modal-col-new"></div></div>
-                            <div class="crm-col"><h4>В работе (AI)</h4><div id="modal-col-progress"></div></div>
-                        </div>
-                    </div>
-                `
+                init: () => {
+                    content.innerHTML = LiveCRMSync.render();
+                    LiveCRMSync.renderStep();
+                }
+            },
+            clinic_sync: {
+                title: "Live CRM Sync с AI Insights",
+                frameClass: "macbook",
+                init: () => {
+                    content.innerHTML = LiveCRMSync.render();
+                    LiveCRMSync.renderStep();
+                }
+            },
+            calculator: {
+                title: "Технологичный Калькулятор B2B",
+                frameClass: "iphone",
+                init: () => {
+                    content.innerHTML = TechCalculator.render();
+                    TechCalculator.updateDisplay(false);
+                }
             },
             tg_bot: {
                 title: "Telegram — @Nodum_Booking_Bot",
                 frameClass: "iphone",
-                render: () => `
-                    <div class="tg-webapp">
-                        <div class="tg-header"><i class="fa-brands fa-telegram"></i> Nodum Service</div>
-                        <div class="tg-content">
-                            <div class="tg-avatar"><i class="fa-solid fa-wrench"></i></div>
-                            <h3>Запись на сервис</h3>
-                            <p>Выберите удобное время</p>
-                            <div class="tg-slots">
-                                <button class="hint-btn-sim" onclick="tgConfirmModal(this)">10:00</button>
-                                <button class="hint-btn-sim" onclick="tgConfirmModal(this)">14:30</button>
-                            </div>
-                        </div>
-                        <div id="modal-tg-success" class="tg-success">
-                            <i class="fa-solid fa-check-circle"></i> Запись подтверждена!
-                        </div>
-                    </div>
-                `
-            },
-            clinic_sync: {
-                title: "Nodum Sync — Telegram ↔ CRM",
-                frameClass: "macbook",
-                render: () => `
-                    <div class="clinic-sync-demo" id="clinic-sync-container">
-                        <!-- Toggle для мобильных -->
-                        <div class="simulator-view-toggle mobile-only" style="display:none;">
-                            <span class="client-label active">Вид клиента</span>
-                            <div class="toggle-switch" id="viewToggle" onclick="toggleSimulatorView()"></div>
-                            <span class="director-label">Вид директора</span>
-                        </div>
-                        <div class="sync-simulator" id="syncSimulator">
-                            <div class="sync-phone">
-                                <div class="sync-phone-header">
-                                    <i class="fa-brands fa-telegram"></i>
-                                    <span>Nodum Clinic Bot</span>
-                                </div>
-                                <div class="sync-phone-chat" id="sync-chat">
-                                    <div class="sync-message bot">
-                                        👋 Добро пожаловать в клинику! Я помогу записаться на приём.
-                                    </div>
-                                </div>
-                                <div class="sync-phone-controls" id="sync-controls">
-                                    <button class="sync-btn" onclick="ClinicSync.handleAction('booking')">
-                                        <i class="fa-solid fa-calendar-check"></i> Записаться
-                                    </button>
-                                    <button class="sync-btn" onclick="ClinicSync.handleAction('prices')">
-                                        <i class="fa-solid fa-tag"></i> Узнать цены
-                                    </button>
+                init: () => {
+                    content.innerHTML = `
+                        <div class="tg-webapp">
+                            <div class="tg-header"><i class="fa-brands fa-telegram"></i> Nodum Service</div>
+                            <div class="tg-content">
+                                <div class="tg-avatar"><i class="fa-solid fa-wrench"></i></div>
+                                <h3>Запись на сервис</h3>
+                                <p>Выберите удобное время</p>
+                                <div class="tg-slots">
+                                    <button class="hint-btn-sim" onclick="tgConfirmModal(this)">10:00</button>
+                                    <button class="hint-btn-sim" onclick="tgConfirmModal(this)">14:30</button>
                                 </div>
                             </div>
-                            <div class="sync-arrow">
-                                <i class="fa-solid fa-arrow-right"></i>
-                                <div class="sync-pulse-dot"></div>
-                            </div>
-                            <div class="sync-crm">
-                                <div class="sync-crm-header">
-                                    <i class="fa-solid fa-database"></i>
-                                    <span>Nodum CRM</span>
-                                    <span class="sync-crm-badge">AI Powered</span>
-                                </div>
-                                <div class="sync-crm-columns">
-                                    <div class="sync-crm-col" data-status="new">
-                                        <div class="sync-crm-col-header">
-                                            <i class="fa-solid fa-inbox"></i> Новые
-                                            <span class="sync-count" id="crm-count-new">0</span>
-                                        </div>
-                                        <div class="sync-crm-leads" id="crm-leads-new"></div>
-                                    </div>
-                                    <div class="sync-crm-col" data-status="progress">
-                                        <div class="sync-crm-col-header">
-                                            <i class="fa-solid fa-clock"></i> В работе
-                                            <span class="sync-count" id="crm-count-progress">0</span>
-                                        </div>
-                                        <div class="sync-crm-leads" id="crm-leads-progress"></div>
-                                    </div>
-                                    <div class="sync-crm-col" data-status="closed">
-                                        <div class="sync-crm-col-header">
-                                            <i class="fa-solid fa-check-circle"></i> Завершено
-                                            <span class="sync-count" id="crm-count-closed">0</span>
-                                        </div>
-                                        <div class="sync-crm-leads" id="crm-leads-closed"></div>
-                                    </div>
-                                </div>
+                            <div id="modal-tg-success" class="tg-success">
+                                <i class="fa-solid fa-check-circle"></i> Запись подтверждена!
                             </div>
                         </div>
-                    </div>
-                `
-            },
-            calculator: {
-                title: "Бизнес-Калькулятор",
-                frameClass: "iphone",
-                render: () => `
-                    <div class="calculator-demo">
-                        <div class="calculator-header">
-                            <h4>Калькулятор рейсов</h4>
-                            <p>Манипулятор 5 тонн</p>
-                        </div>
-                        <div class="calculator-display">
-                            <div class="calculator-total" id="calcTotal">0 ₽</div>
-                            <div class="calculator-label">Итоговая стоимость</div>
-                        </div>
-                        <div class="calculator-controls">
-                            <div class="calc-row">
-                                <div class="calc-row-info">
-                                    <span class="calc-row-label">Рейс в черте города</span>
-                                    <span class="calc-row-price">5 000 ₽ / рейс</span>
-                                </div>
-                                <div class="calc-row-controls">
-                                    <button class="calc-btn" onclick="updateCalc(-1, 5000, 'city')">−</button>
-                                    <span class="calc-count" id="countCity">0</span>
-                                    <button class="calc-btn" onclick="updateCalc(1, 5000, 'city')">+</button>
-                                </div>
-                            </div>
-                            <div class="calc-row">
-                                <div class="calc-row-info">
-                                    <span class="calc-row-label">Рейс за город (до 20 км)</span>
-                                    <span class="calc-row-price">7 000 ₽ / рейс</span>
-                                </div>
-                                <div class="calc-row-controls">
-                                    <button class="calc-btn" onclick="updateCalc(-1, 7000, 'suburb')">−</button>
-                                    <span class="calc-count" id="countSuburb">0</span>
-                                    <button class="calc-btn" onclick="updateCalc(1, 7000, 'suburb')">+</button>
-                                </div>
-                            </div>
-                            <div class="calc-row">
-                                <div class="calc-row-info">
-                                    <span class="calc-row-label">Погрузка/разгрузка</span>
-                                    <span class="calc-row-price">1 500 ₽ / час</span>
-                                </div>
-                                <div class="calc-row-controls">
-                                    <button class="calc-btn" onclick="updateCalc(-1, 1500, 'loading')">−</button>
-                                    <span class="calc-count" id="countLoading">0</span>
-                                    <button class="calc-btn" onclick="updateCalc(1, 1500, 'loading')">+</button>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="calculator-actions">
-                            <button class="calc-btn-primary" onclick="submitCalculator()">Заказать расчёт</button>
-                            <button class="calc-btn-secondary" onclick="resetCalculator()">Сбросить</button>
-                        </div>
-                    </div>
-                `
+                    `;
+                }
             }
         };
 
-        const demo = demoData[type];
+        const demo = modalDemoRouter[type];
         if (!demo) return;
 
         frame.className = `simulator-frame ${demo.frameClass}`;
         title.innerText = demo.title;
 
         content.style.opacity = 0;
-        setTimeout(() => {
-            content.innerHTML = demo.render();
+        DemoState.registerTimer(setTimeout(() => {
+            demo.init();
             content.style.opacity = 1;
 
-            // Показываем toggle на мобильных для clinic_sync
-            if (type === 'clinic_sync' && window.innerWidth <= 768) {
-                const toggle = content.querySelector('.simulator-view-toggle');
-                if (toggle) toggle.style.display = 'flex';
-                const simulator = content.querySelector('.sync-simulator');
-                if (simulator) simulator.classList.add('mobile-client-view');
-            }
-
-            // Инициализируем калькулятор
-            if (type === 'calculator') {
-                window.calcState = { city: 0, suburb: 0, loading: 0, total: 0 };
-            }
-
-            // Инициализируем ClinicSync
-            if (type === 'clinic_sync' && typeof ClinicSync !== 'undefined') {
-                ClinicSync.init();
-            }
-        }, 200);
+        }, 200));
     }
 
     // Toggle для симулятора (мобильный вид)
@@ -2056,36 +1930,988 @@ document.addEventListener('DOMContentLoaded', () => {
     // ============================================
     // ПЕСОЧНИЦА РЕШЕНИЙ - ИНТЕРАКТИВНЫЙ ДЕМО-БЛОК
     // ============================================
-    
+
+    // Глобальный State Management для симуляторов
+    window.DemoState = {
+        timers: [],
+        intervals: [],
+        observers: [],
+        currentType: null,
+        calcState: { city: 0, suburb: 0, loading: 0, total: 0 },
+        aiAgent: { isScanning: false, lastQuestion: null },
+        crm: { leadId: 2000, leads: [], isProcessing: false },
+
+        // Регистрация таймера для автоматической очистки
+        registerTimer(timer) {
+            this.timers.push(timer);
+            return timer;
+        },
+
+        registerInterval(interval) {
+            this.intervals.push(interval);
+            return interval;
+        },
+
+        // Полная очистка состояний
+        reset() {
+            this.timers.forEach(t => clearTimeout(t));
+            this.intervals.forEach(i => clearInterval(i));
+            this.observers.forEach(o => o.disconnect?.());
+
+            this.timers = [];
+            this.intervals = [];
+            this.observers = [];
+            this.currentType = null;
+            this.calcState = { city: 0, suburb: 0, loading: 0, total: 0 };
+            this.aiAgent = { isScanning: false, lastQuestion: null };
+            this.crm = { leadId: 2000, leads: [], isProcessing: false };
+        }
+    };
+
+    // ============================================
+    // SCENARIO 1: AI-АГЕНТ С RAG INTELLIGENCE
+    // ============================================
+    const RAGAgent = {
+        // Данные документа для демо
+        documentData: {
+            paragraphs: [
+                { id: 1, text: "Гарантийные обязательства", content: "Гарантийный срок на оборудование составляет 24 месяца с даты ввода в эксплуатацию." },
+                { id: 2, text: "Условия поставки", content: "Сроки доставки до ХМАО: 3-5 рабочих дней. Стоимость включена в договор." },
+                { id: 3, text: "Технические характеристики", content: "Мощность насоса: 15 кВт. Производительность: до 120 м³/час." },
+                { id: 4, text: "Обслуживание", content: "Плановое ТО проводится каждые 6 месяцев. Выезд специалиста - бесплатно." }
+            ]
+        },
+
+        questions: [
+            { text: "Какая гарантия на насосы?", targetPara: 1, answer: "Согласно разделу о гарантийных обязательствах, гарантийный срок составляет 24 месяца с даты ввода в эксплуатацию." },
+            { text: "Срок поставки в Сургут?", targetPara: 2, answer: "Согласно условиям поставки, логистика до ХМАО занимает 3-5 рабочих дней." },
+            { text: "Характеристики насоса?", targetPara: 3, answer: "Мощность насоса: 15 кВт. Производительность: до 120 м³/час." },
+            { text: "Как часто ТО?", targetPara: 4, answer: "Плановое техническое обслуживание проводится каждые 6 месяцев. Выезд специалиста бесплатный." }
+        ],
+
+        init() {
+            const content = document.getElementById('modal-simulator-content') || document.getElementById('simulator-content');
+            if (!content) return;
+
+            content.innerHTML = this.render();
+            this.bindEvents();
+        },
+
+        render() {
+            return `
+                <div class="rag-agent-demo">
+                    <div class="rag-layout">
+                        <!-- Левая панель: PDF Документ -->
+                        <div class="rag-document-panel">
+                            <div class="rag-doc-header">
+                                <i class="fa-solid fa-file-pdf"></i>
+                                <span>Регламент_Поставки_2024.pdf</span>
+                                <span class="rag-doc-badge">4 страницы</span>
+                            </div>
+                            <div class="rag-document" id="rag-doc-content">
+                                ${this.documentData.paragraphs.map(p => `
+                                    <div class="rag-paragraph" data-para-id="${p.id}" id="para-${p.id}">
+                                        <div class="rag-para-num">§${p.id}</div>
+                                        <div class="rag-para-content">
+                                            <strong>${p.text}</strong>
+                                            <p>${p.content}</p>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                                <!-- Луч сканера -->
+                                <div class="rag-scanner-beam" id="rag-scanner"></div>
+                            </div>
+                            <div class="rag-doc-footer">
+                                <span class="rag-ai-status" id="rag-status">
+                                    <i class="fa-solid fa-brain"></i> AI готов к анализу
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Правая панель: Чат -->
+                        <div class="rag-chat-panel">
+                            <div class="rag-chat-header">
+                                <i class="fa-solid fa-robot"></i>
+                                <span>AI-ассистент Nodum</span>
+                                <span class="rag-model-badge">GPT-4 + RAG</span>
+                            </div>
+                            <div class="rag-chat-messages" id="rag-chat-flow">
+                                <div class="rag-message rag-bot">
+                                    <div class="rag-msg-content">
+                                        Привет! Я изучил ваш регламент. Задайте вопрос — я найду ответ в документе и покажу, откуда взялась информация.
+                                    </div>
+                                    <div class="rag-msg-source">Источник: системная база знаний</div>
+                                </div>
+                            </div>
+                            <div class="rag-typing" id="rag-typing" style="display:none">
+                                <div class="rag-typing-indicator">
+                                    <span></span><span></span><span></span>
+                                </div>
+                                <span class="rag-typing-text">Сканирую документ...</span>
+                            </div>
+                            <div class="rag-chat-controls">
+                                <p class="rag-hint-title">Попробуйте спросить:</p>
+                                <div class="rag-hint-buttons">
+                                    ${this.questions.map((q, idx) => `
+                                        <button class="rag-hint-btn" onclick="RAGAgent.askQuestion(${idx})" data-idx="${idx}">
+                                            ${q.text}
+                                        </button>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        },
+
+        bindEvents() {
+            // Автоматически показываем первый вопрос с задержкой
+            const firstTimer = setTimeout(() => {
+                const firstBtn = document.querySelector('.rag-hint-btn[data-idx="0"]');
+                if (firstBtn) firstBtn.classList.add('pulse-hint');
+            }, 2000);
+            DemoState.registerTimer(firstTimer);
+        },
+
+        askQuestion(idx) {
+            if (DemoState.aiAgent.isScanning) return;
+            DemoState.aiAgent.isScanning = true;
+
+            const q = this.questions[idx];
+            const chatFlow = document.getElementById('rag-chat-flow');
+            const typing = document.getElementById('rag-typing');
+            const status = document.getElementById('rag-status');
+            const scanner = document.getElementById('rag-scanner');
+
+            // Добавляем вопрос пользователя
+            const userMsg = document.createElement('div');
+            userMsg.className = 'rag-message rag-user';
+            userMsg.innerHTML = `<div class="rag-msg-content">${q.text}</div>`;
+            chatFlow.appendChild(userMsg);
+            chatFlow.scrollTop = chatFlow.scrollHeight;
+
+            // Показываем typing и меняем статус
+            typing.style.display = 'flex';
+            status.innerHTML = '<i class="fa-solid fa-magnifying-glass"></i> AI сканирует документ...';
+            status.classList.add('scanning');
+
+            // Анимируем сканер к целевому параграфу
+            const targetPara = document.getElementById(`para-${q.targetPara}`);
+            if (scanner && targetPara) {
+                scanner.style.display = 'block';
+                const docRect = document.getElementById('rag-doc-content').getBoundingClientRect();
+                const paraRect = targetPara.getBoundingClientRect();
+                const relativeTop = paraRect.top - docRect.top + document.getElementById('rag-doc-content').scrollTop;
+
+                scanner.style.top = `${relativeTop}px`;
+                scanner.classList.add('active');
+
+                // Подсвечиваем параграф
+                setTimeout(() => {
+                    targetPara.classList.add('highlighted');
+                }, 600);
+            }
+
+            // Ответ через 2 секунды (после сканирования)
+            const answerTimer = setTimeout(() => {
+                typing.style.display = 'none';
+                status.innerHTML = '<i class="fa-solid fa-check-circle"></i> Ответ найден';
+                status.classList.remove('scanning');
+
+                // Добавляем ответ бота
+                const botMsg = document.createElement('div');
+                botMsg.className = 'rag-message rag-bot';
+                botMsg.innerHTML = `
+                    <div class="rag-msg-content">${q.answer}</div>
+                    <div class="rag-msg-source">
+                        <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                        Источник: Регламент_Поставки_2024.pdf, стр. ${q.targetPara}
+                    </div>
+                `;
+                chatFlow.appendChild(botMsg);
+                chatFlow.scrollTop = chatFlow.scrollHeight;
+
+                // Убираем подсветку через 3 секунды
+                const clearTimer = setTimeout(() => {
+                    targetPara?.classList.remove('highlighted');
+                    scanner?.classList.remove('active');
+                    DemoState.aiAgent.isScanning = false;
+                }, 3000);
+                DemoState.registerTimer(clearTimer);
+
+                // Показываем CTA
+                showFinalCTA('ai_agent');
+            }, 2000);
+            DemoState.registerTimer(answerTimer);
+        }
+    };
+
+    // ============================================
+    // SCENARIO 2: LIVE CRM SYNC С AI INSIGHTS
+    // ============================================
+    const LiveCRMSync = {
+        services: [
+            { id: 'therapy', name: 'Консультация терапевта', price: '2 500 ₽', duration: '30 мин', icon: 'fa-stethoscope' },
+            { id: 'analysis', name: 'Сдача анализов', price: 'от 1 200 ₽', duration: '15 мин', icon: 'fa-flask' },
+            { id: 'mri', name: 'МРТ-диагностика', price: '8 500 ₽', duration: '45 мин', icon: 'fa-x-ray' }
+        ],
+
+        doctors: [
+            { id: 'doc1', name: 'Др. Смирнов А.В.', specialty: 'Терапевт', rating: 4.9, experience: '12 лет' },
+            { id: 'doc2', name: 'Др. Козлова Е.М.', specialty: 'Кардиолог', rating: 4.8, experience: '8 лет' }
+        ],
+
+        timeSlots: ['10:00', '14:30', '16:00'],
+
+        state: {
+            step: 'welcome',
+            service: null,
+            doctor: null,
+            time: null,
+            leadId: null
+        },
+
+        init() {
+            const content = document.getElementById('modal-simulator-content') || document.getElementById('simulator-content');
+            if (!content) return;
+
+            content.innerHTML = this.render();
+            this.renderStep();
+        },
+
+        render() {
+            return `
+                <div class="crm-sync-advanced">
+                    <!-- Toggle для мобильных -->
+                    <div class="crm-toggle-mobile">
+                        <button class="crm-view-btn active" onclick="LiveCRMSwitch.switchView('client')" id="btn-client-view">
+                            <i class="fa-solid fa-mobile-screen"></i> Вид клиента
+                        </button>
+                        <button class="crm-view-btn" onclick="LiveCRMSwitch.switchView('admin')" id="btn-admin-view">
+                            <i class="fa-solid fa-chart-line"></i> Вид админа
+                        </button>
+                    </div>
+
+                    <div class="crm-sync-layout" id="crm-sync-layout">
+                        <!-- Левая панель: Телефон клиента -->
+                        <div class="crm-phone-panel" id="crm-phone-panel">
+                            <div class="crm-phone-frame">
+                                <div class="crm-phone-header">
+                                    <i class="fa-brands fa-telegram"></i>
+                                    <div class="crm-phone-info">
+                                        <span class="crm-phone-name">Nodum Clinic Bot</span>
+                                        <span class="crm-phone-status">
+                                            <span class="status-dot online"></span> онлайн
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="crm-phone-chat" id="crm-chat-flow">
+                                    <!-- Сообщения добавляются динамически -->
+                                </div>
+                                <div class="crm-phone-controls" id="crm-phone-controls">
+                                    <!-- Кнопки добавляются динамически -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Центральная стрелка синхронизации -->
+                        <div class="crm-sync-connector">
+                            <div class="sync-line"></div>
+                            <div class="sync-particles" id="sync-particles"></div>
+                            <div class="sync-arrow-icon">
+                                <i class="fa-solid fa-arrow-right"></i>
+                            </div>
+                            <div class="sync-label">Live Sync</div>
+                        </div>
+
+                        <!-- Правая панель: CRM Админ -->
+                        <div class="crm-admin-panel" id="crm-admin-panel">
+                            <div class="crm-admin-header">
+                                <div class="crm-admin-title">
+                                    <i class="fa-solid fa-layer-group"></i>
+                                    <span>Nodum CRM</span>
+                                </div>
+                                <div class="crm-ai-badge">
+                                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                                    AI Powered
+                                </div>
+                            </div>
+
+                            <!-- AI Insights блок -->
+                            <div class="crm-ai-insights" id="crm-ai-insights" style="display:none">
+                                <div class="ai-insights-header">
+                                    <i class="fa-solid fa-lightbulb"></i>
+                                    <span>AI Insights</span>
+                                </div>
+                                <div class="ai-insight-content" id="ai-insight-content">
+                                    <!-- Динамически заполняется -->
+                                </div>
+                            </div>
+
+                            <!-- Kanban доска -->
+                            <div class="crm-kanban">
+                                <div class="crm-kanban-col" data-status="new">
+                                    <div class="crm-kanban-header">
+                                        <i class="fa-solid fa-inbox"></i>
+                                        <span>Новые</span>
+                                        <span class="crm-kanban-count" id="crm-count-new">0</span>
+                                    </div>
+                                    <div class="crm-kanban-leads" id="crm-leads-new"></div>
+                                </div>
+                                <div class="crm-kanban-col" data-status="progress">
+                                    <div class="crm-kanban-header">
+                                        <i class="fa-solid fa-clock"></i>
+                                        <span>В работе</span>
+                                        <span class="crm-kanban-count" id="crm-count-progress">0</span>
+                                    </div>
+                                    <div class="crm-kanban-leads" id="crm-leads-progress"></div>
+                                </div>
+                                <div class="crm-kanban-col" data-status="closed">
+                                    <div class="crm-kanban-header">
+                                        <i class="fa-solid fa-check-circle"></i>
+                                        <span>Завершено</span>
+                                        <span class="crm-kanban-count" id="crm-count-closed">0</span>
+                                    </div>
+                                    <div class="crm-kanban-leads" id="crm-leads-closed"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        },
+
+        renderStep() {
+            const chat = document.getElementById('crm-chat-flow');
+            const controls = document.getElementById('crm-phone-controls');
+            if (!chat || !controls) return;
+
+            const steps = {
+                welcome: {
+                    message: '👋 Добро пожаловать в клинику "Здоровье Плюс"!\n\nЯ автоматизированный ассистент. Помогу записаться на приём без ожидания.',
+                    buttons: [
+                        { text: '📋 Записаться', action: 'booking', class: 'primary' },
+                        { text: '💰 Узнать цены', action: 'prices' }
+                    ]
+                },
+                booking: {
+                    message: 'Выберите услугу:',
+                    buttons: this.services.map(s => ({
+                        text: `${s.name}\n${s.price} • ${s.duration}`,
+                        action: `service_${s.id}`,
+                        class: 'service-btn'
+                    })),
+                    onEnter: () => this.createLead('Выбор услуги')
+                },
+                select_doctor: {
+                    message: () => `✅ ${this.state.service?.name}\n\nТеперь выберите врача:`,
+                    buttons: this.doctors.map(d => ({
+                        text: `${d.name}\n${d.specialty} • ⭐ ${d.rating}`,
+                        action: `doctor_${d.id}`,
+                        class: 'doctor-btn'
+                    })),
+                    onEnter: () => this.updateLead(`Услуга: ${this.state.service?.name}`)
+                },
+                select_time: {
+                    message: () => `✅ ${this.state.service?.name}\n👨‍⚕️ ${this.state.doctor?.name}\n\nВыберите время:`,
+                    buttons: this.timeSlots.map(t => ({
+                        text: `🕐 Сегодня, ${t}`,
+                        action: `time_${t}`,
+                        class: 'time-btn'
+                    }))
+                },
+                confirm: {
+                    message: () => `📝 Проверьте данные:\n\n📋 ${this.state.service?.name}\n👨‍⚕️ ${this.state.doctor?.name}\n⏰ Сегодня, ${this.state.time}\n💰 ${this.state.service?.price}\n\nВсё верно?`,
+                    buttons: [
+                        { text: '✅ Подтвердить', action: 'confirm', class: 'success' },
+                        { text: '🔄 Изменить', action: 'booking' }
+                    ],
+                    onEnter: () => this.moveLeadToProgress()
+                },
+                success: {
+                    message: () => `✅ Запись подтверждена!\n\n📋 ${this.state.service?.name}\n👨‍⚕️ ${this.state.doctor?.name}\n⏰ Сегодня, ${this.state.time}\n\n📍 ул. Медицинская, 15\n🔔 Напомним за 2 часа`,
+                    buttons: [
+                        { text: '📋 Новая запись', action: 'reset', class: 'primary' }
+                    ],
+                    onEnter: () => this.completeLead()
+                }
+            };
+
+            const step = steps[this.state.step];
+            if (!step) return;
+
+            // Вызываем onEnter если есть
+            if (step.onEnter) step.onEnter();
+
+            // Добавляем сообщение бота
+            const msg = typeof step.message === 'function' ? step.message() : step.message;
+            const botMsg = document.createElement('div');
+            botMsg.className = 'crm-chat-message bot';
+            botMsg.innerHTML = msg.replace(/\n/g, '<br>');
+            chat.appendChild(botMsg);
+            chat.scrollTop = chat.scrollHeight;
+
+            // Рендерим кнопки
+            controls.innerHTML = '';
+            const btns = typeof step.buttons === 'function' ? step.buttons() : step.buttons;
+            btns.forEach(btn => {
+                const button = document.createElement('button');
+                button.className = `crm-phone-btn ${btn.class || ''}`;
+                button.innerHTML = btn.text.replace(/\n/g, '<br>');
+                button.onclick = () => this.handleAction(btn.action);
+                controls.appendChild(button);
+            });
+        },
+
+        handleAction(action) {
+            const chat = document.getElementById('crm-chat-flow');
+
+            // Находим текст кнопки для сообщения пользователя
+            const btn = document.querySelector(`button[onclick="LiveCRMSync.handleAction('${action}')"]`);
+            let userText = action;
+            if (btn) {
+                userText = btn.textContent.replace(/[📋💰🩺✅👨‍⚕️🕐📝🔔📍]/g, '').trim().split('\n')[0];
+            }
+
+            // Добавляем сообщение пользователя
+            const userMsg = document.createElement('div');
+            userMsg.className = 'crm-chat-message user';
+            userMsg.textContent = userText;
+            chat.appendChild(userMsg);
+            chat.scrollTop = chat.scrollHeight;
+
+            // Обрабатываем переход
+            switch(action) {
+                case 'booking':
+                    this.state.step = 'booking';
+                    break;
+                case 'prices':
+                    this.showPrices();
+                    return;
+                case 'reset':
+                    this.reset();
+                    return;
+                case 'confirm':
+                    this.state.step = 'success';
+                    break;
+                default:
+                    if (action.startsWith('service_')) {
+                        const serviceId = action.replace('service_', '');
+                        this.state.service = this.services.find(s => s.id === serviceId);
+                        this.state.step = 'select_doctor';
+                    } else if (action.startsWith('doctor_')) {
+                        const doctorId = action.replace('doctor_', '');
+                        this.state.doctor = this.doctors.find(d => d.id === doctorId);
+                        this.state.step = 'select_time';
+                    } else if (action.startsWith('time_')) {
+                        this.state.time = action.replace('time_', '');
+                        this.state.step = 'confirm';
+                    }
+            }
+
+            // Рендерим следующий шаг с задержкой
+            const nextTimer = setTimeout(() => this.renderStep(), 400);
+            DemoState.registerTimer(nextTimer);
+        },
+
+        createLead(service) {
+            DemoState.crm.leadId = ++DemoState.crm.leadId;
+            const leadId = DemoState.crm.leadId;
+
+            // Анимация частиц синхронизации
+            this.animateSyncParticles();
+
+            const newCol = document.getElementById('crm-leads-new');
+            const countEl = document.getElementById('crm-count-new');
+            if (!newCol) return;
+
+            const card = document.createElement('div');
+            card.className = 'crm-lead-card new';
+            card.id = `lead-${leadId}`;
+            card.innerHTML = `
+                <div class="crm-lead-header">
+                    <span class="crm-lead-id">#${leadId}</span>
+                    <span class="crm-lead-time">только что</span>
+                </div>
+                <div class="crm-lead-service">${service}</div>
+                <div class="crm-lead-client">
+                    <i class="fa-solid fa-user"></i> Клиент
+                </div>
+                <div class="crm-lead-tags">
+                    <span class="crm-tag bot">бот</span>
+                    <span class="crm-tag new">новый</span>
+                </div>
+            `;
+
+            newCol.appendChild(card);
+            countEl.textContent = newCol.children.length;
+
+            // Подсвечиваем колонку
+            const col = newCol.closest('.crm-kanban-col');
+            col.classList.add('pulse-highlight');
+            setTimeout(() => col.classList.remove('pulse-highlight'), 1000);
+
+            // Показываем AI Insights
+            this.showAIInsights('new', leadId);
+        },
+
+        updateLead(service) {
+            const card = document.getElementById(`lead-${DemoState.crm.leadId}`);
+            if (card) {
+                const serviceEl = card.querySelector('.crm-lead-service');
+                if (serviceEl) serviceEl.textContent = service;
+            }
+        },
+
+        moveLeadToProgress() {
+            const leadId = DemoState.crm.leadId;
+            const card = document.getElementById(`lead-${leadId}`);
+            const progressCol = document.getElementById('crm-leads-progress');
+            const newCount = document.getElementById('crm-count-new');
+            const progressCount = document.getElementById('crm-count-progress');
+
+            if (!card || !progressCol) return;
+
+            // Анимация частиц
+            this.animateSyncParticles();
+
+            // Анимируем перемещение
+            card.style.transform = 'scale(1.05)';
+            card.style.boxShadow = '0 20px 40px rgba(59, 130, 246, 0.3)';
+
+            const moveTimer = setTimeout(() => {
+                progressCol.appendChild(card);
+                card.classList.remove('new');
+                card.classList.add('progress');
+
+                const tags = card.querySelector('.crm-lead-tags');
+                if (tags) {
+                    tags.innerHTML = '<span class="crm-tag bot">бот</span><span class="crm-tag progress">в работе</span>';
+                }
+
+                card.style.transform = 'scale(1)';
+                card.style.boxShadow = '';
+
+                // Обновляем счетчики
+                newCount.textContent = document.getElementById('crm-leads-new').children.length;
+                progressCount.textContent = progressCol.children.length;
+
+                // Подсвечиваем колонку
+                const col = progressCol.closest('.crm-kanban-col');
+                col.classList.add('pulse-highlight');
+                setTimeout(() => col.classList.remove('pulse-highlight'), 1000);
+            }, 500);
+            DemoState.registerTimer(moveTimer);
+        },
+
+        completeLead() {
+            const leadId = DemoState.crm.leadId;
+            const card = document.getElementById(`lead-${leadId}`);
+            const closedCol = document.getElementById('crm-leads-closed');
+            const progressCount = document.getElementById('crm-count-progress');
+            const closedCount = document.getElementById('crm-count-closed');
+
+            if (!card || !closedCol) return;
+
+            // Анимация частиц
+            this.animateSyncParticles();
+
+            const completeTimer = setTimeout(() => {
+                closedCol.appendChild(card);
+                card.classList.remove('progress');
+                card.classList.add('closed');
+
+                const tags = card.querySelector('.crm-lead-tags');
+                if (tags) {
+                    tags.innerHTML = '<span class="crm-tag bot">бот</span><span class="crm-tag closed">завершено</span>';
+                }
+
+                // Добавляем AI вероятность
+                const aiProb = document.createElement('div');
+                aiProb.className = 'crm-ai-probability';
+                aiProb.innerHTML = `
+                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    <span>ИИ-прогноз: вероятность доп. продаж 80%</span>
+                `;
+                card.appendChild(aiProb);
+
+                // Обновляем счетчики
+                progressCount.textContent = document.getElementById('crm-leads-progress').children.length;
+                closedCount.textContent = closedCol.children.length;
+
+                // Показываем AI Insights для завершенной сделки
+                this.showAIInsights('closed', leadId, 80);
+
+                // CTA
+                showFinalCTA('crm');
+            }, 800);
+            DemoState.registerTimer(completeTimer);
+        },
+
+        showAIInsights(type, leadId, probability = null) {
+            const insightsBlock = document.getElementById('crm-ai-insights');
+            const content = document.getElementById('ai-insight-content');
+
+            if (!insightsBlock || !content) return;
+
+            insightsBlock.style.display = 'block';
+            insightsBlock.classList.add('slide-in');
+
+            if (type === 'new') {
+                content.innerHTML = `
+                    <div class="ai-insight-item">
+                        <i class="fa-solid fa-user-tag"></i>
+                        <span><strong>Лид #${leadId}:</strong> Клиент первичный, исследует услуги</span>
+                    </div>
+                    <div class="ai-insight-item">
+                        <i class="fa-solid fa-clock"></i>
+                        <span>Рекомендуемое время ответа: <strong>3-5 минут</strong></span>
+                    </div>
+                `;
+            } else if (type === 'closed') {
+                content.innerHTML = `
+                    <div class="ai-insight-item success">
+                        <i class="fa-solid fa-chart-line"></i>
+                        <span><strong>Анализ сделки #${leadId}:</strong></span>
+                    </div>
+                    <div class="ai-insight-item">
+                        <i class="fa-solid fa-percent"></i>
+                        <span>Вероятность доп. продаж: <strong class="highlight-success">${probability}%</strong></span>
+                    </div>
+                    <div class="ai-insight-item">
+                        <i class="fa-solid fa-gift"></i>
+                        <span>Рекомендация: Предложить комплексное обследование</span>
+                    </div>
+                `;
+            }
+
+            setTimeout(() => insightsBlock.classList.remove('slide-in'), 500);
+        },
+
+        animateSyncParticles() {
+            const container = document.getElementById('sync-particles');
+            if (!container) return;
+
+            for (let i = 0; i < 5; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'sync-particle';
+                particle.style.animationDelay = `${i * 0.1}s`;
+                container.appendChild(particle);
+
+                setTimeout(() => particle.remove(), 1500);
+            }
+        },
+
+        showPrices() {
+            const chat = document.getElementById('crm-chat-flow');
+            const controls = document.getElementById('crm-phone-controls');
+
+            const pricesMsg = document.createElement('div');
+            pricesMsg.className = 'crm-chat-message bot';
+            pricesMsg.innerHTML = `
+                💰 Прайс-лист:<br><br>
+                • Консультация терапевта: 2 500 ₽<br>
+                • Сдача анализов: от 1 200 ₽<br>
+                • МРТ-диагностика: 8 500 ₽<br><br>
+                📞 +7 (999) 123-45-67
+            `;
+            chat.appendChild(pricesMsg);
+            chat.scrollTop = chat.scrollHeight;
+
+            controls.innerHTML = `
+                <button class="crm-phone-btn primary" onclick="LiveCRMSync.handleAction('booking')">
+                    📋 Записаться
+                </button>
+                <button class="crm-phone-btn" onclick="LiveCRMSync.handleAction('welcome')">
+                    🔙 Назад
+                </button>
+            `;
+        },
+
+        reset() {
+            this.state = { step: 'welcome', service: null, doctor: null, time: null, leadId: null };
+
+            ['new', 'progress', 'closed'].forEach(status => {
+                const container = document.getElementById(`crm-leads-${status}`);
+                const countEl = document.getElementById(`crm-count-${status}`);
+                if (container) container.innerHTML = '';
+                if (countEl) countEl.textContent = '0';
+            });
+
+            document.getElementById('crm-ai-insights').style.display = 'none';
+
+            this.renderStep();
+        }
+    };
+
+    // Переключатель видов для мобильных
+    window.LiveCRMSwitch = {
+        switchView(view) {
+            const layout = document.getElementById('crm-sync-layout');
+            const btnClient = document.getElementById('btn-client-view');
+            const btnAdmin = document.getElementById('btn-admin-view');
+
+            if (view === 'client') {
+                layout.classList.add('mobile-client-view');
+                layout.classList.remove('mobile-admin-view');
+                btnClient.classList.add('active');
+                btnAdmin.classList.remove('active');
+            } else {
+                layout.classList.remove('mobile-client-view');
+                layout.classList.add('mobile-admin-view');
+                btnClient.classList.remove('active');
+                btnAdmin.classList.add('active');
+            }
+        }
+    };
+
+    // ============================================
+    // SCENARIO 3: ТЕХНОЛОГИЧНЫЙ КАЛЬКУЛЯТОР B2B
+    // ============================================
+    const TechCalculator = {
+        rates: {
+            city: { price: 5000, label: 'Рейс в черте города', unit: 'рейс' },
+            suburb: { price: 7000, label: 'Рейс за город (до 20 км)', unit: 'рейс' },
+            loading: { price: 1500, label: 'Погрузка/разгрузка', unit: 'час' }
+        },
+
+        state: { city: 0, suburb: 0, loading: 0, total: 0 },
+
+        init() {
+            const content = document.getElementById('modal-simulator-content') || document.getElementById('simulator-content');
+            if (!content) return;
+
+            content.innerHTML = this.render();
+            this.updateDisplay(false);
+        },
+
+        render() {
+            return `
+                <div class="tech-calculator">
+                    <div class="calc-header">
+                        <div class="calc-header-icon">
+                            <i class="fa-solid fa-truck-moving"></i>
+                        </div>
+                        <div class="calc-header-info">
+                            <h3>Калькулятор манипулятора</h3>
+                            <p>Грузоподъемность: 5 тонн</p>
+                        </div>
+                        <div class="calc-badge">B2B</div>
+                    </div>
+
+                    <div class="calc-display">
+                        <div class="calc-total-container">
+                            <div class="calc-total-label">Итоговая стоимость</div>
+                            <div class="calc-total-value" id="calc-total">0 ₽</div>
+                            <div class="calc-total-animate" id="calc-total-animate"></div>
+                        </div>
+                        <div class="calc-vat-note">Включая НДС 20%</div>
+                    </div>
+
+                    <div class="calc-rows">
+                        ${Object.entries(this.rates).map(([key, rate]) => `
+                            <div class="calc-row" data-type="${key}">
+                                <div class="calc-row-info">
+                                    <div class="calc-row-icon">
+                                        <i class="fa-solid ${this.getIcon(key)}"></i>
+                                    </div>
+                                    <div class="calc-row-details">
+                                        <div class="calc-row-label">${rate.label}</div>
+                                        <div class="calc-row-unit">${rate.price.toLocaleString('ru-RU')} ₽ / ${rate.unit}</div>
+                                    </div>
+                                </div>
+                                <div class="calc-row-controls">
+                                    <button class="calc-btn-minus" onclick="TechCalculator.update('${key}', -1)">
+                                        <i class="fa-solid fa-minus"></i>
+                                    </button>
+                                    <span class="calc-count" id="calc-count-${key}">0</span>
+                                    <button class="calc-btn-plus" onclick="TechCalculator.update('${key}', 1)">
+                                        <i class="fa-solid fa-plus"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+
+                    <div class="calc-breakdown" id="calc-breakdown" style="display:none">
+                        <div class="breakdown-header">
+                            <i class="fa-solid fa-list-check"></i>
+                            <span>Детализация расчета</span>
+                        </div>
+                        <div class="breakdown-content" id="breakdown-content">
+                            <!-- Динамически заполняется -->
+                        </div>
+                    </div>
+
+                    <div class="calc-actions">
+                        <button class="calc-btn-primary" onclick="TechCalculator.submit()">
+                            <i class="fa-solid fa-paper-plane"></i>
+                            Отправить заявку
+                        </button>
+                        <button class="calc-btn-secondary" onclick="TechCalculator.reset()">
+                            <i class="fa-solid fa-rotate-left"></i>
+                            Сбросить
+                        </button>
+                    </div>
+                </div>
+            `;
+        },
+
+        getIcon(type) {
+            const icons = { city: 'fa-city', suburb: 'fa-road', loading: 'fa-boxes-packing' };
+            return icons[type] || 'fa-circle';
+        },
+
+        update(type, delta) {
+            const newValue = Math.max(0, this.state[type] + delta);
+            if (newValue === this.state[type]) return;
+
+            this.state[type] = newValue;
+
+            // Обновляем счетчик
+            const countEl = document.getElementById(`calc-count-${type}`);
+            if (countEl) {
+                countEl.textContent = newValue;
+                countEl.classList.add('count-changed');
+                setTimeout(() => countEl.classList.remove('count-changed'), 300);
+            }
+
+            // Пересчитываем и анимируем
+            this.calculate();
+            this.updateDisplay(true);
+        },
+
+        calculate() {
+            this.state.total = (this.state.city * this.rates.city.price) +
+                              (this.state.suburb * this.rates.suburb.price) +
+                              (this.state.loading * this.rates.loading.price);
+        },
+
+        updateDisplay(animate = true) {
+            const totalEl = document.getElementById('calc-total');
+            const breakdown = document.getElementById('calc-breakdown');
+            const breakdownContent = document.getElementById('breakdown-content');
+
+            if (!totalEl) return;
+
+            // Анимируем число
+            if (animate) {
+                this.animateNumber(totalEl, this.state.total);
+            } else {
+                totalEl.textContent = this.state.total.toLocaleString('ru-RU') + ' ₽';
+            }
+
+            // Показываем детализацию если есть позиции
+            const hasItems = this.state.city > 0 || this.state.suburb > 0 || this.state.loading > 0;
+
+            if (hasItems) {
+                breakdown.style.display = 'block';
+                breakdown.classList.add('slide-up');
+
+                let html = '';
+                if (this.state.city > 0) {
+                    const amount = this.state.city * this.rates.city.price;
+                    html += `<div class="breakdown-item"><span>${this.rates.city.label} × ${this.state.city}</span><span>${amount.toLocaleString('ru-RU')} ₽</span></div>`;
+                }
+                if (this.state.suburb > 0) {
+                    const amount = this.state.suburb * this.rates.suburb.price;
+                    html += `<div class="breakdown-item"><span>${this.rates.suburb.label} × ${this.state.suburb}</span><span>${amount.toLocaleString('ru-RU')} ₽</span></div>`;
+                }
+                if (this.state.loading > 0) {
+                    const amount = this.state.loading * this.rates.loading.price;
+                    html += `<div class="breakdown-item"><span>${this.rates.loading.label} × ${this.state.loading}</span><span>${amount.toLocaleString('ru-RU')} ₽</span></div>`;
+                }
+
+                const baseTotal = this.state.total;
+                const vat = Math.round(baseTotal * 0.2);
+                const totalWithVat = baseTotal + vat;
+
+                html += `
+                    <div class="breakdown-divider"></div>
+                    <div class="breakdown-item"><span>Базовая стоимость</span><span>${baseTotal.toLocaleString('ru-RU')} ₽</span></div>
+                    <div class="breakdown-item vat"><span>НДС (20%)</span><span>${vat.toLocaleString('ru-RU')} ₽</span></div>
+                    <div class="breakdown-item total"><span>Итого с НДС</span><span>${totalWithVat.toLocaleString('ru-RU')} ₽</span></div>
+                `;
+
+                breakdownContent.innerHTML = html;
+
+                setTimeout(() => breakdown.classList.remove('slide-up'), 500);
+            } else {
+                breakdown.style.display = 'none';
+            }
+        },
+
+        animateNumber(element, targetValue) {
+            const startValue = parseInt(element.textContent.replace(/\D/g, '')) || 0;
+            const duration = 600;
+            const startTime = performance.now();
+
+            const animate = (currentTime) => {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                const easeProgress = 1 - Math.pow(1 - progress, 3);
+                const currentValue = Math.round(startValue + (targetValue - startValue) * easeProgress);
+
+                element.textContent = currentValue.toLocaleString('ru-RU') + ' ₽';
+
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                }
+            };
+
+            requestAnimationFrame(animate);
+        },
+
+        submit() {
+            if (this.state.total === 0) {
+                showNotification('Выберите услуги', 'Добавьте хотя бы один рейс для расчета', 'warning');
+                return;
+            }
+
+            const vat = Math.round(this.state.total * 0.2);
+            const totalWithVat = this.state.total + vat;
+
+            showNotification('Заявка отправлена', `Сумма: ${totalWithVat.toLocaleString('ru-RU')} ₽ (включая НДС)`, 'success');
+            showFinalCTA('calculator');
+        },
+
+        reset() {
+            this.state = { city: 0, suburb: 0, loading: 0, total: 0 };
+
+            ['city', 'suburb', 'loading'].forEach(type => {
+                const countEl = document.getElementById(`calc-count-${type}`);
+                if (countEl) countEl.textContent = '0';
+            });
+
+            this.updateDisplay(true);
+        }
+    };
+
+    // ============================================
+    // DEMO DATA & ROUTER
+    // ============================================
+
     const demoData = {
         ai_agent: {
-            title: "Анализ документа: Регламент_Тюмень.pdf",
+            title: "AI-Агент с RAG Intelligence",
             frameClass: "macbook",
-            render: () => `
-                <div class="ai-chat-demo">
-                    <div class="chat-messages-sim" id="chat-flow">
-                        <div class="msg-sim bot">Привет! Я ИИ-ассистент Nodum. Я изучил ваш регламент. Задайте любой вопрос.</div>
-                    </div>
-                    <div id="typing-indicator" class="typing-sim">AI ищет ответ в документе...</div>
-                    <div class="chat-hints">
-                        <button class="hint-btn-sim" onclick="askAi('Какая гарантия на насосы?', 'Согласно разделу 4.2, гарантийный срок составляет 24 месяца с даты ввода в эксплуатацию.')">Какая гарантия?</button>
-                        <button class="hint-btn-sim" onclick="askAi('Срок поставки в Сургут?', 'В приложении №3 указано: логистика до ХМАО занимает 3-5 рабочих дней.')">Срок поставки?</button>
-                    </div>
-                </div>
-            `
+            init: () => RAGAgent.init()
         },
         crm: {
-            title: "Nodum CRM — Автоматизация отдела продаж",
+            title: "Live CRM Sync с AI Insights",
             frameClass: "macbook",
-            render: () => `
-                <div style="height:100%">
-                    <button class="hint-btn-sim" style="margin-bottom:15px; width:100%" onclick="addCrmLead()">➕ Добавить лид из Telegram</button>
-                    <div class="crm-board">
-                        <div class="crm-col"><h4>Новые</h4><div id="col-new"></div></div>
-                        <div class="crm-col"><h4>В работе (AI)</h4><div id="col-progress"></div></div>
-                    </div>
-                </div>
-            `
+            init: () => LiveCRMSync.init()
+        },
+        clinic_sync: {
+            title: "Live CRM Sync с AI Insights",
+            frameClass: "macbook",
+            init: () => LiveCRMSync.init()
+        },
+        calculator: {
+            title: "Технологичный Калькулятор B2B",
+            frameClass: "iphone",
+            init: () => TechCalculator.init()
         },
         tg_bot: {
             title: "Telegram — @Nodum_Booking_Bot",
@@ -2112,52 +2938,39 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Make loadDemo available globally
     window.loadDemo = function(type, btn) {
-        // Смена активной кнопки
         document.querySelectorAll('.control-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
+        if (btn) btn.classList.add('active');
 
         const frame = document.getElementById('device-frame');
         const content = document.getElementById('simulator-content');
         const title = document.getElementById('frame-title');
 
-        // Смена класса фрейма (MacBook/iPhone)
-        frame.className = `simulator-frame ${demoData[type].frameClass}`;
-        title.innerText = demoData[type].title;
-        
-        // Плавная подмена контента
+        if (!frame || !content) return;
+
+        const demo = demoData[type];
+        if (!demo) return;
+
+        DemoState.currentType = type;
+        frame.className = `simulator-frame ${demo.frameClass}`;
+        if (title) title.innerText = demo.title;
+
         content.style.opacity = 0;
-        setTimeout(() => {
-            content.innerHTML = demoData[type].render();
+        DemoState.registerTimer(setTimeout(() => {
+            if (demo.init) {
+                demo.init();
+            } else if (demo.render) {
+                content.innerHTML = demo.render();
+            }
             content.style.opacity = 1;
-        }, 200);
+        }, 200));
     };
 
-    // Логика AI чата с XSS-защитой
+    // Legacy compatibility functions
     window.askAi = function(question, answer) {
-        const flow = document.getElementById('chat-flow');
-        const typing = document.getElementById('typing-indicator');
-
-        if (!flow || !typing) return;
-
-        // XSS-защита через textContent
-        const userMsgDiv = document.createElement('div');
-        userMsgDiv.className = 'msg-sim user';
-        userMsgDiv.textContent = question;
-        flow.appendChild(userMsgDiv);
-
-        typing.style.display = 'block';
-
-        setTimeout(() => {
-            typing.style.display = 'none';
-            const botMsgDiv = document.createElement('div');
-            botMsgDiv.className = 'msg-sim bot';
-            botMsgDiv.textContent = answer;
-            botMsgDiv.innerHTML += ' <br><br><small style="opacity:0.5">Источник: регламент_2024.pdf (стр. 12)</small>';
-            flow.appendChild(botMsgDiv);
-            flow.scrollTop = flow.scrollHeight;
-            // Показываем финальную CTA после AI-ответа
-            showFinalCTA('ai_agent');
-        }, 1500);
+        if (DemoState.currentType === 'ai_agent' && window.RAGAgent) {
+            const idx = RAGAgent.questions.findIndex(q => q.text === question);
+            if (idx !== -1) RAGAgent.askQuestion(idx);
+        }
     };
 
     // Логика CRM
