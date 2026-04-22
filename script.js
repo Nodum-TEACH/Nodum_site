@@ -1,4 +1,44 @@
 
+// Toast Notification System
+function showNotification(title, message, type = 'info', duration = 5000) {
+    const container = document.getElementById('toast-container');
+    if (!container) return;
+
+    const icons = {
+        success: '<i class="fa-solid fa-check"></i>',
+        error: '<i class="fa-solid fa-xmark"></i>',
+        warning: '<i class="fa-solid fa-exclamation"></i>',
+        info: '<i class="fa-solid fa-info"></i>'
+    };
+
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `
+        <div class="toast-icon">${icons[type] || icons.info}</div>
+        <div class="toast-content">
+            <div class="toast-title">${title}</div>
+            <div class="toast-message">${message}</div>
+        </div>
+        <button class="toast-close" onclick="this.parentElement.remove()">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+    `;
+
+    container.appendChild(toast);
+
+    // Trigger animation
+    requestAnimationFrame(() => {
+        toast.classList.add('show');
+    });
+
+    // Auto remove after duration
+    setTimeout(() => {
+        toast.classList.remove('show');
+        toast.classList.add('hide');
+        setTimeout(() => toast.remove(), 300);
+    }, duration);
+}
+
 // Use currentModel from config.js if available, otherwise default to lmstudio
 // Global completion detection function
 function checkForCompletion(botResponse) {
@@ -100,8 +140,19 @@ async function submitTraditionalForm(event) {
     event.preventDefault();
 
     const field = document.getElementById('form-field').value;
-    const contact = document.getElementById('form-contact').value;
+    const contact = document.getElementById('form-contact').value.trim();
     const message = document.getElementById('form-message').value;
+
+    // Validate contact format
+    const phoneRegex = /(\+7|8)[\s\-]?\(?\d{3}\)?[\s\-]?\d{3}[\s\-]?\d{2}[\s\-]?\d{2}/;
+    const telegramRegex = /^@[a-zA-Z0-9_]{3,32}$/;
+    const isPhone = phoneRegex.test(contact);
+    const isTelegram = telegramRegex.test(contact);
+
+    if (!isPhone && !isTelegram) {
+        showNotification('Ошибка', 'Неверный формат контакта. Укажите номер телефона в формате +7 XXX XXX XX XX или Telegram username с @', 'error');
+        return;
+    }
 
     try {
         // Send the data to backend endpoint
@@ -123,6 +174,8 @@ async function submitTraditionalForm(event) {
         if (data.success) {
             console.log('[traditional-form] Form submitted successfully:', { field, contact, message });
             
+            showNotification('Успешно', 'Заявка отправлена! Мы свяжемся с вами в ближайшее время.', 'success');
+            
             // Close the modal
             closeTraditionalForm();
 
@@ -130,11 +183,11 @@ async function submitTraditionalForm(event) {
             document.getElementById('traditional-form').reset();
         } else {
             console.error('[traditional-form] Error submitting form:', data.error);
-            alert('Ошибка отправки');
+            showNotification('Ошибка', 'Не удалось отправить заявку. Попробуйте позже.', 'error');
         }
     } catch (error) {
         console.error('[traditional-form] Network error:', error);
-        alert('Ошибка соединения');
+        showNotification('Ошибка', 'Ошибка соединения. Проверьте интернет и попробуйте снова.', 'error');
     }
 }
 
