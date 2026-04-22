@@ -1,4 +1,12 @@
 
+// ============================================
+// GLOBAL VARIABLES
+// ============================================
+
+// Текущий активный тип демо для метаданных формы и модалки
+let currentDemoType = null;
+
+// ============================================
 // Toast Notification System
 function showNotification(title, message, type = 'info', duration = 5000) {
     const container = document.getElementById('toast-container');
@@ -13,16 +21,39 @@ function showNotification(title, message, type = 'info', duration = 5000) {
 
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
-    toast.innerHTML = `
-        <div class="toast-icon">${icons[type] || icons.info}</div>
-        <div class="toast-content">
-            <div class="toast-title">${title}</div>
-            <div class="toast-message">${message}</div>
-        </div>
-        <button class="toast-close" onclick="this.parentElement.remove()">
-            <i class="fa-solid fa-xmark"></i>
-        </button>
-    `;
+
+    // XSS-safe construction using DOM API
+    const iconDiv = document.createElement('div');
+    iconDiv.className = 'toast-icon';
+    iconDiv.innerHTML = icons[type] || icons.info; // Safe: predefined icons only
+
+    const contentDiv = document.createElement('div');
+    contentDiv.className = 'toast-content';
+
+    const titleDiv = document.createElement('div');
+    titleDiv.className = 'toast-title';
+    titleDiv.textContent = title; // XSS-safe: textContent escapes HTML
+
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'toast-message';
+    messageDiv.textContent = message; // XSS-safe: textContent escapes HTML
+
+    contentDiv.appendChild(titleDiv);
+    contentDiv.appendChild(messageDiv);
+
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'toast-close';
+    closeBtn.innerHTML = '<i class="fa-solid fa-xmark"></i>'; // Safe: predefined
+    closeBtn.onclick = () => toast.remove();
+
+    toast.appendChild(iconDiv);
+    toast.appendChild(contentDiv);
+    toast.appendChild(closeBtn);
+
+    // Лимитируем количество уведомлений (максимум 3)
+    while (container.children.length >= 3) {
+        container.firstChild.remove();
+    }
 
     container.appendChild(toast);
 
@@ -135,9 +166,19 @@ function closeTraditionalForm() {
     }, 300);
 }
 
+// Флаг защиты от дублирования отправки
+let isFormSubmitting = false;
+
 // Function to submit traditional form
 async function submitTraditionalForm(event) {
     event.preventDefault();
+
+    // Защита от двойного клика
+    if (isFormSubmitting) {
+        console.log('[form] Submit blocked: already submitting');
+        return;
+    }
+    isFormSubmitting = true;
 
     const field = document.getElementById('form-field').value;
     const contact = document.getElementById('form-contact').value.trim();
@@ -191,6 +232,8 @@ async function submitTraditionalForm(event) {
     } catch (error) {
         console.error('[traditional-form] Network error:', error);
         showNotification('Ошибка', 'Ошибка соединения. Проверьте интернет и попробуйте снова.', 'error');
+    } finally {
+        isFormSubmitting = false;
     }
 }
 
@@ -252,6 +295,323 @@ document.addEventListener('click', (event) => {
     scrollToHashTarget(href);
 });
 
+// ============================================
+// CLINIC SYNC SIMULATOR - Telegram ↔ CRM
+// Global object for modal simulator integration
+// ============================================
+
+window.ClinicSync = {
+    // Данные сессии
+    session: {
+        leadId: null,
+        service: null,
+        step: 'welcome'
+    },
+
+    // Флаг защиты от race condition
+    isTransitioning: false,
+
+    leadCounter: 2000,
+
+    // Состояния диалога (Finite State Machine)
+    states: {
+        welcome: {
+            message: `👋 Добро пожаловать в клинику "Здоровье Плюс"!<br><br>Я — автоматизированный ассистент. Помогу записаться на приём без ожидания.`,
+            buttons: [
+                { text: '📋 Записаться', action: 'booking', icon: 'fa-calendar-check' },
+                { text: '💰 Узнать цены', action: 'prices', icon: 'fa-tag' }
+            ]
+        },
+        booking: {
+            message: `Выберите услугу:`,
+            buttons: [
+                { text: '🩺 Консультация терапевта<br>2 500 ₽ • 30 мин', action: 'service_therapy', icon: 'fa-stethoscope' },
+                { text: '🧪 Сдача анализов<br>от 1 200 ₽ • 15 мин', action: 'service_analysis', icon: 'fa-flask' },
+                { text: '🔬 МРТ-диагностика<br>8 500 ₽ • 45 мин', action: 'service_mri', icon: 'fa-x-ray' }
+            ],
+            onEnter: function() {
+                ClinicSync.createLead('Выбор услуги...');
+            }
+        },
+        therapy: {
+            message: `✅ Консультация терапевта<br><br>Выберите врача:`,
+            buttons: [
+                { text: 'Др. Смирнов А.В.<br>⭐ 4.9', action: 'doctor_selected', icon: 'fa-user-md' },
+                { text: 'Др. Козлова Е.М.<br>⭐ 4.8', action: 'doctor_selected', icon: 'fa-user-md' }
+            ],
+            onEnter: function() {
+                ClinicSync.updateLead('Консультация терапевта');
+                ClinicSync.moveLead('progress');
+            }
+        },
+        datetime: {
+            message: function() {
+                return `✅ ${ClinicSync.session.service}<br>👨‍⚕️ Выбран врач<br><br>Выберите время:`;
+            },
+            buttons: [
+                { text: '🕐 Сегодня, 10:00', action: 'confirm', icon: 'fa-clock' },
+                { text: '🕒 Сегодня, 14:30', action: 'confirm', icon: 'fa-clock' },
+                { text: '🕕 Завтра, 09:00', action: 'confirm', icon: 'fa-clock' }
+            ]
+        },
+        confirm: {
+            message: function() {
+                return `📝 Проверьте данные:<br><br>📋 ${ClinicSync.session.service}<br>⏰ Сегодня, 14:30<br>💰 2 500 ₽<br><br>Всё верно?`;
+            },
+            buttons: [
+                { text: '✅ Подтвердить', action: 'success', icon: 'fa-check', primary: true },
+                { text: '🔄 Изменить', action: 'booking', icon: 'fa-rotate-left' }
+            ]
+        },
+        success: {
+            message: function() {
+                return `✅ Запись подтверждена!<br><br>📋 ${ClinicSync.session.service}<br>⏰ Сегодня, 14:30<br>📍 ул. Медицинская, 15<br><br>🔔 Напомним за 2 часа`;
+            },
+            buttons: [
+                { text: '📋 Новая запись', action: 'reset', icon: 'fa-plus' }
+            ],
+            onEnter: function() {
+                ClinicSync.moveLead('closed');
+                if (typeof showFinalCTAModal === 'function') {
+                    showFinalCTAModal('clinic_sync');
+                }
+            }
+        },
+        prices: {
+            message: `💰 Прайс-лист:<br><br>• Консультация: 2 500 ₽<br>• Анализы: от 1 200 ₽<br>• МРТ: 8 500 ₽<br>• УЗИ: 3 200 ₽<br><br>📞 +7 (999) 123-45-67`,
+            buttons: [
+                { text: '📋 Записаться', action: 'booking', icon: 'fa-calendar-check' },
+                { text: '🔙 Назад', action: 'welcome', icon: 'fa-arrow-left' }
+            ]
+        }
+    },
+
+    // Инициализация симулятора
+    init: function() {
+        // Начальное состояние
+        this.session = { leadId: null, service: null, step: 'welcome' };
+        this.renderState();
+    },
+
+    // Обработка действий
+    handleAction: function(action) {
+        // Защита от одновременных кликов
+        if (this.isTransitioning) return;
+        this.isTransitioning = true;
+
+        const chat = document.getElementById('sync-chat');
+        const controls = document.getElementById('sync-controls');
+
+        if (!chat || !controls) {
+            this.isTransitioning = false;
+            return;
+        }
+
+        // Добавляем сообщение пользователя
+        let userText = action;
+        const state = this.states[this.session.step];
+        if (state && state.buttons) {
+            const btn = state.buttons.find(b => b.action === action);
+            if (btn) {
+                userText = btn.text.replace(/[📋💰🩺🧪🔬✅👨‍⚕️🕐🕒🕕📝📍🔔⭐🔄🔙]/g, '').trim().split('\n')[0];
+            }
+        }
+
+        // Добавляем сообщение пользователя
+        const userMsg = document.createElement('div');
+        userMsg.className = 'sync-message user';
+        userMsg.textContent = userText;
+        chat.appendChild(userMsg);
+        chat.scrollTop = chat.scrollHeight;
+
+        // Очищаем кнопки
+        controls.innerHTML = '';
+
+        // Обрабатываем переход
+        setTimeout(() => {
+            this.transition(action);
+            // Сбрасываем флаг после завершения перехода
+            setTimeout(() => {
+                this.isTransitioning = false;
+            }, 500);
+        }, 400);
+    },
+
+    // Переход между состояниями
+    transition: function(action) {
+        // Определяем следующее состояние
+        let nextState = this.session.step;
+
+        switch(action) {
+            case 'booking': nextState = 'booking'; break;
+            case 'prices': nextState = 'prices'; break;
+            case 'welcome': nextState = 'welcome'; break;
+            case 'reset':
+                this.reset();
+                nextState = 'welcome';
+                break;
+            case 'service_therapy':
+                this.session.service = 'Консультация терапевта';
+                nextState = 'therapy';
+                break;
+            case 'service_analysis':
+                this.session.service = 'Сдача анализов';
+                nextState = 'datetime';
+                this.createLead('Сдача анализов');
+                break;
+            case 'service_mri':
+                this.session.service = 'МРТ-диагностика';
+                nextState = 'datetime';
+                this.createLead('МРТ-диагностика');
+                break;
+            case 'doctor_selected':
+                nextState = 'datetime';
+                break;
+            case 'confirm':
+                nextState = 'confirm';
+                break;
+            case 'success':
+                nextState = 'success';
+                break;
+        }
+
+        this.session.step = nextState;
+        this.renderState();
+    },
+
+    // Рендер текущего состояния
+    renderState: function() {
+        const state = this.states[this.session.step];
+        const chat = document.getElementById('sync-chat');
+        const controls = document.getElementById('sync-controls');
+
+        if (!chat || !controls) return;
+
+        // Вызываем onEnter если есть
+        if (state.onEnter) state.onEnter();
+
+        // Добавляем сообщение бота
+        const message = typeof state.message === 'function' ? state.message() : state.message;
+        const botMsg = document.createElement('div');
+        botMsg.className = 'sync-message bot';
+        botMsg.innerHTML = message;
+        chat.appendChild(botMsg);
+
+        // Прокрутка вниз
+        chat.scrollTop = chat.scrollHeight;
+
+        // Рендерим кнопки
+        setTimeout(() => {
+            state.buttons.forEach(btn => {
+                const button = document.createElement('button');
+                button.className = 'sync-btn' + (btn.primary ? ' primary' : '');
+                button.innerHTML = `<i class="fa-solid ${btn.icon}"></i> ${btn.text}`;
+                button.onclick = () => this.handleAction(btn.action);
+                controls.appendChild(button);
+            });
+        }, 100);
+    },
+
+    // CRM функции
+    createLead: function(service) {
+        this.leadCounter++;
+        this.session.leadId = this.leadCounter;
+
+        const leadCard = document.createElement('div');
+        leadCard.className = 'sync-lead-card';
+        leadCard.id = `lead-${this.leadCounter}`;
+        leadCard.innerHTML = `
+            <div class="sync-lead-header">#${this.leadCounter}</div>
+            <div class="sync-lead-service">${service}</div>
+            <div class="sync-lead-client"><i class="fa-solid fa-user"></i> Клиент</div>
+            <div class="sync-lead-tags">
+                <span class="sync-tag">бот</span>
+                <span class="sync-tag sync-tag-new">new</span>
+            </div>
+        `;
+
+        const container = document.getElementById('crm-leads-new');
+        if (container) {
+            container.appendChild(leadCard);
+            this.updateCounts();
+        }
+    },
+
+    updateLead: function(service) {
+        if (!this.session.leadId) return;
+        const card = document.getElementById(`lead-${this.session.leadId}`);
+        if (card) {
+            const serviceEl = card.querySelector('.sync-lead-service');
+            if (serviceEl) serviceEl.textContent = service;
+        }
+    },
+
+    moveLead: function(toColumn) {
+        if (!this.session.leadId) return;
+        const card = document.getElementById(`lead-${this.session.leadId}`);
+        if (!card) return;
+
+        const targetContainer = document.getElementById(`crm-leads-${toColumn}`);
+        if (!targetContainer) return;
+
+        // Анимация перемещения
+        card.style.transform = 'scale(1.05)';
+        card.style.boxShadow = '0 20px 40px rgba(59, 130, 246, 0.3)';
+
+        setTimeout(() => {
+            targetContainer.appendChild(card);
+            card.style.transform = 'scale(1)';
+            card.style.boxShadow = '';
+
+            // Обновляем стили
+            const tags = card.querySelector('.sync-lead-tags');
+            if (tags) {
+                if (toColumn === 'progress') {
+                    tags.innerHTML = '<span class="sync-tag">бот</span><span class="sync-tag sync-tag-progress">в работе</span>';
+                } else if (toColumn === 'closed') {
+                    tags.innerHTML = '<span class="sync-tag">бот</span><span class="sync-tag sync-tag-closed">завершено</span>';
+                    // Добавляем AI вероятность
+                    const aiProb = document.createElement('div');
+                    aiProb.className = 'sync-ai-prob';
+                    aiProb.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> ИИ вероятность сделки: 97%';
+                    card.appendChild(aiProb);
+                }
+            }
+
+            this.updateCounts();
+        }, 300);
+    },
+
+    updateCounts: function() {
+        ['new', 'progress', 'closed'].forEach(status => {
+            const container = document.getElementById(`crm-leads-${status}`);
+            const countEl = document.getElementById(`crm-count-${status}`);
+            if (container && countEl) {
+                countEl.textContent = container.children.length;
+            }
+        });
+    },
+
+    reset: function() {
+        this.session = { leadId: null, service: null, step: 'welcome' };
+        // Очищаем CRM
+        ['new', 'progress', 'closed'].forEach(status => {
+            const container = document.getElementById(`crm-leads-${status}`);
+            if (container) container.innerHTML = '';
+        });
+        this.updateCounts();
+        // Очищаем чат
+        const chat = document.getElementById('sync-chat');
+        const controls = document.getElementById('sync-controls');
+        if (chat) chat.innerHTML = '';
+        if (controls) controls.innerHTML = '';
+    }
+};
+
+// ============================================
+// DOMContentLoaded - Event Listeners & Initialization
+// ============================================
+
 document.addEventListener('DOMContentLoaded', () => {
 
     // Burger Menu Toggle
@@ -294,10 +654,22 @@ document.addEventListener('DOMContentLoaded', () => {
         scrollToHashTarget('#portfolio');
     };
 
-    // 2. Магнитные кнопки
+    // Throttle helper для оптимизации производительности
+    function throttle(func, limit) {
+        let inThrottle;
+        return function(...args) {
+            if (!inThrottle) {
+                func.apply(this, args);
+                inThrottle = true;
+                setTimeout(() => inThrottle = false, limit);
+            }
+        };
+    }
+
+    // 2. Магнитные кнопки с throttle (60fps max)
     const magneticButtons = document.querySelectorAll('.btn-magnetic');
     magneticButtons.forEach(btn => {
-        btn.addEventListener('mousemove', function(e) {
+        const handleMouseMove = throttle(function(e) {
             const position = btn.getBoundingClientRect();
             const x = e.pageX - position.left - position.width / 2;
             const y = e.pageY - position.top - position.height / 2;
@@ -305,7 +677,9 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.style.transform = `translate(${x * 0.15}px, ${y * 0.15}px)`;
             const span = btn.querySelector('span');
             if(span) span.style.transform = `translate(${x * 0.05}px, ${y * 0.05}px)`;
-        });
+        }, 16); // ~60fps
+
+        btn.addEventListener('mousemove', handleMouseMove);
 
         btn.addEventListener('mouseout', function() {
             btn.style.transform = 'translate(0px, 0px)';
@@ -326,7 +700,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Маппинг карточек к типам демо
     const cardDemoMapping = {
         0: 'ai_agent',      // Агент принимает заявки
-        1: 'tg_bot',        // Booking System — iPhone
+        1: 'clinic_sync',   // Clinic Bot + CRM Sync — Split Screen
         2: 'crm',           // Агент возвращает тех, кто ушёл думать
         3: 'ai_agent',      // Два агента
         4: 'ai_agent'       // Агент-модератор
@@ -413,6 +787,16 @@ document.addEventListener('DOMContentLoaded', () => {
         if (existingCTA) existingCTA.remove();
         if (existingROI) existingROI.remove();
 
+        // Очищаем ClinicSync симулятор если активен
+        if (typeof ClinicSync !== 'undefined' && ClinicSync.reset) {
+            ClinicSync.reset();
+        }
+
+        // Удаляем глобальные обработчики модального симулятора
+        delete window.askAiModal;
+        delete window.addCrmLeadModal;
+        delete window.tgConfirmModal;
+
         modal.classList.remove('visible');
         setTimeout(() => {
             modal.style.display = 'none';
@@ -497,6 +881,69 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                     </div>
                 `
+            },
+            clinic_sync: {
+                title: "Nodum Sync — Telegram ↔ CRM",
+                frameClass: "macbook",
+                render: () => `
+                    <div class="clinic-sync-demo" id="clinic-sync-container">
+                        <div class="sync-simulator">
+                            <div class="sync-phone">
+                                <div class="sync-phone-header">
+                                    <i class="fa-brands fa-telegram"></i>
+                                    <span>Nodum Clinic Bot</span>
+                                </div>
+                                <div class="sync-phone-chat" id="sync-chat">
+                                    <div class="sync-message bot">
+                                        👋 Добро пожаловать в клинику! Я помогу записаться на приём.
+                                    </div>
+                                </div>
+                                <div class="sync-phone-controls" id="sync-controls">
+                                    <button class="sync-btn" onclick="ClinicSync.handleAction('booking')">
+                                        <i class="fa-solid fa-calendar-check"></i> Записаться
+                                    </button>
+                                    <button class="sync-btn" onclick="ClinicSync.handleAction('prices')">
+                                        <i class="fa-solid fa-tag"></i> Узнать цены
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="sync-arrow">
+                                <i class="fa-solid fa-arrow-right"></i>
+                                <div class="sync-pulse-dot"></div>
+                            </div>
+                            <div class="sync-crm">
+                                <div class="sync-crm-header">
+                                    <i class="fa-solid fa-database"></i>
+                                    <span>Nodum CRM</span>
+                                    <span class="sync-crm-badge">AI Powered</span>
+                                </div>
+                                <div class="sync-crm-columns">
+                                    <div class="sync-crm-col" data-status="new">
+                                        <div class="sync-crm-col-header">
+                                            <i class="fa-solid fa-inbox"></i> Новые
+                                            <span class="sync-count" id="crm-count-new">0</span>
+                                        </div>
+                                        <div class="sync-crm-leads" id="crm-leads-new"></div>
+                                    </div>
+                                    <div class="sync-crm-col" data-status="progress">
+                                        <div class="sync-crm-col-header">
+                                            <i class="fa-solid fa-clock"></i> В работе
+                                            <span class="sync-count" id="crm-count-progress">0</span>
+                                        </div>
+                                        <div class="sync-crm-leads" id="crm-leads-progress"></div>
+                                    </div>
+                                    <div class="sync-crm-col" data-status="closed">
+                                        <div class="sync-crm-col-header">
+                                            <i class="fa-solid fa-check-circle"></i> Завершено
+                                            <span class="sync-count" id="crm-count-closed">0</span>
+                                        </div>
+                                        <div class="sync-crm-leads" id="crm-leads-closed"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `
             }
         };
 
@@ -513,18 +960,37 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 200);
     }
 
+    // XSS-защита: экранирование HTML для модальных функций
+    function escapeHtmlModal(text) {
+        if (!text) return '';
+        return text
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
     // Функции взаимодействия для модального симулятора
     window.askAiModal = function(question, answer) {
         const flow = document.getElementById('modal-chat-flow');
         const typing = document.getElementById('modal-typing-indicator');
         if (!flow || !typing) return;
 
-        flow.innerHTML += `<div class="msg-sim user">${question}</div>`;
+        const userDiv = document.createElement('div');
+        userDiv.className = 'msg-sim user';
+        userDiv.textContent = question;
+        flow.appendChild(userDiv);
+
         typing.style.display = 'block';
 
         setTimeout(() => {
             typing.style.display = 'none';
-            flow.innerHTML += `<div class="msg-sim bot">${answer} <br><br><small style="opacity:0.5">Источник: регламент_2024.pdf (стр. 12)</small></div>`;
+            const botDiv = document.createElement('div');
+            botDiv.className = 'msg-sim bot';
+            botDiv.textContent = answer;
+            botDiv.innerHTML += ' <br><br><small style="opacity:0.5">Источник: регламент_2024.pdf (стр. 12)</small>';
+            flow.appendChild(botDiv);
             flow.scrollTop = flow.scrollHeight;
             showFinalCTAModal('ai_agent');
         }, 1500);
@@ -784,8 +1250,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const mainChatMessages = document.getElementById('main-chat-messages');
     const quickActionBtns = document.querySelectorAll('.quick-action-btn');
 
-    // Хранение истории чата
+    // Хранение истории чата (максимум 20 сообщений)
     let chatHistory = [];
+    const MAX_CHAT_HISTORY = 20;
 
     // Отслеживание собранной информации
     let collectedInfo = {
@@ -799,6 +1266,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Флаг обработки сообщения
     let isProcessing = false;
+
+    // Rate limiting для отправки сообщений (1 сообщение в 2 секунды)
+    let lastMessageTime = 0;
+    const MESSAGE_RATE_LIMIT = 2000; // ms
 
     // Функция очистки истории чата
     function resetMainChatHistory() {
@@ -840,6 +1311,13 @@ document.addEventListener('DOMContentLoaded', () => {
     async function sendMainChatMessage(message) {
         if (!message || !message.trim()) return;
 
+        // Защита от спама - rate limiting
+        const now = Date.now();
+        if (now - lastMessageTime < MESSAGE_RATE_LIMIT) {
+            showNotification('Подождите', 'Слишком быстро. Подождите секунду...', 'warning', 2000);
+            return;
+        }
+
         // Защита от спама - не отправляем если уже идет обработка
         if (isProcessing) {
             console.log('[chat] Message blocked: already processing');
@@ -847,6 +1325,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         isProcessing = true;
+        lastMessageTime = now;
 
         // Блокируем UI во время обработки
         mainChatInput.disabled = true;
@@ -854,11 +1333,14 @@ document.addEventListener('DOMContentLoaded', () => {
         mainChatSendBtn.style.opacity = '0.5';
         mainChatSendBtn.style.cursor = 'not-allowed';
 
-        // Добавляем сообщение пользователя в историю
+        // Добавляем сообщение пользователя в историю (с ограничением размера)
         chatHistory.push({
             role: 'user',
-            content: message
+            content: message.substring(0, 1000) // Limit message size
         });
+        if (chatHistory.length > MAX_CHAT_HISTORY) {
+            chatHistory = chatHistory.slice(-MAX_CHAT_HISTORY); // Keep last N messages
+        }
 
         // Add user message
         const userMsgDiv = document.createElement('div');
@@ -901,11 +1383,14 @@ document.addEventListener('DOMContentLoaded', () => {
             // Вызываем llmstudo с историей сообщений
             botResponse = await llmstudo(message, undefined, chatHistory);
 
-            // Добавляем ответ бота в историю
+            // Добавляем ответ бота в историю (с ограничением размера)
             chatHistory.push({
                 role: 'assistant',
-                content: botResponse
+                content: botResponse.substring(0, 2000) // Limit response size
             });
+            if (chatHistory.length > MAX_CHAT_HISTORY) {
+                chatHistory = chatHistory.slice(-MAX_CHAT_HISTORY);
+            }
 
             // Проверяем, была ли собрана информация
             checkCollectedInfo(botResponse);
@@ -1325,19 +1810,28 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 200);
     };
 
-    // Логика AI чата
+    // Логика AI чата с XSS-защитой
     window.askAi = function(question, answer) {
         const flow = document.getElementById('chat-flow');
         const typing = document.getElementById('typing-indicator');
 
         if (!flow || !typing) return;
 
-        flow.innerHTML += `<div class="msg-sim user">${question}</div>`;
+        // XSS-защита через textContent
+        const userMsgDiv = document.createElement('div');
+        userMsgDiv.className = 'msg-sim user';
+        userMsgDiv.textContent = question;
+        flow.appendChild(userMsgDiv);
+
         typing.style.display = 'block';
 
         setTimeout(() => {
             typing.style.display = 'none';
-            flow.innerHTML += `<div class="msg-sim bot">${answer} <br><br><small style="opacity:0.5">Источник: регламент_2024.pdf (стр. 12)</small></div>`;
+            const botMsgDiv = document.createElement('div');
+            botMsgDiv.className = 'msg-sim bot';
+            botMsgDiv.textContent = answer;
+            botMsgDiv.innerHTML += ' <br><br><small style="opacity:0.5">Источник: регламент_2024.pdf (стр. 12)</small>';
+            flow.appendChild(botMsgDiv);
             flow.scrollTop = flow.scrollHeight;
             // Показываем финальную CTA после AI-ответа
             showFinalCTA('ai_agent');
@@ -1407,8 +1901,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // МАРКЕТИНГОВЫЕ ТРИГГЕРЫ - ROI & CTA
     // ============================================
 
-    // Текущий активный тип демо для метаданных формы
-    let currentDemoType = 'ai_agent';
+    // Текущий активный тип демо для метаданных формы (инициализация значением по умолчанию)
+    currentDemoType = currentDemoType || 'ai_agent';
 
     // ROI Toast - показывает экономию времени
     function showROIToast() {

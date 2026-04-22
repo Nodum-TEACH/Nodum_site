@@ -1,25 +1,34 @@
 // Advanced Deep Analytics Module for Nodum.tech
 // Уровень: Enterprise (Сбор микро-взаимодействий, производительности, чат-воронок)
 
+// Проверяем, запущен ли сайт на localhost/127.0.0.1
+function isLocalhost() {
+    return window.location.hostname === 'localhost' ||
+           window.location.hostname === '127.0.0.1' ||
+           window.location.hostname.startsWith('192.168.') ||
+           window.location.hostname.endsWith('.local');
+}
+
 class DeepAnalyticsTracker {
     constructor(config = {}) {
         this.version = '2.0.0';
         this.sessionId = this.generateId('sess');
         this.userId = this.getOrCreateUserId();
         this.sessionStart = Date.now();
-        
+        this.isLocalDev = isLocalhost();
+
         // Буферы данных
         this.events = [];
         this.mouseMovements = [];
         this.chatFunnel = { startedTyping: false, messagesSent: 0, formOpened: false, goalReached: false };
         this.performanceMetrics = {};
-        
+
         // Состояния
         this.lastActiveTime = Date.now();
         this.activeTimeOnPage = 0;
         this.maxScrollDepth = 0;
         this.recentClicks = []; // Для отслеживания Rage Clicks
-        
+
         this.config = {
             endpoint: config.endpoint || 'https://nhost.weebx.duckdns.org/v1/analytics',
             flushInterval: 15000, // Отправка каждые 15 сек
@@ -27,6 +36,11 @@ class DeepAnalyticsTracker {
             trackMouse: true, // Включить слежение за мышью
             ...config
         };
+
+        // В режиме разработки логируем в консоль вместо отправки
+        if (this.isLocalDev) {
+            console.log('[Analytics] Running in DEVELOPMENT mode - events logged to console only');
+        }
 
         this.init();
     }
@@ -303,9 +317,19 @@ class DeepAnalyticsTracker {
         this.events = [];
         this.mouseMovements = [];
 
+        // В режиме разработки только логируем в консоль
+        if (this.isLocalDev) {
+            console.log('[Analytics DEV]', payload);
+            return;
+        }
+
         if (isUnload && navigator.sendBeacon) {
             payload.events.push({ type: 'session_end', timestamp: Date.now() });
-            navigator.sendBeacon(this.config.endpoint, new Blob([JSON.stringify(payload)], { type: 'application/json' }));
+            try {
+                navigator.sendBeacon(this.config.endpoint, new Blob([JSON.stringify(payload)], { type: 'application/json' }));
+            } catch (err) {
+                this.storeOffline(payload);
+            }
         } else {
             try {
                 await fetch(this.config.endpoint, {
@@ -314,7 +338,7 @@ class DeepAnalyticsTracker {
                     body: JSON.stringify(payload)
                 });
             } catch (err) {
-                // Если нет сети, сохраняем локально, отправим потом
+                // Если нет сети или CORS ошибка, сохраняем локально
                 this.storeOffline(payload);
             }
         }
