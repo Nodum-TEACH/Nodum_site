@@ -125,11 +125,6 @@ async function submitTraditionalForm(event) {
             // Close the modal
             closeTraditionalForm();
 
-            // Show success message in chat
-            if (typeof window.sendMainChatMessageImpl === 'function') {
-                window.sendMainChatMessageImpl(`Оставил классическую заявку. Сфера: ${field}, Контакт: ${contact}`);
-            }
-
             // Reset form
             document.getElementById('traditional-form').reset();
         } else {
