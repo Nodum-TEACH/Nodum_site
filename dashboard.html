@@ -1068,7 +1068,7 @@
                 }
             } catch (error) {
                 console.error('Ошибка при экспорте:', error);
-                alert('Ошибка при экспорте данных');
+                alert('Ошибка экспорта');
             }
         }
         
@@ -1208,14 +1208,14 @@
                     if (data.success) {
                         alert('Анализ успешно запущен!');
                     } else {
-                        alert('Ошибка при запуске анализа: ' + (data.error || 'Неизвестная ошибка'));
+                        alert('Ошибка анализа');
                     }
                 } else {
-                    alert('Ошибка при запуске анализа: ' + response.statusText);
+                    alert('Ошибка анализа');
                 }
             } catch (error) {
                 console.error('Error triggering analysis:', error);
-                alert('Ошибка при запуске анализа. Убедитесь, что functions сервис запущен на localhost:3000');
+                alert('Ошибка анализа');
             }
         }
 
@@ -1270,7 +1270,7 @@
                 }
 
                 if (leadsData.length === 0) {
-                    alert('Не удалось загрузить данные лидов');
+                    alert('Ошибка загрузки');
                     return;
                 }
 
@@ -1298,7 +1298,7 @@
 
             } catch (error) {
                 console.error('Error copying leads:', error);
-                alert('Ошибка при копировании лидов');
+                alert('Ошибка копирования');
             }
         }
 

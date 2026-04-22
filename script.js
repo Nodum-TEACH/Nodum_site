@@ -134,11 +134,11 @@ async function submitTraditionalForm(event) {
             document.getElementById('traditional-form').reset();
         } else {
             console.error('[traditional-form] Error submitting form:', data.error);
-            alert('Ошибка при отправке заявки. Пожалуйста, попробуйте позже.');
+            alert('Ошибка отправки');
         }
     } catch (error) {
         console.error('[traditional-form] Network error:', error);
-        alert('Ошибка соединения. Пожалуйста, попробуйте позже.');
+        alert('Ошибка соединения');
     }
 }
 
@@ -160,15 +160,14 @@ async function llmstudo(input, systemPrompt = null, chatHistory = []) {
         });
 
         if (!response.ok) {
-            // Если 404, попробуйте по очереди: /functions/chat-proxy или /v1/chat-proxy
-            throw new Error(`Ошибка сервера Nhost: ${response.status}`);
+            throw new Error(`Ошибка сервера`);
         }
 
         const data = await response.json();
         return data.reply || 'Витя не смог ответить...';
     } catch (error) {
         console.error('Ошибка бэкенда:', error);
-        return "Проблема со связью. Проверьте логи Docker и Caddy.";
+        return "Проблема с соединением";
     }
 }
 
@@ -666,7 +665,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
                 <div class="message-content">
                     <p>${fallbackResponse}</p>
-                    <small style="color: #6b7280; font-size: 0.85em;">*Использую резервные ответы из-за недоступности нейросети</small>
+                    <small style="color: #6b7280; font-size: 0.85em;">*Резервный режим</small>
                 </div>
             `;
             mainChatMessages.appendChild(botMsgDiv);

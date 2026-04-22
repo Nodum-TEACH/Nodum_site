@@ -30,3 +30,52 @@ nhost.weebx.duckdns.org:443 {
     # Proxy everything else to LM Studio (port 1236)
     reverse_proxy 127.0.0.1:1236
 }
+
+# kriptoMESEng - encrypted messenger
+vault-inc.duckdns.org:443 {
+    # Handle OPTIONS preflight for API requests only
+    @apiOptions {
+        method OPTIONS
+        path /api/*
+    }
+    handle @apiOptions {
+        header {
+            Access-Control-Allow-Origin "https://spikespieg-el.github.io"
+            Access-Control-Allow-Methods "GET, POST, DELETE, OPTIONS"
+            Access-Control-Allow-Headers "Content-Type, Authorization"
+            Access-Control-Max-Age "86400"
+        }
+        respond 204
+    }
+
+    # Proxy API requests to backend
+    reverse_proxy /api/* 127.0.0.1:3005 {
+        header_up Host {host}
+        header_up X-Real-IP {remote}
+        header_up X-Forwarded-For {remote}
+        header_up X-Forwarded-Proto {scheme}
+        header_down Access-Control-Allow-Origin "https://spikespieg-el.github.io"
+        header_down Access-Control-Allow-Methods "GET, POST, DELETE, OPTIONS"
+        header_down Access-Control-Allow-Headers "Content-Type, Authorization"
+    }
+
+    # Proxy Socket.IO requests to backend (backend handles CORS)
+    reverse_proxy /socket.io* 127.0.0.1:3005 {
+        header_up Host {host}
+        header_up X-Real-IP {remote}
+        header_up X-Forwarded-For {remote}
+        header_up X-Forwarded-Proto {scheme}
+    }
+
+    # Serve static frontend files from dist directory
+    root * ./dist
+    file_server
+    try_files {path} /index.html
+
+    # Security headers
+    header {
+        X-Frame-Options "SAMEORIGIN"
+        X-Content-Type-Options "nosniff"
+        X-XSS-Protection "1; mode=block"
+    }
+}
