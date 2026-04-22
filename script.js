@@ -142,6 +142,7 @@ async function submitTraditionalForm(event) {
     const field = document.getElementById('form-field').value;
     const contact = document.getElementById('form-contact').value.trim();
     const message = document.getElementById('form-message').value;
+    const demoType = document.getElementById('form-demo-type').value;
 
     // Validate contact format
     const phoneRegex = /(\+7|8)[\s\-]?\(?\d{3}\)?[\s\-]?\d{3}[\s\-]?\d{2}[\s\-]?\d{2}/;
@@ -165,14 +166,16 @@ async function submitTraditionalForm(event) {
                 field,
                 contact,
                 message,
-                formType: 'traditional'
+                formType: 'traditional',
+                demoType: demoType || 'general',
+                subject: demoType ? `Интерес к ${demoType}` : 'Заявка с сайта'
             })
         });
 
         const data = await response.json();
 
         if (data.success) {
-            console.log('[traditional-form] Form submitted successfully:', { field, contact, message });
+            console.log('[traditional-form] Form submitted successfully:', { field, contact, message, demoType });
             
             showNotification('Успешно', 'Заявка отправлена! Мы свяжемся с вами в ближайшее время.', 'success');
             
@@ -311,7 +314,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // 3. Загрузка данных и рендер Bento
+    // 3. Загрузка данных и рендер карточек сценариев
     fetch('data.json')
         .then(response => response.json())
         .then(data => {
@@ -320,8 +323,18 @@ document.addEventListener('DOMContentLoaded', () => {
         })
         .catch(err => console.error('Ошибка:', err));
 
+    // Маппинг карточек к типам демо
+    const cardDemoMapping = {
+        0: 'ai_agent',      // Агент принимает заявки
+        1: 'tg_bot',        // Booking System — iPhone
+        2: 'crm',           // Агент возвращает тех, кто ушёл думать
+        3: 'ai_agent',      // Два агента
+        4: 'ai_agent'       // Агент-модератор
+    };
+
     function renderCards(cards) {
         const container = document.getElementById('bento-container');
+        if (!container) return;
 
         const tariffColors = {
             'Нейрон': 'tariff-neuron',
@@ -353,40 +366,53 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="card-tags">${tagsHTML}</div>
             `;
 
-            cardEl.addEventListener('click', () => openModal(card));
+            // При клике открываем модалку с соответствующим демо
+            const demoType = cardDemoMapping[index] || 'ai_agent';
+            cardEl.addEventListener('click', () => openScenarioModal(card, demoType));
             container.appendChild(cardEl);
         });
     }
 
-    // 4. Модальное окно (логика)
+    // 4. Модальное окно сценария с интерактивной песочницей
     const modal = document.getElementById('bot-modal');
+    let currentCardTitle = '';
 
-    function openModal(card) {
+    function openScenarioModal(card, demoType) {
+        currentDemoType = demoType;
+        currentCardTitle = card.title;
+
+        // Заполняем заголовок и иконку
         modal.querySelector('.modal-icon i').className = card.icon;
         modal.querySelector('h2').textContent = card.title;
-        modal.querySelector('.description').textContent = card.description;
+        modal.querySelector('.scenario-description').textContent = card.description;
 
-        // Галерея
-        const gallery = modal.querySelector('.image-gallery');
-        gallery.innerHTML = card.images ? card.images.map(img => `
-            <div class="gallery-item"><img src="${img}" alt="Preview" loading="lazy"></div>
-        `).join('') : '<p style="color:var(--text-muted)">Нет скриншотов</p>';
-
-        // Что получает бизнес
-        modal.querySelector('.features ul').innerHTML = card.features.map(f => `<li>${f}</li>`).join('');
-
-        // Как это работает
-        modal.querySelector('.implementation-details').textContent = card.implementation;
-
-        // Reset bot chat
-        resetBotChat(card.title);
-
+        // Показываем модалку
         modal.style.display = 'flex';
         setTimeout(() => modal.classList.add('visible'), 10);
         document.body.style.overflow = 'hidden';
+
+        // Загружаем демо в симулятор модалки
+        setTimeout(() => {
+            loadDemoInModal(demoType);
+        }, 300);
     }
 
-    function closeModal() {
+    function closeScenarioModal() {
+        // Очищаем симулятор
+        const content = document.getElementById('modal-simulator-content');
+        const frameTitle = document.getElementById('modal-frame-title');
+        const frame = document.getElementById('modal-device-frame');
+
+        if (content) content.innerHTML = '';
+        if (frameTitle) frameTitle.textContent = '';
+        if (frame) frame.className = 'simulator-frame macbook';
+
+        // Удаляем CTA и ROI-toast если есть
+        const existingCTA = modal.querySelector('.demo-final-cta');
+        const existingROI = document.querySelector('.roi-toast');
+        if (existingCTA) existingCTA.remove();
+        if (existingROI) existingROI.remove();
+
         modal.classList.remove('visible');
         setTimeout(() => {
             modal.style.display = 'none';
@@ -394,9 +420,212 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 300);
     }
 
-    modal.querySelector('.close-modal').addEventListener('click', closeModal);
-    modal.addEventListener('click', e => { if(e.target === modal) closeModal(); });
-    document.addEventListener('keydown', e => { if(e.key === 'Escape') closeModal(); });
+    // Глобальная функция для CTA в модалке
+    window.handleScenarioCTA = function() {
+        const demoTypeLabels = {
+            'ai_agent': 'AI-Агент',
+            'crm': 'CRM автоматизация',
+            'tg_bot': 'Telegram бот'
+        };
+
+        const demoTypeField = document.getElementById('form-demo-type');
+        if (demoTypeField) {
+            demoTypeField.value = `${demoTypeLabels[currentDemoType] || currentDemoType} — ${currentCardTitle}`;
+        }
+        closeScenarioModal();
+        openTraditionalForm({ preventDefault: () => {} });
+    };
+
+    // Закрытие по клику на фон и Escape
+    modal.addEventListener('click', e => { if(e.target === modal) closeScenarioModal(); });
+
+    // Функция загрузки демо в модальный симулятор
+    function loadDemoInModal(type) {
+        const frame = document.getElementById('modal-device-frame');
+        const content = document.getElementById('modal-simulator-content');
+        const title = document.getElementById('modal-frame-title');
+
+        if (!frame || !content || !title) return;
+
+        const demoData = {
+            ai_agent: {
+                title: "Анализ документа: Регламент_Тюмень.pdf",
+                frameClass: "macbook",
+                render: () => `
+                    <div class="ai-chat-demo">
+                        <div class="chat-messages-sim" id="modal-chat-flow">
+                            <div class="msg-sim bot">Привет! Я ИИ-ассистент Nodum. Я изучил ваш регламент. Задайте любой вопрос.</div>
+                        </div>
+                        <div id="modal-typing-indicator" class="typing-sim">AI ищет ответ в документе...</div>
+                        <div class="chat-hints">
+                            <button class="hint-btn-sim" onclick="askAiModal('Какая гарантия на насосы?', 'Согласно разделу 4.2, гарантийный срок составляет 24 месяца с даты ввода в эксплуатацию.')">Какая гарантия?</button>
+                            <button class="hint-btn-sim" onclick="askAiModal('Срок поставки в Сургут?', 'В приложении №3 указано: логистика до ХМАО занимает 3-5 рабочих дней.')">Срок поставки?</button>
+                        </div>
+                    </div>
+                `
+            },
+            crm: {
+                title: "Nodum CRM — Автоматизация отдела продаж",
+                frameClass: "macbook",
+                render: () => `
+                    <div style="height:100%">
+                        <button class="hint-btn-sim" style="margin-bottom:15px; width:100%" onclick="addCrmLeadModal()">➕ Добавить лид из Telegram</button>
+                        <div class="crm-board">
+                            <div class="crm-col"><h4>Новые</h4><div id="modal-col-new"></div></div>
+                            <div class="crm-col"><h4>В работе (AI)</h4><div id="modal-col-progress"></div></div>
+                        </div>
+                    </div>
+                `
+            },
+            tg_bot: {
+                title: "Telegram — @Nodum_Booking_Bot",
+                frameClass: "iphone",
+                render: () => `
+                    <div class="tg-webapp">
+                        <div class="tg-header"><i class="fa-brands fa-telegram"></i> Nodum Service</div>
+                        <div class="tg-content">
+                            <div class="tg-avatar"><i class="fa-solid fa-wrench"></i></div>
+                            <h3>Запись на сервис</h3>
+                            <p>Выберите удобное время</p>
+                            <div class="tg-slots">
+                                <button class="hint-btn-sim" onclick="tgConfirmModal(this)">10:00</button>
+                                <button class="hint-btn-sim" onclick="tgConfirmModal(this)">14:30</button>
+                            </div>
+                        </div>
+                        <div id="modal-tg-success" class="tg-success">
+                            <i class="fa-solid fa-check-circle"></i> Запись подтверждена!
+                        </div>
+                    </div>
+                `
+            }
+        };
+
+        const demo = demoData[type];
+        if (!demo) return;
+
+        frame.className = `simulator-frame ${demo.frameClass}`;
+        title.innerText = demo.title;
+
+        content.style.opacity = 0;
+        setTimeout(() => {
+            content.innerHTML = demo.render();
+            content.style.opacity = 1;
+        }, 200);
+    }
+
+    // Функции взаимодействия для модального симулятора
+    window.askAiModal = function(question, answer) {
+        const flow = document.getElementById('modal-chat-flow');
+        const typing = document.getElementById('modal-typing-indicator');
+        if (!flow || !typing) return;
+
+        flow.innerHTML += `<div class="msg-sim user">${question}</div>`;
+        typing.style.display = 'block';
+
+        setTimeout(() => {
+            typing.style.display = 'none';
+            flow.innerHTML += `<div class="msg-sim bot">${answer} <br><br><small style="opacity:0.5">Источник: регламент_2024.pdf (стр. 12)</small></div>`;
+            flow.scrollTop = flow.scrollHeight;
+            showFinalCTAModal('ai_agent');
+        }, 1500);
+    };
+
+    window.addCrmLeadModal = function() {
+        const colNew = document.getElementById('modal-col-new');
+        const colProgress = document.getElementById('modal-col-progress');
+        if (!colNew) return;
+
+        const cardId = Math.floor(Math.random() * 1000);
+        const card = document.createElement('div');
+        card.className = 'crm-card';
+        card.innerHTML = `<span class="score-badge">AI: 98%</span> <b>Лид #${cardId}</b><br><small>Запрос: Насос НД</small>`;
+
+        colNew.appendChild(card);
+
+        setTimeout(() => {
+            card.style.transform = 'translateY(10px)';
+            setTimeout(() => {
+                if (colProgress) colProgress.appendChild(card);
+                card.style.borderColor = '#27c93f';
+                card.style.borderLeftColor = '#27c93f';
+
+                const frameBody = card.closest('.frame-body');
+                if (frameBody) {
+                    const toast = document.createElement('div');
+                    toast.className = 'sim-toast';
+                    toast.innerHTML = '<i class="fa-solid fa-bolt"></i> AI переместил лид и отправил уведомление в TG';
+                    frameBody.appendChild(toast);
+                    setTimeout(() => toast.remove(), 2500);
+                }
+
+                showROIToastModal();
+                showFinalCTAModal('crm');
+            }, 500);
+        }, 1000);
+    };
+
+    window.tgConfirmModal = function(btn) {
+        btn.style.background = '#27c93f';
+        btn.style.color = '#fff';
+        btn.style.borderColor = '#27c93f';
+        btn.innerHTML = '<i class="fa-solid fa-check"></i> ' + btn.innerText;
+        setTimeout(() => {
+            const successMsg = document.getElementById('modal-tg-success');
+            if (successMsg) successMsg.style.display = 'block';
+            showFinalCTAModal('tg_bot');
+        }, 500);
+    };
+
+    // ROI Toast для модалки
+    function showROIToastModal() {
+        const existingToast = document.querySelector('.roi-toast');
+        if (existingToast) existingToast.remove();
+
+        const toast = document.createElement('div');
+        toast.className = 'roi-toast';
+        toast.innerHTML = `
+            <div class="roi-toast-content">
+                <div class="roi-toast-icon"><i class="fa-solid fa-bolt"></i></div>
+                <div class="roi-toast-text">
+                    Экономия: <span class="highlight-time">15 минут</span> работы менеджера.<br>
+                    <span class="highlight-ai">ИИ сделал это за 1 секунду</span>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(toast);
+
+        requestAnimationFrame(() => {
+            toast.classList.add('show');
+        });
+
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 500);
+        }, 4000);
+    }
+
+    // Final CTA для модалки
+    function showFinalCTAModal(demoType) {
+        const container = modal.querySelector('.modal-simulator-container');
+        if (!container) return;
+
+        const existingCTA = container.querySelector('.demo-final-cta');
+        if (existingCTA) existingCTA.remove();
+
+        const cta = document.createElement('div');
+        cta.className = 'demo-final-cta';
+        cta.innerHTML = `
+            <button class="btn-cta-final pulse-glow" onclick="handleScenarioCTA()">
+                <i class="fa-solid fa-rocket"></i>
+                Хочу такое решение
+            </button>
+        `;
+        container.appendChild(cta);
+
+        requestAnimationFrame(() => {
+            cta.classList.add('show');
+        });
+    }
 
     // Cabinet modal close on backdrop click
     const cabinetModal = document.getElementById('cabinet-modal');
@@ -404,85 +633,85 @@ document.addEventListener('DOMContentLoaded', () => {
         cabinetModal.addEventListener('click', e => { if (e.target === cabinetModal) closeCabinetModal(); });
     }
 
-    // Bot Chat Functionality
+    // [Устаревший код демо-диалога в модалке - заменён на интерактивный симулятор]
+    // Bot Chat Functionality - оставлен для совместимости если элементы существуют
     const botInput = document.getElementById('bot-message-input');
     const botSendBtn = document.getElementById('bot-send-btn');
     const botChatMessages = document.getElementById('bot-chat-messages');
 
-    function sendBotMessage() {
-        const text = botInput.value.trim();
-        if (!text) return;
+    if (botInput && botSendBtn && botChatMessages) {
+        function sendBotMessage() {
+            const text = botInput.value.trim();
+            if (!text) return;
 
-        // Add user message
-        const userMsg = document.createElement('div');
-        userMsg.className = 'user-message';
-        userMsg.innerHTML = `<div class="message-content"><p>${text}</p></div>`;
-        botChatMessages.appendChild(userMsg);
+            const userMsg = document.createElement('div');
+            userMsg.className = 'user-message';
+            userMsg.innerHTML = `<div class="message-content"><p>${text}</p></div>`;
+            botChatMessages.appendChild(userMsg);
 
-        botInput.value = '';
-        botChatMessages.scrollTop = botChatMessages.scrollHeight;
-
-        // Simulate bot response
-        setTimeout(() => {
-            const botMsg = document.createElement('div');
-            botMsg.className = 'bot-message';
-            botMsg.innerHTML = `
-                <div class="bot-avatar"><i class="fa-solid fa-robot"></i></div>
-                <div class="message-content">
-                    <p>${generateBotResponse(text)}</p>
-                </div>
-            `;
-            botChatMessages.appendChild(botMsg);
+            botInput.value = '';
             botChatMessages.scrollTop = botChatMessages.scrollHeight;
-        }, 800 + Math.random() * 800);
-    }
 
-    function generateBotResponse(userMessage) {
-        const responses = {
-            'price': 'The pricing depends on your specific requirements. Contact me for a personalized quote! Starting from $299 for basic modules.',
-            'cost': 'Pricing varies by complexity and features. Basic bots start at $299, advanced solutions with AI integration start at $999.',
-            'features': 'This module includes automated responses, user management, analytics dashboard, and seamless integration with your existing systems.',
-            'implementation': 'Implementation typically takes 2-4 weeks. We handle everything from setup to deployment and training.',
-            'integration': 'Yes! I can integrate with CRM systems, payment gateways, calendars, and most popular business tools.',
-            'support': '24/7 technical support included with all packages. Plus regular updates and maintenance.',
-            'custom': 'Custom features can be developed based on your specific business needs. Let\'s discuss your requirements!',
-            'demo': 'This is a demo interface. The actual bot would be deployed to Telegram with full functionality.',
-            'how': 'The bot works through Telegram\'s API, providing a seamless experience for your users right in their favorite messenger.',
-            'security': 'All data is encrypted and stored securely. We comply with GDPR and other privacy regulations.'
-        };
-
-        const lowerMessage = userMessage.toLowerCase();
-
-        for (const [key, response] of Object.entries(responses)) {
-            if (lowerMessage.includes(key)) {
-                return response;
-            }
+            setTimeout(() => {
+                const botMsg = document.createElement('div');
+                botMsg.className = 'bot-message';
+                botMsg.innerHTML = `
+                    <div class="bot-avatar"><i class="fa-solid fa-robot"></i></div>
+                    <div class="message-content">
+                        <p>${generateBotResponse(text)}</p>
+                    </div>
+                `;
+                botChatMessages.appendChild(botMsg);
+                botChatMessages.scrollTop = botChatMessages.scrollHeight;
+            }, 800 + Math.random() * 800);
         }
 
-        // Default responses
-        const defaultResponses = [
-            'That\'s a great question! The best way to get detailed information is to schedule a consultation with me.',
-            'I can help with that! Each solution is tailored to specific business needs. What industry are you in?',
-            'Excellent question! This module is designed to streamline your operations. What specific features interest you most?',
-            'Thanks for asking! I offer various solutions depending on your requirements. Would you like to know about pricing or implementation timeline?'
-        ];
+        function generateBotResponse(userMessage) {
+            const responses = {
+                'price': 'The pricing depends on your specific requirements. Contact me for a personalized quote! Starting from $299 for basic modules.',
+                'cost': 'Pricing varies by complexity and features. Basic bots start at $299, advanced solutions with AI integration start at $999.',
+                'features': 'This module includes automated responses, user management, analytics dashboard, and seamless integration with your existing systems.',
+                'implementation': 'Implementation typically takes 2-4 weeks. We handle everything from setup to deployment and training.',
+                'integration': 'Yes! I can integrate with CRM systems, payment gateways, calendars, and most popular business tools.',
+                'support': '24/7 technical support included with all packages. Plus regular updates and maintenance.',
+                'custom': 'Custom features can be developed based on your specific business needs. Let\'s discuss your requirements!',
+                'demo': 'This is a demo interface. The actual bot would be deployed to Telegram with full functionality.',
+                'how': 'The bot works through Telegram\'s API, providing a seamless experience for your users right in their favorite messenger.',
+                'security': 'All data is encrypted and stored securely. We comply with GDPR and other privacy regulations.'
+            };
 
-        return defaultResponses[Math.floor(Math.random() * defaultResponses.length)];
-    }
+            const lowerMessage = userMessage.toLowerCase();
 
-    botSendBtn.addEventListener('click', sendBotMessage);
-    botInput.addEventListener('keypress', e => { if (e.key === 'Enter') sendBotMessage(); });
+            for (const [key, response] of Object.entries(responses)) {
+                if (lowerMessage.includes(key)) {
+                    return response;
+                }
+            }
 
-    function resetBotChat(moduleName) {
-        botChatMessages.innerHTML = `
-            <div class="bot-message">
-                <div class="bot-avatar"><i class="fa-solid fa-robot"></i></div>
-                <div class="message-content">
-                    <p>Hi! I'm the demo bot for <strong>${moduleName}</strong>. Ask me anything about features, pricing, implementation, or how this can help your business!</p>
+            const defaultResponses = [
+                'That\'s a great question! The best way to get detailed information is to schedule a consultation with me.',
+                'I can help with that! Each solution is tailored to specific business needs. What industry are you in?',
+                'Excellent question! This module is designed to streamline your operations. What specific features interest you most?',
+                'Thanks for asking! I offer various solutions depending on your requirements. Would you like to know about pricing or implementation timeline?'
+            ];
+
+            return defaultResponses[Math.floor(Math.random() * defaultResponses.length)];
+        }
+
+        botSendBtn.addEventListener('click', sendBotMessage);
+        botInput.addEventListener('keypress', e => { if (e.key === 'Enter') sendBotMessage(); });
+
+        window.resetBotChat = function(moduleName) {
+            botChatMessages.innerHTML = `
+                <div class="bot-message">
+                    <div class="bot-avatar"><i class="fa-solid fa-robot"></i></div>
+                    <div class="message-content">
+                        <p>Hi! I'm the demo bot for <strong>${moduleName}</strong>. Ask me anything about features, pricing, implementation, or how this can help your business!</p>
+                    </div>
                 </div>
-            </div>
-        `;
-        botInput.value = '';
+            `;
+            botInput.value = '';
+        };
     }
 
     // 5. Scroll Анимации (Intersection Observer)
@@ -1016,5 +1245,251 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initialize reviews flip when DOM is ready
     initReviewsFlip();
+
+    // ============================================
+    // ПЕСОЧНИЦА РЕШЕНИЙ - ИНТЕРАКТИВНЫЙ ДЕМО-БЛОК
+    // ============================================
+    
+    const demoData = {
+        ai_agent: {
+            title: "Анализ документа: Регламент_Тюмень.pdf",
+            frameClass: "macbook",
+            render: () => `
+                <div class="ai-chat-demo">
+                    <div class="chat-messages-sim" id="chat-flow">
+                        <div class="msg-sim bot">Привет! Я ИИ-ассистент Nodum. Я изучил ваш регламент. Задайте любой вопрос.</div>
+                    </div>
+                    <div id="typing-indicator" class="typing-sim">AI ищет ответ в документе...</div>
+                    <div class="chat-hints">
+                        <button class="hint-btn-sim" onclick="askAi('Какая гарантия на насосы?', 'Согласно разделу 4.2, гарантийный срок составляет 24 месяца с даты ввода в эксплуатацию.')">Какая гарантия?</button>
+                        <button class="hint-btn-sim" onclick="askAi('Срок поставки в Сургут?', 'В приложении №3 указано: логистика до ХМАО занимает 3-5 рабочих дней.')">Срок поставки?</button>
+                    </div>
+                </div>
+            `
+        },
+        crm: {
+            title: "Nodum CRM — Автоматизация отдела продаж",
+            frameClass: "macbook",
+            render: () => `
+                <div style="height:100%">
+                    <button class="hint-btn-sim" style="margin-bottom:15px; width:100%" onclick="addCrmLead()">➕ Добавить лид из Telegram</button>
+                    <div class="crm-board">
+                        <div class="crm-col"><h4>Новые</h4><div id="col-new"></div></div>
+                        <div class="crm-col"><h4>В работе (AI)</h4><div id="col-progress"></div></div>
+                    </div>
+                </div>
+            `
+        },
+        tg_bot: {
+            title: "Telegram — @Nodum_Booking_Bot",
+            frameClass: "iphone",
+            render: () => `
+                <div class="tg-webapp">
+                    <div class="tg-header"><i class="fa-brands fa-telegram"></i> Nodum Service</div>
+                    <div class="tg-content">
+                        <div class="tg-avatar"><i class="fa-solid fa-wrench"></i></div>
+                        <h3>Запись на сервис</h3>
+                        <p>Выберите удобное время</p>
+                        <div class="tg-slots">
+                            <button class="hint-btn-sim" onclick="tgConfirm(this)">10:00</button>
+                            <button class="hint-btn-sim" onclick="tgConfirm(this)">14:30</button>
+                        </div>
+                    </div>
+                    <div id="tg-success" class="tg-success">
+                        <i class="fa-solid fa-check-circle"></i> Запись подтверждена!
+                    </div>
+                </div>
+            `
+        }
+    };
+
+    // Make loadDemo available globally
+    window.loadDemo = function(type, btn) {
+        // Смена активной кнопки
+        document.querySelectorAll('.control-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        const frame = document.getElementById('device-frame');
+        const content = document.getElementById('simulator-content');
+        const title = document.getElementById('frame-title');
+
+        // Смена класса фрейма (MacBook/iPhone)
+        frame.className = `simulator-frame ${demoData[type].frameClass}`;
+        title.innerText = demoData[type].title;
+        
+        // Плавная подмена контента
+        content.style.opacity = 0;
+        setTimeout(() => {
+            content.innerHTML = demoData[type].render();
+            content.style.opacity = 1;
+        }, 200);
+    };
+
+    // Логика AI чата
+    window.askAi = function(question, answer) {
+        const flow = document.getElementById('chat-flow');
+        const typing = document.getElementById('typing-indicator');
+
+        if (!flow || !typing) return;
+
+        flow.innerHTML += `<div class="msg-sim user">${question}</div>`;
+        typing.style.display = 'block';
+
+        setTimeout(() => {
+            typing.style.display = 'none';
+            flow.innerHTML += `<div class="msg-sim bot">${answer} <br><br><small style="opacity:0.5">Источник: регламент_2024.pdf (стр. 12)</small></div>`;
+            flow.scrollTop = flow.scrollHeight;
+            // Показываем финальную CTA после AI-ответа
+            showFinalCTA('ai_agent');
+        }, 1500);
+    };
+
+    // Логика CRM
+    window.addCrmLead = function() {
+        const colNew = document.getElementById('col-new');
+        const colProgress = document.getElementById('col-progress');
+        if (!colNew) return;
+
+        const cardId = Math.floor(Math.random() * 1000);
+
+        const card = document.createElement('div');
+        card.className = 'crm-card';
+        card.innerHTML = `<span class="score-badge">AI: 98%</span> <b>Лид #${cardId}</b><br><small>Запрос: Насос НД</small>`;
+
+        colNew.appendChild(card);
+
+        setTimeout(() => {
+            card.style.transform = 'translateY(10px)';
+            setTimeout(() => {
+                if (colProgress) colProgress.appendChild(card);
+                card.style.borderColor = '#27c93f';
+                card.style.borderLeftColor = '#27c93f';
+                // Всплывашка
+                const frameBody = card.closest('.frame-body');
+                if (frameBody) {
+                    const toast = document.createElement('div');
+                    toast.className = 'sim-toast';
+                    toast.innerHTML = '<i class="fa-solid fa-bolt"></i> AI переместил лид и отправил уведомление в TG';
+                    frameBody.appendChild(toast);
+                    setTimeout(() => toast.remove(), 2500);
+                }
+                // ROI Toast - показываем экономию времени
+                showROIToast();
+                // Показываем финальную CTA
+                showFinalCTA('crm');
+            }, 500);
+        }, 1000);
+    };
+
+    // Логика TG WebApp
+    window.tgConfirm = function(btn) {
+        btn.style.background = '#27c93f';
+        btn.style.color = '#fff';
+        btn.style.borderColor = '#27c93f';
+        btn.innerHTML = '<i class="fa-solid fa-check"></i> ' + btn.innerText;
+        setTimeout(() => {
+            const successMsg = document.getElementById('tg-success');
+            if (successMsg) successMsg.style.display = 'block';
+            // Показываем финальную CTA после подтверждения записи
+            showFinalCTA('tg_bot');
+        }, 500);
+    };
+
+    // Инициализация первого демо при загрузке
+    const firstDemoBtn = document.querySelector('.control-btn');
+    if (firstDemoBtn && demoData.ai_agent) {
+        setTimeout(() => {
+            window.loadDemo('ai_agent', firstDemoBtn);
+        }, 100);
+    }
+
+    // ============================================
+    // МАРКЕТИНГОВЫЕ ТРИГГЕРЫ - ROI & CTA
+    // ============================================
+
+    // Текущий активный тип демо для метаданных формы
+    let currentDemoType = 'ai_agent';
+
+    // ROI Toast - показывает экономию времени
+    function showROIToast() {
+        // Удаляем существующий ROI toast если есть
+        const existingToast = document.querySelector('.roi-toast');
+        if (existingToast) existingToast.remove();
+
+        const toast = document.createElement('div');
+        toast.className = 'roi-toast';
+        toast.innerHTML = `
+            <div class="roi-toast-content">
+                <div class="roi-toast-icon"><i class="fa-solid fa-bolt"></i></div>
+                <div class="roi-toast-text">
+                    Экономия: <span class="highlight-time">15 минут</span> работы менеджера.<br>
+                    <span class="highlight-ai">ИИ сделал это за 1 секунду</span>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(toast);
+
+        // Анимация появления
+        requestAnimationFrame(() => {
+            toast.classList.add('show');
+        });
+
+        // Авто-скрытие через 4 секунды
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 500);
+        }, 4000);
+    }
+
+    // Словарь для перевода типов демо в читаемые названия
+    const demoTypeLabels = {
+        'ai_agent': 'AI-Агент',
+        'crm': 'CRM автоматизация',
+        'tg_bot': 'Telegram бот'
+    };
+
+    // Final CTA - показывает кнопку в конце сценария
+    function showFinalCTA(demoType) {
+        // Сохраняем текущий тип демо
+        currentDemoType = demoType;
+
+        const simulator = document.querySelector('.demo-display');
+        if (!simulator) return;
+
+        // Удаляем существующую CTA если есть
+        const existingCTA = simulator.querySelector('.demo-final-cta');
+        if (existingCTA) existingCTA.remove();
+
+        const ctaContainer = document.createElement('div');
+        ctaContainer.className = 'demo-final-cta';
+        ctaContainer.innerHTML = `
+            <button class="btn-cta-final pulse-glow" onclick="handleDemoCTA('${demoType}')">
+                <i class="fa-solid fa-rocket"></i>
+                Хочу такое решение для своего бизнеса
+            </button>
+        `;
+        simulator.appendChild(ctaContainer);
+
+        // Плавное появление
+        requestAnimationFrame(() => {
+            ctaContainer.classList.add('show');
+        });
+    }
+
+    // Обработчик клика на CTA кнопку
+    window.handleDemoCTA = function(demoType) {
+        // Устанавливаем значение скрытого поля
+        const demoTypeField = document.getElementById('form-demo-type');
+        if (demoTypeField) {
+            demoTypeField.value = demoTypeLabels[demoType] || demoType;
+        }
+
+        // Открываем форму заявки
+        openTraditionalForm({ preventDefault: () => {} });
+    };
+
+    // Делаем функции доступными глобально
+    window.showROIToast = showROIToast;
+    window.showFinalCTA = showFinalCTA;
 
 });

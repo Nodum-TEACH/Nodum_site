@@ -91,7 +91,7 @@
         </div>
     </section>
 
-    <!-- Сценарии -->
+    <!-- Сценарии автоматизации - Сетка карточек с модальными демо -->
     <section id="portfolio" class="portfolio fade-in-up">
         <div class="section-header">
             <h2 class="section-title">Сценарии <span class="text-gradient">автоматизации</span></h2>
@@ -249,6 +249,7 @@
             </div>
             <div class="modal-body">
                 <form id="traditional-form" onsubmit="submitTraditionalForm(event)">
+                    <input type="hidden" id="form-demo-type" name="demoType" value="">
                     <div class="form-group">
                         <label for="form-field">Сфера деятельности *</label>
                         <input type="text" id="form-field" required placeholder="Например: Салон красоты, E-commerce, IT">
@@ -269,53 +270,36 @@
         </div>
     </div>
 
-    <!-- Модальное окно сценария (бент-карточки) -->
-    <div id="bot-modal" class="modal">
-        <div class="modal-content">
-            <span class="close-modal"><i class="fa-solid fa-xmark"></i></span>
-            <div class="modal-header">
+    <!-- Модальное окно сценария с интерактивной песочницей -->
+    <div id="bot-modal" class="modal scenario-modal">
+        <div class="modal-content scenario-modal-content">
+            <span class="close-modal" onclick="closeScenarioModal()"><i class="fa-solid fa-xmark"></i></span>
+            <div class="modal-header scenario-header">
                 <div class="modal-icon"><i></i></div>
                 <h2></h2>
             </div>
-            <div class="modal-body">
-                <div class="description"></div>
+            <div class="modal-body scenario-body">
+                <p class="scenario-description"></p>
 
-                <!-- Interactive Bot Message Section -->
-                <div class="bot-message-section">
-                    <h3><i class="fa-solid fa-comments"></i> Демо-диалог</h3>
-                    <div class="bot-chat-container">
-                        <div class="bot-chat-messages" id="bot-chat-messages">
-                            <div class="bot-message">
-                                <div class="bot-avatar"><i class="fa-solid fa-robot"></i></div>
-                                <div class="message-content">
-                                    <p>Привет! Расскажите что вас интересует — отвечу на вопросы и помогу оставить заявку.</p>
-                                </div>
-                            </div>
+                <!-- Интерактивный симулятор -->
+                <div class="modal-simulator-container">
+                    <div id="modal-device-frame" class="simulator-frame macbook">
+                        <div class="frame-header">
+                            <div class="dots"><span></span><span></span><span></span></div>
+                            <div class="address-bar" id="modal-frame-title">Анализ документа: Регламент_Тюмень.pdf</div>
                         </div>
-                        <div class="bot-chat-input">
-                            <input type="text" id="bot-message-input" placeholder="Задайте вопрос...">
-                            <button id="bot-send-btn"><i class="fa-solid fa-paper-plane"></i></button>
+                        <div id="modal-simulator-content" class="frame-body">
+                            <!-- Контент загружается через JS -->
                         </div>
                     </div>
                 </div>
 
-                <div class="gallery-section">
-                    <h3>Интерфейс:</h3>
-                    <div class="image-gallery"></div>
-                </div>
-                <div class="features-tech-grid">
-                    <div class="features">
-                        <h3>Что получает бизнес:</h3>
-                        <ul></ul>
-                    </div>
-                    <div class="tech-stack">
-                        <h3>Как это работает:</h3>
-                        <div class="implementation-details"></div>
-                    </div>
-                </div>
+                <!-- ROI Toast и CTA будут добавляться JS -->
             </div>
-            <div class="modal-footer">
-                <button class="btn btn-primary btn-large modal-contact" style="width: 100%">Хочу такого агента</button>
+            <div class="modal-footer scenario-footer">
+                <button class="btn btn-primary btn-large modal-contact" onclick="handleScenarioCTA()" style="width: 100%">
+                    <i class="fa-solid fa-rocket"></i> Хочу такое решение для своего бизнеса
+                </button>
             </div>
         </div>
     </div>

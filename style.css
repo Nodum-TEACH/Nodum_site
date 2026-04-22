@@ -1081,7 +1081,13 @@ select:focus-visible {
 .section-title { font-size: clamp(2.5rem, 4vw, 3.5rem); font-weight: 800; text-wrap: balance; }
 .section-header p { color: var(--text-muted); font-size: 1.2rem; }
 
-/* Современный Bento Grid */
+/* Интерактивная песочница решений внутри секции Сценарии */
+.demo-experience-wrapper {
+    width: 100%;
+    position: relative;
+}
+
+/* Bento Grid - сетка карточек сценариев */
 .bento-container {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -1104,15 +1110,13 @@ select:focus-visible {
     overflow: hidden;
 }
 
-/* Асимметрия карточек (Под 6 элементов) */
-.card-0 { grid-column: span 2; grid-row: span 2; } /* Большая главная */
-.card-1 { grid-column: span 2; grid-row: span 1; } /* Широкая */
-.card-2 { grid-column: span 1; grid-row: span 1; } /* Квадрат */
-.card-3 { grid-column: span 1; grid-row: span 1; } /* Квадрат */
-.card-4 { grid-column: span 2; grid-row: span 1; } /* Широкая */
-.card-5 { grid-column: span 2; grid-row: span 1; } /* Широкая */
+/* Асимметрия карточек */
+.card-0 { grid-column: span 2; grid-row: span 2; }
+.card-1 { grid-column: span 2; grid-row: span 1; }
+.card-2 { grid-column: span 1; grid-row: span 1; }
+.card-3 { grid-column: span 1; grid-row: span 1; }
+.card-4 { grid-column: span 2; grid-row: span 1; }
 
-/* Hover эффект для карточек (без свечения) */
 .bento-card:hover {
     border-color: rgba(59, 130, 246, 0.3);
     transform: translateY(-5px);
@@ -1162,6 +1166,40 @@ select:focus-visible {
     font-weight: 600;
     color: var(--text-muted);
     border: 1px solid var(--card-border);
+}
+
+.card-icon-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 10px;
+}
+
+.card-tariff-badge {
+    padding: 4px 10px;
+    border-radius: 100px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.tariff-neuron {
+    background: rgba(59, 130, 246, 0.15);
+    color: #60a5fa;
+    border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.tariff-synapse {
+    background: rgba(139, 92, 246, 0.15);
+    color: #a78bfa;
+    border: 1px solid rgba(139, 92, 246, 0.3);
+}
+
+.tariff-razum {
+    background: rgba(236, 72, 153, 0.15);
+    color: #f472b6;
+    border: 1px solid rgba(236, 72, 153, 0.3);
 }
 
 /* Mega CTA Block */
@@ -1240,6 +1278,60 @@ select:focus-visible {
 .gallery-item img { width: 100%; height: 100%; object-fit: cover; }
 
 .modal-footer { padding: 30px 40px; border-top: 1px solid var(--card-border); background: rgba(0,0,0,0.2); }
+
+/* Scenario Modal with Simulator */
+.scenario-modal-content {
+    max-width: 900px;
+    width: 95%;
+}
+
+.scenario-header {
+    padding: 30px 40px 20px;
+}
+
+.scenario-header h2 {
+    font-size: 1.8rem;
+    font-weight: 700;
+}
+
+.scenario-body {
+    padding: 0 40px 30px;
+}
+
+.scenario-description {
+    color: var(--text-muted);
+    font-size: 1rem;
+    margin-bottom: 25px;
+    line-height: 1.6;
+}
+
+.modal-simulator-container {
+    position: relative;
+    width: 100%;
+    min-height: 400px;
+}
+
+.modal-simulator-container .simulator-frame {
+    width: 100%;
+    max-width: 100%;
+    margin: 0 auto;
+}
+
+.modal-simulator-container .simulator-frame.iphone {
+    max-width: 320px;
+    margin: 0 auto;
+}
+
+.modal-simulator-container .demo-final-cta {
+    position: absolute;
+    bottom: -20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+}
+
+.scenario-footer {
+    padding: 20px 40px 30px;
+}
 
 /* Traditional Form Modal Styles */
 .traditional-form-content {
@@ -3581,5 +3673,472 @@ footer { padding: 40px 5%; border-top: 1px solid var(--card-border); margin-top:
     .toast {
         min-width: auto;
         max-width: none;
+    }
+}
+
+/* ============================================
+   ПЕСОЧНИЦА РЕШЕНИЙ - ИНТЕРАКТИВНЫЙ ДЕМО-БЛОК
+   ============================================ */
+
+.demo-experience {
+    position: relative;
+    padding: 100px 5%;
+    background: var(--bg-color);
+    color: var(--text-main);
+    overflow: hidden;
+    font-family: var(--font-main);
+}
+
+/* Сетка на фоне */
+.demo-grid-bg {
+    position: absolute;
+    inset: 0;
+    background-image: linear-gradient(var(--card-border) 1px, transparent 1px), 
+                      linear-gradient(90deg, var(--card-border) 1px, transparent 1px);
+    background-size: 50px 50px;
+    mask-image: radial-gradient(circle at center, black, transparent 80%);
+    -webkit-mask-image: radial-gradient(circle at center, black, transparent 80%);
+    opacity: 0.3;
+    pointer-events: none;
+}
+
+.demo-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 2;
+}
+
+.demo-text {
+    text-align: center;
+    margin-bottom: 60px;
+}
+
+.demo-text .glow-text {
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    margin-bottom: 12px;
+    background: linear-gradient(180deg, #fff 0%, #888 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 800;
+}
+
+.demo-text p {
+    color: var(--text-muted);
+    font-size: 1.2rem;
+}
+
+.demo-layout {
+    display: grid;
+    grid-template-columns: 350px 1fr;
+    gap: 40px;
+    align-items: start;
+}
+
+/* Кнопки управления */
+.demo-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.control-btn {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    padding: 20px;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    cursor: pointer;
+    text-align: left;
+    transition: var(--transition);
+    backdrop-filter: blur(10px);
+    color: var(--text-main);
+    font-family: var(--font-main);
+}
+
+.control-btn:hover {
+    background: var(--card-hover);
+    transform: translateX(10px);
+    border-color: rgba(59, 130, 246, 0.3);
+}
+
+.control-btn.active {
+    border-color: var(--accent);
+    box-shadow: 0 0 30px rgba(59, 130, 246, 0.3);
+    background: rgba(59, 130, 246, 0.1);
+}
+
+.control-btn .icon { font-size: 24px; line-height: 1; color: var(--accent); }
+.control-btn .icon i { font-size: 24px; }
+.control-btn .title { display: block; font-weight: 600; color: #fff; font-size: 1rem; }
+.control-btn .desc { font-size: 0.85rem; color: var(--text-muted); }
+
+/* Фрейм устройства */
+.demo-display {
+    display: flex;
+    justify-content: center;
+}
+
+.simulator-frame {
+    background: #0f1419;
+    border-radius: 24px;
+    border: 6px solid #2a2d35;
+    box-shadow: 0 50px 100px rgba(0,0,0,0.5), 0 0 0 1px rgba(59, 130, 246, 0.1);
+    transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    overflow: hidden;
+    height: 500px;
+    position: relative;
+}
+
+/* MacBook Mode */
+.simulator-frame.macbook { width: 100%; max-width: 800px; }
+
+/* iPhone Mode */
+.simulator-frame.iphone {
+    width: 300px;
+    height: 600px;
+    margin: 0 auto;
+    border-radius: 40px;
+    border-width: 12px;
+}
+
+.frame-header {
+    background: #1a1d24;
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.dots { display: flex; gap: 6px; }
+.dots span { width: 8px; height: 8px; border-radius: 50%; background: #ff5f56; }
+.dots span:nth-child(2) { background: #ffbd2e; }
+.dots span:nth-child(3) { background: #27c93f; }
+
+.address-bar {
+    background: #0f1419;
+    font-size: 12px;
+    padding: 4px 12px;
+    border-radius: 6px;
+    color: var(--text-muted);
+    flex-grow: 1;
+    text-align: center;
+    border: 1px solid rgba(255,255,255,0.05);
+}
+
+.frame-body {
+    height: calc(100% - 40px);
+    padding: 20px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    transition: opacity 0.2s ease;
+}
+
+/* Стили контента AI Chat */
+.ai-chat-demo { display: flex; flex-direction: column; height: 100%; }
+.chat-messages-sim { flex-grow: 1; overflow-y: auto; margin-bottom: 20px; }
+.msg-sim { margin-bottom: 10px; padding: 10px 14px; border-radius: 12px; max-width: 80%; font-size: 14px; line-height: 1.4; }
+.msg-sim.user { background: var(--accent); align-self: flex-end; color: #fff; }
+.msg-sim.bot { background: #2a2d35; align-self: flex-start; color: var(--text-main); }
+.typing-sim { color: var(--text-muted); font-size: 12px; font-style: italic; display: none; margin-top: 10px; }
+
+.chat-hints { display: flex; gap: 8px; flex-wrap: wrap; }
+.hint-btn-sim { 
+    background: none; 
+    border: 1px solid var(--accent); 
+    color: var(--accent); 
+    padding: 6px 12px; 
+    border-radius: 20px; 
+    font-size: 12px; 
+    cursor: pointer; 
+    transition: var(--transition);
+    font-family: var(--font-main);
+}
+.hint-btn-sim:hover { background: var(--accent); color: #fff; }
+
+/* CRM Styles */
+.crm-board { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; height: 100%; }
+.crm-col { background: rgba(255,255,255,0.03); border-radius: 12px; padding: 10px; border: 1px dashed var(--card-border); }
+.crm-col h4 { font-size: 12px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 15px; font-weight: 600; }
+.crm-card { background: var(--card-bg); padding: 12px; border-radius: 8px; border-left: 4px solid var(--accent); margin-bottom: 10px; cursor: pointer; transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+.score-badge { font-size: 10px; background: rgba(39, 201, 63, 0.2); color: #27c93f; padding: 2px 6px; border-radius: 4px; float: right; }
+
+/* Telegram WebApp Styles */
+.tg-webapp { background: #000; height: 100%; display: flex; flex-direction: column; border-radius: 20px; overflow: hidden; }
+.tg-header { background: #242424; padding: 15px; font-size: 14px; text-align: center; border-bottom: 1px solid #333; color: #fff; }
+.tg-content { padding: 20px; flex-grow: 1; text-align: center; }
+.tg-avatar { width: 60px; height: 60px; background: var(--accent); border-radius: 50%; margin: 20px auto; display: flex; align-items: center; justify-content: center; }
+.tg-avatar i { font-size: 28px; color: #fff; }
+.tg-content h3 { color: #fff; margin-bottom: 8px; }
+.tg-content p { color: var(--text-muted); font-size: 13px; margin-bottom: 20px; }
+.tg-slots { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
+.tg-success { display: none; padding: 20px; background: #27c93f; text-align: center; color: #fff; font-weight: 600; }
+
+/* Toast in simulator */
+.sim-toast {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    right: 20px;
+    background: rgba(59, 130, 246, 0.95);
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    text-align: center;
+    backdrop-filter: blur(5px);
+    color: #fff;
+    animation: slideUp 0.3s ease;
+    z-index: 10;
+}
+
+@keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+/* Адаптивность */
+@media (max-width: 992px) {
+    .demo-layout { grid-template-columns: 1fr; }
+    .demo-controls { 
+        order: 2; 
+        flex-direction: row; 
+        overflow-x: auto; 
+        padding-bottom: 10px;
+        gap: 10px;
+    }
+    .control-btn { 
+        min-width: 250px; 
+        flex-shrink: 0;
+    }
+    .control-btn:hover {
+        transform: translateY(-5px);
+    }
+    .demo-display { order: 1; margin-bottom: 20px; }
+    .demo-experience { padding: 60px 4%; }
+    .simulator-frame.macbook { max-width: 100%; }
+}
+
+@media (max-width: 480px) {
+    .control-btn { min-width: 200px; padding: 15px; }
+    .control-btn .icon { font-size: 24px; }
+    .control-btn .title { font-size: 0.9rem; }
+    .control-btn .desc { font-size: 0.75rem; }
+    .simulator-frame { height: 450px; }
+    .simulator-frame.iphone { width: 260px; height: 520px; }
+    .crm-board { grid-template-columns: 1fr; }
+}
+
+/* ROI Toast - Счетчик выгоды */
+.roi-toast {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: linear-gradient(135deg, rgba(3, 7, 18, 0.95) 0%, rgba(15, 23, 42, 0.98) 100%);
+    border: 1px solid rgba(59, 130, 246, 0.4);
+    border-radius: 16px;
+    padding: 20px 28px;
+    box-shadow: 0 0 40px rgba(59, 130, 246, 0.3), 0 10px 40px rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(20px);
+    z-index: 1000;
+    opacity: 0;
+    transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    max-width: 400px;
+    text-align: center;
+}
+
+.roi-toast.show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+}
+
+.roi-toast-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.roi-toast-icon {
+    font-size: 2rem;
+    color: var(--accent);
+    text-shadow: 0 0 20px rgba(59, 130, 246, 0.6);
+    animation: pulse-icon 2s infinite;
+}
+
+@keyframes pulse-icon {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.1); opacity: 0.8; }
+}
+
+.roi-toast-text {
+    color: var(--text-main);
+    font-size: 1rem;
+    font-weight: 500;
+    line-height: 1.5;
+}
+
+.roi-toast-text .highlight-time {
+    color: #27c93f;
+    font-weight: 700;
+    font-size: 1.1rem;
+    text-shadow: 0 0 10px rgba(39, 201, 63, 0.4);
+}
+
+.roi-toast-text .highlight-ai {
+    color: var(--accent-glow);
+    font-weight: 700;
+    font-size: 1.1rem;
+    text-shadow: 0 0 15px rgba(96, 165, 250, 0.5);
+}
+
+/* Final CTA Button - Apple-подобный стиль */
+.demo-final-cta {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    opacity: 0;
+    transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    z-index: 50;
+}
+
+.demo-final-cta.show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+}
+
+.btn-cta-final {
+    background: linear-gradient(135deg, #007AFF 0%, #5856D6 100%);
+    color: #fff;
+    border: none;
+    padding: 16px 32px;
+    border-radius: 50px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 4px 20px rgba(0, 122, 255, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1) inset;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-cta-final::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, transparent 50%);
+    border-radius: inherit;
+}
+
+.btn-cta-final:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 8px 30px rgba(0, 122, 255, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.2) inset;
+}
+
+.btn-cta-final:active {
+    transform: translateY(0) scale(0.98);
+}
+
+/* Пульсирующее свечение для CTA */
+.btn-cta-final.pulse-glow {
+    animation: cta-pulse 2s infinite;
+}
+
+@keyframes cta-pulse {
+    0%, 100% {
+        box-shadow: 0 4px 20px rgba(0, 122, 255, 0.4), 0 0 0 0 rgba(0, 122, 255, 0.5);
+    }
+    50% {
+        box-shadow: 0 4px 20px rgba(0, 122, 255, 0.4), 0 0 0 15px rgba(0, 122, 255, 0);
+    }
+}
+
+.btn-cta-final i {
+    font-size: 1.1rem;
+}
+
+/* Адаптивность для ROI Toast и CTA */
+@media (max-width: 480px) {
+    .roi-toast {
+        left: 20px;
+        right: 20px;
+        transform: translateY(100px);
+        max-width: none;
+        padding: 16px 20px;
+    }
+    
+    .roi-toast.show {
+        transform: translateY(0);
+    }
+    
+    .btn-cta-final {
+        padding: 14px 24px;
+        font-size: 0.9rem;
+    }
+}
+
+/* Responsive styles for Bento Grid */
+@media (max-width: 1024px) {
+    .bento-container {
+        grid-template-columns: repeat(2, 1fr);
+        grid-auto-rows: 250px;
+    }
+    .card-0 { grid-column: span 2; grid-row: span 2; }
+    .card-1 { grid-column: span 2; grid-row: span 1; }
+    .card-2 { grid-column: span 1; grid-row: span 1; }
+    .card-3 { grid-column: span 1; grid-row: span 1; }
+    .card-4 { grid-column: span 2; grid-row: span 1; }
+}
+
+@media (max-width: 768px) {
+    .bento-container {
+        grid-template-columns: 1fr;
+        grid-auto-rows: auto;
+    }
+    .bento-card {
+        min-height: 200px;
+    }
+    .card-0, .card-1, .card-2, .card-3, .card-4 {
+        grid-column: span 1;
+        grid-row: span 1;
+    }
+    .card-0 h3 { font-size: 1.5rem; }
+}
+
+/* Responsive styles for Scenario Modal */
+@media (max-width: 768px) {
+    .scenario-modal-content {
+        width: 100%;
+        margin: 10px;
+    }
+    .scenario-header {
+        padding: 20px 20px 15px;
+    }
+    .scenario-header h2 {
+        font-size: 1.4rem;
+    }
+    .scenario-body {
+        padding: 0 20px 20px;
+    }
+    .modal-simulator-container {
+        min-height: 350px;
+    }
+    .modal-simulator-container .simulator-frame {
+        height: 400px;
+    }
+    .modal-simulator-container .simulator-frame.iphone {
+        max-width: 260px;
+    }
+    .scenario-footer {
+        padding: 15px 20px 20px;
     }
 }
