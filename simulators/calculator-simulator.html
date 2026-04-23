@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nodum Calculator Simulator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* ========================================
+           БАЗОВЫЕ ПЕРЕМЕННЫЕ И СБРОСЫ
+           ======================================== */
+        :root {
+            --bg-color: #030712;
+            --card-bg: rgba(255, 255, 255, 0.02);
+            --card-border: rgba(255, 255, 255, 0.06);
+            --card-hover: rgba(255, 255, 255, 0.04);
+            --accent: #3b82f6;
+            --accent-glow: #60a5fa;
+            --accent-purple: #8b5cf6;
+            --text-main: #f9fafb;
+            --text-muted: #9ca3af;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --font-main: 'Outfit', sans-serif;
+            --radius-lg: 24px;
+            --radius-md: 16px;
+            --radius-sm: 12px;
+            --transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: var(--font-main);
+            line-height: 1.6;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ========================================
+           КОНТЕЙНЕР СИМУЛЯТОРА
+           ======================================== */
+        .simulator-section {
+            padding: 60px 5%;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .simulator-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .simulator-header h2 {
+            font-size: clamp(1.8rem, 4vw, 2.5rem);
+            font-weight: 800;
+            margin-bottom: 12px;
+        }
+
+        .text-gradient {
+            background: linear-gradient(135deg, #fff 0%, var(--accent) 100%);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .simulator-header p {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* ========================================
+           TECH CALCULATOR STYLES
+           ======================================== */
+        .tech-calculator {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-lg);
+            padding: 30px;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .calc-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 24px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        .calc-header-icon {
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-purple) 100%);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+        }
+
+        .calc-header-info {
+            flex: 1;
+        }
+
+        .calc-header-info h3 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .calc-header-info p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .calc-badge {
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--accent-glow);
+            padding: 6px 12px;
+            border-radius: 100px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .calc-display {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-md);
+            padding: 24px;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+
+        .calc-total-container {
+            position: relative;
+        }
+
+        .calc-total-label {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            margin-bottom: 8px;
+        }
+
+        .calc-total-value {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #fff 0%, var(--accent-glow) 100%);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .calc-vat-note {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            margin-top: 8px;
+        }
+
+        .calc-rows {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .calc-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-md);
+            transition: var(--transition);
+        }
+
+        .calc-row:hover {
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+
+        .calc-row-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+        }
+
+        .calc-row-icon {
+            width: 40px;
+            height: 40px;
+            background: rgba(59, 130, 246, 0.1);
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--accent-glow);
+            font-size: 1rem;
+        }
+
+        .calc-row-details {
+            flex: 1;
+        }
+
+        .calc-row-label {
+            font-weight: 600;
+            font-size: 0.95rem;
+            margin-bottom: 4px;
+        }
+
+        .calc-row-unit {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        .calc-row-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .calc-btn-minus,
+        .calc-btn-plus {
+            width: 36px;
+            height: 36px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--card-border);
+            background: var(--card-bg);
+            color: var(--text-main);
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+        }
+
+        .calc-btn-minus:hover,
+        .calc-btn-plus:hover {
+            background: rgba(59, 130, 246, 0.1);
+            border-color: var(--accent);
+            color: var(--accent-glow);
+        }
+
+        .calc-count {
+            font-weight: 600;
+            font-size: 1.1rem;
+            min-width: 30px;
+            text-align: center;
+        }
+
+        .calc-count.count-changed {
+            animation: countPulse 0.3s ease-out;
+        }
+
+        @keyframes countPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); color: var(--accent-glow); }
+            100% { transform: scale(1); }
+        }
+
+        .calc-breakdown {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-md);
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+
+        .calc-breakdown.slide-up {
+            animation: slideUp 0.5s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .breakdown-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 16px;
+            color: var(--text-muted);
+        }
+
+        .breakdown-content {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .breakdown-item {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .breakdown-divider {
+            height: 1px;
+            background: var(--card-border);
+            margin: 8px 0;
+        }
+
+        .breakdown-item.vat {
+            color: var(--warning);
+        }
+
+        .breakdown-item.total {
+            font-weight: 700;
+            color: var(--text-main);
+            font-size: 1rem;
+        }
+
+        .calc-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .calc-btn-primary {
+            flex: 1;
+            padding: 16px 24px;
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-purple) 100%);
+            border: none;
+            border-radius: var(--radius-md);
+            color: white;
+            font-family: inherit;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .calc-btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(59, 130, 246, 0.3);
+        }
+
+        .calc-btn-secondary {
+            padding: 16px 24px;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-md);
+            color: var(--text-muted);
+            font-family: inherit;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .calc-btn-secondary:hover {
+            background: var(--card-hover);
+            border-color: var(--card-border);
+            color: var(--text-main);
+        }
+    </style>
+</head>
+<body>
+    <section class="simulator-section">
+        <div class="simulator-header">
+            <h2>Живой симулятор: <span class="text-gradient">Технологичный Калькулятор B2B</span></h2>
+            <p>Рассчитайте стоимость услуг манипулятора с автоматическим учетом НДС</p>
+        </div>
+
+        <div class="tech-calculator">
+            <div class="calc-header">
+                <div class="calc-header-icon">
+                    <i class="fa-solid fa-truck-moving"></i>
+                </div>
+                <div class="calc-header-info">
+                    <h3>Калькулятор манипулятора</h3>
+                    <p>Грузоподъемность: 5 тонн</p>
+                </div>
+                <div class="calc-badge">B2B</div>
+            </div>
+
+            <div class="calc-display">
+                <div class="calc-total-container">
+                    <div class="calc-total-label">Итоговая стоимость</div>
+                    <div class="calc-total-value" id="calc-total">0 ₽</div>
+                </div>
+                <div class="calc-vat-note">Включая НДС 20%</div>
+            </div>
+
+            <div class="calc-rows">
+                <div class="calc-row" data-type="city">
+                    <div class="calc-row-info">
+                        <div class="calc-row-icon">
+                            <i class="fa-solid fa-city"></i>
+                        </div>
+                        <div class="calc-row-details">
+                            <div class="calc-row-label">Рейс в черте города</div>
+                            <div class="calc-row-unit">5 000 ₽ / рейс</div>
+                        </div>
+                    </div>
+                    <div class="calc-row-controls">
+                        <button class="calc-btn-minus" onclick="TechCalculator.update('city', -1)">
+                            <i class="fa-solid fa-minus"></i>
+                        </button>
+                        <span class="calc-count" id="calc-count-city">0</span>
+                        <button class="calc-btn-plus" onclick="TechCalculator.update('city', 1)">
+                            <i class="fa-solid fa-plus"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="calc-row" data-type="suburb">
+                    <div class="calc-row-info">
+                        <div class="calc-row-icon">
+                            <i class="fa-solid fa-road"></i>
+                        </div>
+                        <div class="calc-row-details">
+                            <div class="calc-row-label">Рейс за город (до 20 км)</div>
+                            <div class="calc-row-unit">7 000 ₽ / рейс</div>
+                        </div>
+                    </div>
+                    <div class="calc-row-controls">
+                        <button class="calc-btn-minus" onclick="TechCalculator.update('suburb', -1)">
+                            <i class="fa-solid fa-minus"></i>
+                        </button>
+                        <span class="calc-count" id="calc-count-suburb">0</span>
+                        <button class="calc-btn-plus" onclick="TechCalculator.update('suburb', 1)">
+                            <i class="fa-solid fa-plus"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="calc-row" data-type="loading">
+                    <div class="calc-row-info">
+                        <div class="calc-row-icon">
+                            <i class="fa-solid fa-boxes-packing"></i>
+                        </div>
+                        <div class="calc-row-details">
+                            <div class="calc-row-label">Погрузка/разгрузка</div>
+                            <div class="calc-row-unit">1 500 ₽ / час</div>
+                        </div>
+                    </div>
+                    <div class="calc-row-controls">
+                        <button class="calc-btn-minus" onclick="TechCalculator.update('loading', -1)">
+                            <i class="fa-solid fa-minus"></i>
+                        </button>
+                        <span class="calc-count" id="calc-count-loading">0</span>
+                        <button class="calc-btn-plus" onclick="TechCalculator.update('loading', 1)">
+                            <i class="fa-solid fa-plus"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="calc-breakdown" id="calc-breakdown" style="display:none">
+                <div class="breakdown-header">
+                    <i class="fa-solid fa-list-check"></i>
+                    <span>Детализация расчета</span>
+                </div>
+                <div class="breakdown-content" id="breakdown-content">
+                    <!-- Динамически заполняется -->
+                </div>
+            </div>
+
+            <div class="calc-actions">
+                <button class="calc-btn-primary" onclick="TechCalculator.submit()">
+                    <i class="fa-solid fa-paper-plane"></i>
+                    Отправить заявку
+                </button>
+                <button class="calc-btn-secondary" onclick="TechCalculator.reset()">
+                    <i class="fa-solid fa-rotate-left"></i>
+                    Сбросить
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        // ========================================
+        // TECH CALCULATOR SIMULATOR
+        // ========================================
+        const TechCalculator = {
+            rates: {
+                city: { price: 5000, label: 'Рейс в черте города', unit: 'рейс' },
+                suburb: { price: 7000, label: 'Рейс за город (до 20 км)', unit: 'рейс' },
+                loading: { price: 1500, label: 'Погрузка/разгрузка', unit: 'час' }
+            },
+
+            state: { city: 0, suburb: 0, loading: 0, total: 0 },
+
+            init() {
+                this.updateDisplay(false);
+            },
+
+            update(type, delta) {
+                const newValue = Math.max(0, this.state[type] + delta);
+                if (newValue === this.state[type]) return;
+
+                this.state[type] = newValue;
+
+                // Обновляем счетчик
+                const countEl = document.getElementById(`calc-count-${type}`);
+                if (countEl) {
+                    countEl.textContent = newValue;
+                    countEl.classList.add('count-changed');
+                    setTimeout(() => countEl.classList.remove('count-changed'), 300);
+                }
+
+                // Пересчитываем и анимируем
+                this.calculate();
+                this.updateDisplay(true);
+            },
+
+            calculate() {
+                this.state.total = (this.state.city * this.rates.city.price) +
+                                  (this.state.suburb * this.rates.suburb.price) +
+                                  (this.state.loading * this.rates.loading.price);
+            },
+
+            updateDisplay(animate = true) {
+                const totalEl = document.getElementById('calc-total');
+                const breakdown = document.getElementById('calc-breakdown');
+                const breakdownContent = document.getElementById('breakdown-content');
+
+                if (!totalEl) return;
+
+                // Анимируем число
+                if (animate) {
+                    this.animateNumber(totalEl, this.state.total);
+                } else {
+                    totalEl.textContent = this.state.total.toLocaleString('ru-RU') + ' ₽';
+                }
+
+                // Показываем детализацию если есть позиции
+                const hasItems = this.state.city > 0 || this.state.suburb > 0 || this.state.loading > 0;
+
+                if (hasItems) {
+                    breakdown.style.display = 'block';
+                    breakdown.classList.add('slide-up');
+
+                    let html = '';
+                    if (this.state.city > 0) {
+                        const amount = this.state.city * this.rates.city.price;
+                        html += `<div class="breakdown-item"><span>${this.rates.city.label} × ${this.state.city}</span><span>${amount.toLocaleString('ru-RU')} ₽</span></div>`;
+                    }
+                    if (this.state.suburb > 0) {
+                        const amount = this.state.suburb * this.rates.suburb.price;
+                        html += `<div class="breakdown-item"><span>${this.rates.suburb.label} × ${this.state.suburb}</span><span>${amount.toLocaleString('ru-RU')} ₽</span></div>`;
+                    }
+                    if (this.state.loading > 0) {
+                        const amount = this.state.loading * this.rates.loading.price;
+                        html += `<div class="breakdown-item"><span>${this.rates.loading.label} × ${this.state.loading}</span><span>${amount.toLocaleString('ru-RU')} ₽</span></div>`;
+                    }
+
+                    const baseTotal = this.state.total;
+                    const vat = Math.round(baseTotal * 0.2);
+                    const totalWithVat = baseTotal + vat;
+
+                    html += `
+                        <div class="breakdown-divider"></div>
+                        <div class="breakdown-item"><span>Базовая стоимость</span><span>${baseTotal.toLocaleString('ru-RU')} ₽</span></div>
+                        <div class="breakdown-item vat"><span>НДС (20%)</span><span>${vat.toLocaleString('ru-RU')} ₽</span></div>
+                        <div class="breakdown-item total"><span>Итого с НДС</span><span>${totalWithVat.toLocaleString('ru-RU')} ₽</span></div>
+                    `;
+
+                    breakdownContent.innerHTML = html;
+
+                    setTimeout(() => breakdown.classList.remove('slide-up'), 500);
+                } else {
+                    breakdown.style.display = 'none';
+                }
+            },
+
+            animateNumber(element, targetValue) {
+                const startValue = parseInt(element.textContent.replace(/\D/g, '')) || 0;
+                const duration = 600;
+                const startTime = performance.now();
+
+                const animate = (currentTime) => {
+                    const elapsed = currentTime - startTime;
+                    const progress = Math.min(elapsed / duration, 1);
+                    const easeProgress = 1 - Math.pow(1 - progress, 3);
+                    const currentValue = Math.round(startValue + (targetValue - startValue) * easeProgress);
+
+                    element.textContent = currentValue.toLocaleString('ru-RU') + ' ₽';
+
+                    if (progress < 1) {
+                        requestAnimationFrame(animate);
+                    }
+                };
+
+                requestAnimationFrame(animate);
+            },
+
+            submit() {
+                if (this.state.total === 0) {
+                    alert('Выберите услуги');
+                    return;
+                }
+
+                const vat = Math.round(this.state.total * 0.2);
+                const totalWithVat = this.state.total + vat;
+
+                alert(`Заявка отправлена! Сумма: ${totalWithVat.toLocaleString('ru-RU')} ₽ (включая НДС)`);
+            },
+
+            reset() {
+                this.state = { city: 0, suburb: 0, loading: 0, total: 0 };
+
+                ['city', 'suburb', 'loading'].forEach(type => {
+                    const countEl = document.getElementById(`calc-count-${type}`);
+                    if (countEl) countEl.textContent = '0';
+                });
+
+                this.updateDisplay(true);
+            }
+        };
+
+        // Инициализация
+        TechCalculator.init();
+    </script>
+</body>
+</html>

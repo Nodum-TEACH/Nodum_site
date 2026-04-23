@@ -1100,9 +1100,8 @@ select:focus-visible {
 
 /* Bento Grid - сетка карточек сценариев */
 .bento-container {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    grid-auto-rows: 280px;
+    display: flex;
+    flex-wrap: wrap;
     gap: 20px;
 }
 
@@ -1114,19 +1113,21 @@ select:focus-visible {
     backdrop-filter: blur(10px);
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    align-items: flex-start;
     transition: var(--transition);
     cursor: pointer;
     position: relative;
-    overflow: hidden;
+    flex: 1 1 calc(25% - 20px);
+    min-width: 280px;
 }
 
-/* Асимметрия карточек */
-.card-0 { grid-column: span 2; grid-row: span 2; }
-.card-1 { grid-column: span 2; grid-row: span 1; }
-.card-2 { grid-column: span 1; grid-row: span 1; }
-.card-3 { grid-column: span 1; grid-row: span 1; }
-.card-4 { grid-column: span 2; grid-row: span 1; }
+/* Асимметрия карточек для 6 элементов */
+.card-0 { flex: 2 2 calc(50% - 20px); }
+.card-1 { flex: 1 1 calc(25% - 20px); }
+.card-2 { flex: 1 1 calc(25% - 20px); }
+.card-3 { flex: 1 1 calc(25% - 20px); }
+.card-4 { flex: 1 1 calc(25% - 20px); }
+.card-5 { flex: 1 1 calc(25% - 20px); }
 
 .bento-card:hover {
     border-color: rgba(59, 130, 246, 0.3);
@@ -1149,23 +1150,18 @@ select:focus-visible {
 
 .bento-card:hover .card-icon { transform: scale(1.1) rotate(-5deg); background: var(--accent); color: #fff;}
 
-.bento-card h3 { font-size: 1.5rem; margin-bottom: 10px; font-weight: 700; }
+.bento-card h3 { font-size: 1.5rem; margin-bottom: 12px; font-weight: 700; line-height: 1.3; }
 .bento-card p {
     color: var(--text-muted);
     font-size: 0.95rem;
-    margin-bottom: 20px;
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    line-clamp: 3;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
+    margin-bottom: 16px;
+    line-height: 1.6;
+    flex: 1;
 }
 
 .card-0 h3 { font-size: 2.2rem; }
 .card-0 p {
     font-size: 1.1rem;
-    -webkit-line-clamp: 5;
-    line-clamp: 5;
 }
 
 .card-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: auto;}
@@ -1211,6 +1207,50 @@ select:focus-visible {
     background: rgba(236, 72, 153, 0.15);
     color: #f472b6;
     border: 1px solid rgba(236, 72, 153, 0.3);
+}
+
+/* Responsive Bento Grid */
+@media (max-width: 1024px) {
+    .bento-container {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .card-0 { grid-column: span 2; grid-row: span 1; }
+    .card-1 { grid-column: span 1; }
+    .card-2 { grid-column: span 1; }
+    .card-3 { grid-column: span 1; }
+    .card-4 { grid-column: span 1; }
+    .card-5 { grid-column: span 1; }
+}
+
+@media (max-width: 768px) {
+    .bento-container {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+    
+    .bento-card {
+        padding: 24px;
+    }
+    
+    .card-0,
+    .card-1,
+    .card-2,
+    .card-3,
+    .card-4,
+    .card-5 {
+        grid-column: span 1;
+        grid-row: span 1;
+    }
+    
+    .card-0 h3 { font-size: 1.8rem; }
+    .bento-card h3 { font-size: 1.3rem; }
+    
+    .card-icon {
+        width: 50px;
+        height: 50px;
+        font-size: 1.5rem;
+    }
 }
 
 /* Mega CTA Block */
@@ -1314,6 +1354,63 @@ select:focus-visible {
     font-size: 1rem;
     margin-bottom: 25px;
     line-height: 1.6;
+}
+
+.scenario-features {
+    margin-bottom: 25px;
+}
+
+.scenario-features h4 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 12px;
+    color: var(--text-primary);
+}
+
+.features-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.features-list li {
+    padding: 8px 0;
+    color: var(--text-muted);
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    line-height: 1.5;
+}
+
+.features-list li::before {
+    content: '\f00c';
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
+    color: var(--accent);
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.scenario-implementation {
+    margin-bottom: 25px;
+    padding: 15px;
+    background: rgba(102, 126, 234, 0.1);
+    border-radius: 8px;
+    border-left: 3px solid var(--accent);
+}
+
+.scenario-implementation h4 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 10px;
+    color: var(--text-primary);
+}
+
+.implementation-text {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin: 0;
 }
 
 .modal-simulator-container {
@@ -3108,11 +3205,7 @@ footer { padding: 40px 5%; border-top: 1px solid var(--card-border); margin-top:
 .steps-container {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 2px;
-    background: var(--card-border);
-    border: 1px solid var(--card-border);
-    border-radius: var(--radius-lg);
-    overflow: hidden;
+    gap: 24px;
 }
 
 .step-item {
@@ -3121,6 +3214,22 @@ footer { padding: 40px 5%; border-top: 1px solid var(--card-border); margin-top:
     padding: 36px 32px;
     background: var(--card-bg);
     transition: background 0.25s ease;
+    position: relative;
+    border-radius: var(--radius-lg);
+}
+
+.step-item:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    right: -12px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 0;
+    height: 0;
+    border-left: 12px solid var(--card-border);
+    border-top: 10px solid transparent;
+    border-bottom: 10px solid transparent;
+    z-index: 1;
 }
 
 .step-item:hover {
@@ -3153,10 +3262,20 @@ footer { padding: 40px 5%; border-top: 1px solid var(--card-border); margin-top:
 @media (max-width: 768px) {
     .steps-container {
         grid-template-columns: 1fr;
-        gap: 1px;
+        gap: 16px;
     }
     .step-item {
         padding: 24px 20px;
+    }
+    .step-item:not(:last-child)::after {
+        right: 50%;
+        top: auto;
+        bottom: -12px;
+        transform: translateX(50%);
+        border-left: 10px solid transparent;
+        border-right: 10px solid transparent;
+        border-top: 12px solid var(--card-border);
+        border-bottom: none;
     }
 }
 
