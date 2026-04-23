@@ -289,6 +289,26 @@ select:focus-visible {
 }
 .btn-secondary:hover { background: var(--card-hover); border-color: var(--text-muted); }
 
+.btn-small {
+    padding: 10px 20px;
+    font-size: 0.95rem;
+    border-radius: 50px;
+}
+
+.scenario-modal-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 24px;
+    padding-top: 24px;
+    border-top: 1px solid var(--card-border);
+    flex-wrap: wrap;
+}
+
+.scenario-modal-actions .btn {
+    flex: 1;
+    min-width: 140px;
+}
+
 .btn-outline {
     background: transparent;
     color: var(--text-main);
@@ -1207,6 +1227,97 @@ select:focus-visible {
     background: rgba(236, 72, 153, 0.15);
     color: #f472b6;
     border: 1px solid rgba(236, 72, 153, 0.3);
+}
+
+/* Mermaid Container Styles */
+.mermaid-container {
+    overflow-x: auto;
+    width: 100%;
+    margin: 24px auto;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.mermaid-container::-webkit-scrollbar {
+    height: 4px;
+}
+
+.mermaid-container::-webkit-scrollbar-thumb {
+    background: rgba(99, 102, 241, 0.3);
+    border-radius: 4px;
+}
+
+.mermaid svg {
+    filter: drop-shadow(0 0 10px rgba(99, 102, 241, 0.4));
+    max-height: 220px;
+    min-width: 280px;
+    margin: 0 auto;
+}
+
+/* Mermaid arrow animation */
+.mermaid-container svg path {
+    stroke-dasharray: 10, 5 !important;
+    animation: flowAnimation 1s linear infinite !important;
+}
+
+/* Exclude node borders from animation */
+.mermaid-container svg .node rect,
+.mermaid-container svg .node circle,
+.mermaid-container svg .node polygon,
+.mermaid-container svg .node path[fill="white"],
+.mermaid-container svg .node path[fill="#fff"] {
+    animation: none !important;
+    stroke-dasharray: none !important;
+}
+
+@keyframes flowAnimation {
+    to {
+        stroke-dashoffset: -15;
+    }
+}
+
+/* Mobile styles for mermaid diagrams */
+@media (max-width: 768px) {
+    .mermaid svg {
+        max-height: 300px;
+        min-width: 320px;
+    }
+}
+
+/* Glass Card Styles for Modal */
+.glass-card {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.glass-card:hover {
+    transform: translateY(-5px) scale(1.01);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.4), 0 0 20px rgba(99, 102, 241, 0.2);
+}
+
+.badge {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 2px 10px;
+    border-radius: 20px;
+    background: rgba(255,255,255,0.05);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade {
+    animation: fadeIn 0.6s ease forwards;
 }
 
 /* Responsive Bento Grid */

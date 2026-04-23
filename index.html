@@ -24,6 +24,23 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({ 
+            startOnLoad: true, 
+            theme: 'dark',
+            themeVariables: {
+                primaryColor: '#3b82f6',
+                edgeLabelBackground:'#1e293b',
+                tertiaryColor: '#1e293b',
+                mainBkg: '#0f172a',
+                nodeBorder: '#3b82f6',
+                lineColor: '#6366f1',
+                fontFamily: 'Outfit'
+            },
+            flowchart: { useMaxWidth: true, htmlLabels: true, curve: 'long-hand' }
+        });
+    </script>
 </head>
 <body>
     <a class="skip-link" href="#main-content">Пропустить к содержанию</a>
@@ -279,8 +296,9 @@
                 <h2></h2>
             </div>
             <div class="modal-body scenario-body">
-                <!-- Интерактивный симулятор -->
-                <div class="modal-simulator-container">
+                <!-- Dynamic card content will be inserted here -->
+                <div id="modal-card-content"></div>
+                <div class="modal-simulator-container" style="display: none;">
                     <div id="modal-device-frame" class="simulator-frame macbook">
                         <div class="frame-header">
                             <div class="dots"><span></span><span></span><span></span></div>
@@ -305,6 +323,15 @@
                 </div>
 
                 <!-- ROI Toast и CTA будут добавляться JS -->
+
+                <div class="scenario-modal-actions">
+                    <button class="btn btn-primary" onclick="handleScenarioCTA()">
+                        <span>Оставить заявку <i class="fa-solid fa-paper-plane"></i></span>
+                    </button>
+                    <button class="btn btn-secondary btn-small" onclick="window.closeScenarioModal(); document.getElementById('chat').scrollIntoView({ behavior: 'smooth' });">
+                        <span>Спросить у агента <i class="fa-solid fa-robot"></i></span>
+                    </button>
+                </div>
             </div>
         </div>
     </div>

@@ -319,6 +319,10 @@ window.closeScenarioModal = function() {
     if (featuresList) featuresList.innerHTML = '';
     if (implementationText) implementationText.textContent = '';
 
+    // Очищаем modal-card-content
+    const modalCardContent = document.getElementById('modal-card-content');
+    if (modalCardContent) modalCardContent.innerHTML = '';
+
     // Удаляем CTA и ROI-toast если есть
     const existingCTA = modal.querySelector('.demo-final-cta');
     const existingROI = document.querySelector('.roi-toast');
@@ -486,7 +490,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const modal = document.getElementById('bot-modal');
     let currentCardTitle = '';
 
-    function openScenarioModal(card, demoType) {
+    async function openScenarioModal(card, demoType) {
         currentDemoType = demoType;
         currentCardTitle = card.title;
 
@@ -507,46 +511,46 @@ document.addEventListener('DOMContentLoaded', () => {
             implementationText.textContent = card.implementation;
         }
 
-        // Загружаем симулятор
-        const simulatorFiles = {
-            'ai_agent': 'ai-agent-simulator.html',
-            'tg_bot': 'tg-bot-simulator.html',
-            'crm': 'crm-sync-simulator.html',
-            'calculator': 'calculator-simulator.html',
-            'clinic': 'clinic-simulator.html'
-        };
+        // Build and insert the glass card with mermaid diagram
+        const modalCardContent = document.getElementById('modal-card-content');
+        if (modalCardContent && card.mermaid) {
+            // Render mermaid SVG before inserting
+            let mermaidSvg = '';
+            if (window.mermaid) {
+                try {
+                    const { svg } = await window.mermaid.render('mermaid-' + Date.now(), card.mermaid);
+                    mermaidSvg = svg;
+                } catch (err) {
+                    console.error('Mermaid render error:', err);
+                    mermaidSvg = `<pre style="color: #666;">${escapeHtml(card.mermaid)}</pre>`;
+                }
+            }
 
-        const simulatorFile = simulatorFiles[demoType];
-        const content = document.getElementById('modal-simulator-content');
-        const frameTitle = document.getElementById('modal-frame-title');
+            modalCardContent.innerHTML = `
+                <div class="mermaid-container">
+                    ${mermaidSvg}
+                </div>
+            `;
 
-        if (simulatorFile && content) {
-            fetch(`simulators/${simulatorFile}`)
-                .then(response => {
-                    if (!response.ok) throw new Error('Failed to load simulator');
-                    return response.text();
-                })
-                .then(html => {
-                    content.innerHTML = html;
-                    // Устанавливаем заголовок фрейма
-                    if (frameTitle) {
-                        const titles = {
-                            'ai_agent': 'AI-Агент: Диалог с клиентом',
-                            'tg_bot': 'Telegram Бот: Запись клиентов',
-                            'crm': 'CRM Синхронизация: Дожим лидов',
-                            'calculator': 'Калькулятор: Расчёт стоимости',
-                            'clinic': 'Клиника: Запись на приём'
-                        };
-                        frameTitle.textContent = titles[demoType] || 'Демо симулятор';
-                    }
-                })
-                .catch(err => {
-                    console.error('Error loading simulator:', err);
-                    content.innerHTML = '<div style="padding: 20px; text-align: center; color: #666;">Не удалось загрузить симулятор</div>';
-                });
-        } else {
-            content.innerHTML = '<div style="padding: 20px; text-align: center; color: #666;">Симулятор не найден</div>';
+            // Apply animation to arrow paths
+            setTimeout(() => {
+                const svg = modalCardContent.querySelector('svg');
+                console.log('SVG found:', !!svg);
+                if (svg) {
+                    const allPaths = svg.querySelectorAll('path');
+                    console.log('Paths found:', allPaths.length);
+                    allPaths.forEach((path, index) => {
+                        path.style.strokeDasharray = '10, 5';
+                        path.style.animation = 'flowAnimation 1s linear infinite';
+                        console.log(`Applied animation to path ${index}`);
+                    });
+                }
+            }, 300);
         }
+
+        // Проверяем, мобильное ли устройство
+        const isMobile = window.innerWidth <= 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
 
         // Показываем модалку
         modal.style.display = 'flex';
@@ -646,85 +650,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-
-
-
-
-
     // Cabinet modal close on backdrop click
     const cabinetModal = document.getElementById('cabinet-modal');
     if (cabinetModal) {
         cabinetModal.addEventListener('click', e => { if (e.target === cabinetModal) closeCabinetModal(); });
     }
 
-    // [Устаревший код демо-диалога в модалке - заменён на интерактивный симулятор]
-    // Bot Chat Functionality - оставлен для совместимости если элементы существуют
-    const botInput = document.getElementById('bot-message-input');
-    const botSendBtn = document.getElementById('bot-send-btn');
-    const botChatMessages = document.getElementById('bot-chat-messages');
-
-    if (botInput && botSendBtn && botChatMessages) {
-        function sendBotMessage() {
-            const text = botInput.value.trim();
-            if (!text) return;
-
-            const userMsg = document.createElement('div');
-            userMsg.className = 'user-message';
-            userMsg.innerHTML = `<div class="message-content"><p>${text}</p></div>`;
-            botChatMessages.appendChild(userMsg);
-
-            botInput.value = '';
-            botChatMessages.scrollTop = botChatMessages.scrollHeight;
-
-            setTimeout(() => {
-                const botMsg = document.createElement('div');
-                botMsg.className = 'bot-message';
-                botMsg.innerHTML = `
-                    <div class="bot-avatar"><i class="fa-solid fa-robot"></i></div>
-                    <div class="message-content">
-                        <p>${generateBotResponse(text)}</p>
-                    </div>
-                `;
-                botChatMessages.appendChild(botMsg);
-                botChatMessages.scrollTop = botChatMessages.scrollHeight;
-            }, 800 + Math.random() * 800);
-        }
-
-        function generateBotResponse(userMessage) {
-            const responses = {
-                'price': 'The pricing depends on your specific requirements. Contact me for a personalized quote! Starting from $299 for basic modules.',
-                'cost': 'Pricing varies by complexity and features. Basic bots start at $299, advanced solutions with AI integration start at $999.',
-                'features': 'This module includes automated responses, user management, analytics dashboard, and seamless integration with your existing systems.',
-                'implementation': 'Implementation typically takes 2-4 weeks. We handle everything from setup to deployment and training.',
-                'integration': 'Yes! I can integrate with CRM systems, payment gateways, calendars, and most popular business tools.',
-                'support': '24/7 technical support included with all packages. Plus regular updates and maintenance.',
-                'custom': 'Custom features can be developed based on your specific business needs. Let\'s discuss your requirements!',
-                'demo': 'This is a demo interface. The actual bot would be deployed to Telegram with full functionality.',
-                'how': 'The bot works through Telegram\'s API, providing a seamless experience for your users right in their favorite messenger.',
-                'security': 'All data is encrypted and stored securely. We comply with GDPR and other privacy regulations.'
-            };
-
-            const lowerMessage = userMessage.toLowerCase();
-
-            for (const [key, response] of Object.entries(responses)) {
-                if (lowerMessage.includes(key)) {
-                    return response;
-                }
-            }
-
-            const defaultResponses = [
-                'That\'s a great question! The best way to get detailed information is to schedule a consultation with me.',
-                'I can help with that! Each solution is tailored to specific business needs. What industry are you in?',
-                'Excellent question! This module is designed to streamline your operations. What specific features interest you most?',
-                'Thanks for asking! I offer various solutions depending on your requirements. Would you like to know about pricing or implementation timeline?'
-            ];
-
-            return defaultResponses[Math.floor(Math.random() * defaultResponses.length)];
-        }
-
-        botSendBtn.addEventListener('click', sendBotMessage);
-        botInput.addEventListener('keypress', e => { if (e.key === 'Enter') sendBotMessage(); });
-    }
+    
 
     // 5. Scroll Анимации (Intersection Observer)
     function initScrollAnimations() {

@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Клиника - Mobile</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #030712;
+            color: #f9fafb;
+            font-family: 'Outfit', sans-serif;
+            min-height: 100vh;
+            padding: 16px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .header h2 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        .header p {
+            color: #9ca3af;
+            font-size: 0.85rem;
+        }
+        .phone-frame {
+            background: linear-gradient(145deg, #1a1d24, #0f1419);
+            border-radius: 32px;
+            border: 8px solid #2a2d35;
+            padding: 16px;
+            max-width: 320px;
+            margin: 0 auto;
+        }
+        .chat-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            margin-bottom: 12px;
+        }
+        .avatar {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+        .bot-info {
+            flex: 1;
+        }
+        .bot-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        .bot-status {
+            font-size: 0.75rem;
+            color: #9ca3af;
+        }
+        .chat-area {
+            height: 350px;
+            overflow-y: auto;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .message {
+            max-width: 85%;
+            padding: 12px 16px;
+            border-radius: 16px;
+            font-size: 0.85rem;
+            line-height: 1.4;
+            white-space: pre-wrap;
+        }
+        .message-bot {
+            background: #2a2d35;
+            border-bottom-left-radius: 4px;
+        }
+        .message-user {
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            border-bottom-right-radius: 4px;
+            margin-left: auto;
+            color: white;
+        }
+        .typing {
+            display: flex;
+            gap: 4px;
+            padding: 12px;
+        }
+        .typing span {
+            width: 6px;
+            height: 6px;
+            background: #9ca3af;
+            border-radius: 50%;
+            animation: typing 1.4s infinite;
+        }
+        .typing span:nth-child(2) { animation-delay: 0.2s; }
+        .typing span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes typing {
+            0%,80%,100% { transform: scale(0.6); opacity: 0.5; }
+            40% { transform: scale(1); opacity: 1; }
+        }
+        .controls {
+            padding-top: 12px;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .btn {
+            background: rgba(59,130,246,0.1);
+            border: 1px solid rgba(59,130,246,0.3);
+            color: #60a5fa;
+            padding: 14px 16px;
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.2s;
+        }
+        .btn:active {
+            background: rgba(59,130,246,0.2);
+            transform: scale(0.98);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            border: none;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h2>🏥 Клиника</h2>
+        <p>Запись на приём через Telegram-бота</p>
+    </div>
+
+    <div class="phone-frame">
+        <div class="chat-header">
+            <div class="avatar"><i class="fa-solid fa-user-doctor"></i></div>
+            <div class="bot-info">
+                <div class="bot-name">Nodum Clinic Bot</div>
+                <div class="bot-status">онлайн</div>
+            </div>
+        </div>
+
+        <div class="chat-area" id="chat"></div>
+
+        <div class="controls" id="controls"></div>
+    </div>
+
+    <script>
+        const services = [
+            { id: 'consult', name: 'Консультация терапевта', price: '2 500 ₽' },
+            { id: 'analysis', name: 'Сдача анализов', price: 'от 1 200 ₽' },
+            { id: 'mri', name: 'МРТ-диагностика', price: '8 500 ₽' },
+            { id: 'uzi', name: 'УЗИ обследование', price: '3 200 ₽' }
+        ];
+
+        const doctors = [
+            { id: 'd1', name: 'Др. Смирнов А.В.', specialty: 'Терапевт' },
+            { id: 'd2', name: 'Др. Козлова Е.М.', specialty: 'Кардиолог' },
+            { id: 'd3', name: 'Др. Петров И.С.', specialty: 'Невролог' }
+        ];
+
+        const times = ['10:00', '11:30', '14:00', '15:30', '17:00'];
+
+        let state = {
+            step: 'welcome',
+            service: null,
+            doctor: null,
+            time: null
+        };
+
+        const chat = document.getElementById('chat');
+        const controls = document.getElementById('controls');
+
+        function addMessage(text, isUser = false) {
+            const div = document.createElement('div');
+            div.className = 'message ' + (isUser ? 'message-user' : 'message-bot');
+            div.textContent = text;
+            chat.appendChild(div);
+            chat.scrollTop = chat.scrollHeight;
+        }
+
+        function showTyping() {
+            const div = document.createElement('div');
+            div.className = 'message message-bot';
+            div.id = 'typing';
+            div.innerHTML = '<div class="typing"><span></span><span></span><span></span></div>';
+            chat.appendChild(div);
+            chat.scrollTop = chat.scrollHeight;
+        }
+
+        function hideTyping() {
+            const typing = document.getElementById('typing');
+            if (typing) typing.remove();
+        }
+
+        function setButtons(buttons) {
+            controls.innerHTML = '';
+            buttons.forEach(btn => {
+                const button = document.createElement('button');
+                button.className = 'btn' + (btn.primary ? ' btn-primary' : '');
+                button.textContent = btn.text;
+                button.onclick = () => {
+                    addMessage(btn.text, true);
+                    btn.action();
+                };
+                controls.appendChild(button);
+            });
+        }
+
+        function renderStep() {
+            switch(state.step) {
+                case 'welcome':
+                    addMessage('👋 Добро пожаловать в клинику "Здоровье Плюс"!\n\nПомогу записаться на приём без ожидания на линии.');
+                    setButtons([
+                        { text: '📋 Записаться на приём', action: () => { state.step = 'service'; setTimeout(renderStep, 500); } },
+                        { text: '❓ Узнать цены', action: () => { addMessage('💰 Цены:\n• Консультация: 2 500 ₽\n• Анализы: от 1 200 ₽\n• МРТ: 8 500 ₽\n• УЗИ: 3 200 ₽'); } }
+                    ]);
+                    break;
+
+                case 'service':
+                    showTyping();
+                    setTimeout(() => {
+                        hideTyping();
+                        addMessage('Выберите услугу:');
+                        setButtons(services.map(s => ({
+                            text: `${s.name} - ${s.price}`,
+                            action: () => { state.service = s; state.step = 'doctor'; setTimeout(renderStep, 500); }
+                        })));
+                    }, 800);
+                    break;
+
+                case 'doctor':
+                    showTyping();
+                    setTimeout(() => {
+                        hideTyping();
+                        addMessage(`✅ ${state.service.name}\n\nВыберите врача:`);
+                        setButtons(doctors.map(d => ({
+                            text: `${d.name} (${d.specialty})`,
+                            action: () => { state.doctor = d; state.step = 'time'; setTimeout(renderStep, 500); }
+                        })));
+                    }, 800);
+                    break;
+
+                case 'time':
+                    showTyping();
+                    setTimeout(() => {
+                        hideTyping();
+                        addMessage(`✅ ${state.service.name}\n👨‍⚕️ ${state.doctor.name}\n\nВыберите время:`);
+                        setButtons(times.map(t => ({
+                            text: `📅 Сегодня, ${t}`,
+                            action: () => { state.time = t; state.step = 'confirm'; setTimeout(renderStep, 500); }
+                        })));
+                    }, 800);
+                    break;
+
+                case 'confirm':
+                    showTyping();
+                    setTimeout(() => {
+                        hideTyping();
+                        addMessage(`📝 Проверьте данные:\n\n📋 ${state.service.name}\n👨‍⚕️ ${state.doctor.name}\n⏰ Сегодня, ${state.time}\n💰 ${state.service.price}\n\nВсё верно?`);
+                        setButtons([
+                            { text: '✅ Подтвердить', primary: true, action: () => { state.step = 'success'; setTimeout(renderStep, 500); } },
+                            { text: '🔄 Изменить', action: () => { state.step = 'time'; setTimeout(renderStep, 500); } }
+                        ]);
+                    }, 800);
+                    break;
+
+                case 'success':
+                    showTyping();
+                    setTimeout(() => {
+                        hideTyping();
+                        addMessage(`✅ Запись подтверждена!\n\n📋 ${state.service.name}\n👨‍⚕️ ${state.doctor.name}\n⏰ Сегодня, ${state.time}\n\n📍 ул. Медицинская, 15\n🔔 Напомним за 2 часа\n\nЖдём вас! 🏥`);
+                        setButtons([
+                            { text: '📋 Новая запись', action: () => { state = { step: 'welcome', service: null, doctor: null, time: null }; chat.innerHTML = ''; setTimeout(renderStep, 500); } }
+                        ]);
+                    }, 1000);
+                    break;
+            }
+        }
+
+        renderStep();
+    </script>
+</body>
+</html>
