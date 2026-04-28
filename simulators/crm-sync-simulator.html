@@ -1,0 +1,1101 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nodum CRM Sync Simulator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* ========================================
+           БАЗОВЫЕ ПЕРЕМЕННЫЕ И СБРОСЫ
+           ======================================== */
+        :root {
+            --bg-color: #030712;
+            --card-bg: rgba(255, 255, 255, 0.02);
+            --card-border: rgba(255, 255, 255, 0.06);
+            --card-hover: rgba(255, 255, 255, 0.04);
+            --accent: #3b82f6;
+            --accent-glow: #60a5fa;
+            --accent-purple: #8b5cf6;
+            --text-main: #f9fafb;
+            --text-muted: #9ca3af;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --font-main: 'Outfit', sans-serif;
+            --radius-lg: 24px;
+            --radius-md: 16px;
+            --radius-sm: 12px;
+            --transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: var(--font-main);
+            line-height: 1.6;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ========================================
+           КОНТЕЙНЕР СИМУЛЯТОРА
+           ======================================== */
+        .simulator-section {
+            padding: 60px 5%;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .simulator-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .simulator-header h2 {
+            font-size: clamp(1.8rem, 4vw, 2.5rem);
+            font-weight: 800;
+            margin-bottom: 12px;
+        }
+
+        .text-gradient {
+            background: linear-gradient(135deg, #fff 0%, var(--accent) 100%);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .simulator-header p {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* ========================================
+           CRM SYNC ADVANCED STYLES
+           ======================================== */
+        .crm-sync-advanced {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-lg);
+            padding: 30px;
+        }
+
+        /* Toggle для мобильных */
+        .crm-toggle-mobile {
+            display: none;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 1024px) {
+            .crm-toggle-mobile {
+                display: flex;
+            }
+        }
+
+        .crm-view-btn {
+            flex: 1;
+            padding: 12px 20px;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-sm);
+            color: var(--text-muted);
+            font-family: inherit;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .crm-view-btn:hover {
+            background: var(--card-hover);
+        }
+
+        .crm-view-btn.active {
+            background: rgba(59, 130, 246, 0.1);
+            border-color: var(--accent);
+            color: var(--accent-glow);
+        }
+
+        .crm-sync-layout {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 30px;
+            align-items: start;
+        }
+
+        @media (max-width: 1024px) {
+            .crm-sync-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .crm-sync-layout.mobile-client-view .crm-admin-panel {
+                display: none;
+            }
+
+            .crm-sync-layout.mobile-admin-view .crm-phone-panel {
+                display: none;
+            }
+        }
+
+        /* Левая панель: Телефон клиента */
+        .crm-phone-panel {
+            display: flex;
+            justify-content: center;
+        }
+
+        .crm-phone-frame {
+            width: 320px;
+            background: linear-gradient(145deg, #1a1d24 0%, #0f1419 100%);
+            border-radius: 40px;
+            border: 12px solid #2a2d35;
+            box-shadow: 0 50px 100px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+        }
+
+        .crm-phone-header {
+            background: linear-gradient(135deg, #1a1d24 0%, #242830 100%);
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .crm-phone-header i {
+            color: var(--accent-glow);
+            font-size: 1.2rem;
+        }
+
+        .crm-phone-info {
+            flex: 1;
+        }
+
+        .crm-phone-name {
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .crm-phone-status {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--success);
+        }
+
+        .status-dot.online {
+            animation: statusPulse 2s infinite;
+        }
+
+        @keyframes statusPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .crm-phone-chat {
+            height: 400px;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .crm-chat-message {
+            max-width: 85%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            animation: messageAppear 0.3s ease-out;
+        }
+
+        @keyframes messageAppear {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .crm-chat-message.bot {
+            background: #2a2d35;
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+            color: var(--text-main);
+        }
+
+        .crm-chat-message.user {
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-purple) 100%);
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+            color: white;
+        }
+
+        .crm-phone-controls {
+            padding: 16px;
+            background: linear-gradient(to top, #1a1d24 0%, transparent 100%);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .crm-phone-btn {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            color: var(--accent-glow);
+            padding: 14px 20px;
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            text-align: left;
+        }
+
+        .crm-phone-btn:hover {
+            background: rgba(59, 130, 246, 0.2);
+            border-color: var(--accent-glow);
+            transform: translateX(4px);
+        }
+
+        .crm-phone-btn.primary {
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-purple) 100%);
+            border-color: transparent;
+            color: white;
+        }
+
+        /* Центральная стрелка синхронизации */
+        .crm-sync-connector {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px 0;
+            position: relative;
+        }
+
+        .sync-line {
+            width: 2px;
+            height: 100%;
+            background: linear-gradient(to bottom, var(--accent), var(--accent-purple));
+            position: absolute;
+        }
+
+        .sync-particles {
+            position: relative;
+            width: 40px;
+            height: 40px;
+        }
+
+        .sync-particle {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: var(--accent-glow);
+            border-radius: 50%;
+            animation: particleMove 1.5s ease-in-out;
+        }
+
+        @keyframes particleMove {
+            0% { transform: translateY(-20px); opacity: 0; }
+            50% { opacity: 1; }
+            100% { transform: translateY(20px); opacity: 0; }
+        }
+
+        .sync-arrow-icon {
+            background: var(--bg-color);
+            padding: 8px;
+            border-radius: 50%;
+            color: var(--accent-glow);
+            font-size: 1.2rem;
+            z-index: 1;
+        }
+
+        .sync-label {
+            margin-top: 12px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+
+        /* Правая панель: CRM Админ */
+        .crm-admin-panel {
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+        }
+
+        .crm-admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 24px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        .crm-admin-title {
+            font-weight: 700;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .crm-ai-badge {
+            background: rgba(139, 92, 246, 0.1);
+            color: var(--accent-purple);
+            padding: 4px 10px;
+            border-radius: 100px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* AI Insights блок */
+        .crm-ai-insights {
+            padding: 16px 24px;
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(59, 130, 246, 0.1) 100%);
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        .crm-ai-insights.slide-in {
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .ai-insights-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 12px;
+            color: var(--accent-purple);
+        }
+
+        .ai-insight-content {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .ai-insight-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .ai-insight-item.success {
+            color: var(--success);
+        }
+
+        .ai-insight-item .highlight-success {
+            color: var(--success);
+            font-weight: 600;
+        }
+
+        /* Kanban доска */
+        .crm-kanban {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            padding: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .crm-kanban {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .crm-kanban-col {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-sm);
+            padding: 16px;
+            min-height: 300px;
+        }
+
+        .crm-kanban-col.pulse-highlight {
+            animation: pulseHighlight 1s ease-out;
+        }
+
+        @keyframes pulseHighlight {
+            0%, 100% { box-shadow: none; }
+            50% { box-shadow: 0 0 30px rgba(59, 130, 246, 0.3); }
+        }
+
+        .crm-kanban-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        .crm-kanban-header {
+            font-weight: 600;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .crm-kanban-count {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-muted);
+            padding: 2px 8px;
+            border-radius: 100px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .crm-lead-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-sm);
+            padding: 14px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: var(--transition);
+            animation: cardAppear 0.4s ease-out;
+        }
+
+        @keyframes cardAppear {
+            from {
+                opacity: 0;
+                transform: translateY(-20px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .crm-lead-card:hover {
+            border-color: rgba(59, 130, 246, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .crm-lead-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+        }
+
+        .crm-lead-id {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .crm-lead-time {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+
+        .crm-lead-service {
+            font-weight: 600;
+            font-size: 0.95rem;
+            margin-bottom: 6px;
+            color: var(--text-main);
+        }
+
+        .crm-lead-client {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .crm-lead-tags {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .crm-tag {
+            padding: 3px 8px;
+            border-radius: 100px;
+            font-size: 0.7rem;
+            font-weight: 500;
+        }
+
+        .crm-tag.bot {
+            background: rgba(59, 130, 246, 0.15);
+            color: var(--accent-glow);
+        }
+
+        .crm-tag.new {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--success);
+        }
+
+        .crm-tag.progress {
+            background: rgba(245, 158, 11, 0.15);
+            color: var(--warning);
+        }
+
+        .crm-tag.closed {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--success);
+        }
+
+        .crm-ai-probability {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid var(--card-border);
+            font-size: 0.8rem;
+            color: var(--success);
+        }
+    </style>
+</head>
+<body>
+    <section class="simulator-section">
+        <div class="simulator-header">
+            <h2>Живой симулятор: <span class="text-gradient">Live CRM Sync с AI Insights</span></h2>
+            <p>Нажимайте кнопки в Telegram-боте и наблюдайте, как данные мгновенно синхронизируются с CRM-системой</p>
+        </div>
+
+        <div class="crm-sync-advanced">
+            <!-- Toggle для мобильных -->
+            <div class="crm-toggle-mobile">
+                <button class="crm-view-btn active" onclick="LiveCRMSwitch.switchView('client')" id="btn-client-view">
+                    <i class="fa-solid fa-mobile-screen"></i> Вид клиента
+                </button>
+                <button class="crm-view-btn" onclick="LiveCRMSwitch.switchView('admin')" id="btn-admin-view">
+                    <i class="fa-solid fa-chart-line"></i> Вид админа
+                </button>
+            </div>
+
+            <div class="crm-sync-layout" id="crm-sync-layout">
+                <!-- Левая панель: Телефон клиента -->
+                <div class="crm-phone-panel" id="crm-phone-panel">
+                    <div class="crm-phone-frame">
+                        <div class="crm-phone-header">
+                            <i class="fa-brands fa-telegram"></i>
+                            <div class="crm-phone-info">
+                                <span class="crm-phone-name">Nodum Clinic Bot</span>
+                                <span class="crm-phone-status">
+                                    <span class="status-dot online"></span> онлайн
+                                </span>
+                            </div>
+                        </div>
+                        <div class="crm-phone-chat" id="crm-chat-flow">
+                            <!-- Сообщения добавляются динамически -->
+                        </div>
+                        <div class="crm-phone-controls" id="crm-phone-controls">
+                            <!-- Кнопки добавляются динамически -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Центральная стрелка синхронизации -->
+                <div class="crm-sync-connector">
+                    <div class="sync-line"></div>
+                    <div class="sync-particles" id="sync-particles"></div>
+                    <div class="sync-arrow-icon">
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </div>
+                    <div class="sync-label">Live Sync</div>
+                </div>
+
+                <!-- Правая панель: CRM Админ -->
+                <div class="crm-admin-panel" id="crm-admin-panel">
+                    <div class="crm-admin-header">
+                        <div class="crm-admin-title">
+                            <i class="fa-solid fa-layer-group"></i>
+                            <span>Nodum CRM</span>
+                        </div>
+                        <div class="crm-ai-badge">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i>
+                            AI Powered
+                        </div>
+                    </div>
+
+                    <!-- AI Insights блок -->
+                    <div class="crm-ai-insights" id="crm-ai-insights" style="display:none">
+                        <div class="ai-insights-header">
+                            <i class="fa-solid fa-lightbulb"></i>
+                            <span>AI Insights</span>
+                        </div>
+                        <div class="ai-insight-content" id="ai-insight-content">
+                            <!-- Динамически заполняется -->
+                        </div>
+                    </div>
+
+                    <!-- Kanban доска -->
+                    <div class="crm-kanban">
+                        <div class="crm-kanban-col" data-status="new">
+                            <div class="crm-kanban-header">
+                                <i class="fa-solid fa-inbox"></i>
+                                <span>Новые</span>
+                                <span class="crm-kanban-count" id="crm-count-new">0</span>
+                            </div>
+                            <div class="crm-kanban-leads" id="crm-leads-new"></div>
+                        </div>
+                        <div class="crm-kanban-col" data-status="progress">
+                            <div class="crm-kanban-header">
+                                <i class="fa-solid fa-clock"></i>
+                                <span>В работе</span>
+                                <span class="crm-kanban-count" id="crm-count-progress">0</span>
+                            </div>
+                            <div class="crm-kanban-leads" id="crm-leads-progress"></div>
+                        </div>
+                        <div class="crm-kanban-col" data-status="closed">
+                            <div class="crm-kanban-header">
+                                <i class="fa-solid fa-check-circle"></i>
+                                <span>Завершено</span>
+                                <span class="crm-kanban-count" id="crm-count-closed">0</span>
+                            </div>
+                            <div class="crm-kanban-leads" id="crm-leads-closed"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        // ========================================
+        // CRM SYNC SIMULATOR
+        // ========================================
+        const LiveCRMSync = {
+            services: [
+                { id: 'therapy', name: 'Консультация терапевта', price: '2 500 ₽', duration: '30 мин' },
+                { id: 'analysis', name: 'Сдача анализов', price: 'от 1 200 ₽', duration: '15 мин' },
+                { id: 'mri', name: 'МРТ-диагностика', price: '8 500 ₽', duration: '45 мин' }
+            ],
+
+            doctors: [
+                { id: 'doc1', name: 'Др. Смирнов А.В.', specialty: 'Терапевт', rating: 4.9 },
+                { id: 'doc2', name: 'Др. Козлова Е.М.', specialty: 'Кардиолог', rating: 4.8 }
+            ],
+
+            timeSlots: ['10:00', '14:30', '16:00'],
+
+            state: {
+                step: 'welcome',
+                service: null,
+                doctor: null,
+                time: null,
+                leadId: null
+            },
+
+            leadCounter: 2000,
+
+            init() {
+                this.renderStep();
+            },
+
+            renderStep() {
+                const chat = document.getElementById('crm-chat-flow');
+                const controls = document.getElementById('crm-phone-controls');
+                if (!chat || !controls) return;
+
+                const steps = {
+                    welcome: {
+                        message: '👋 Добро пожаловать в клинику "Здоровье Плюс"!\n\nЯ автоматизированный ассистент. Помогу записаться на приём без ожидания.',
+                        buttons: [
+                            { text: '📋 Записаться', action: 'booking', class: 'primary' },
+                            { text: '💰 Узнать цены', action: 'prices' }
+                        ]
+                    },
+                    booking: {
+                        message: 'Выберите услугу:',
+                        buttons: this.services.map(s => ({
+                            text: `${s.name}\n${s.price} • ${s.duration}`,
+                            action: `service_${s.id}`,
+                            class: 'service-btn'
+                        })),
+                        onEnter: () => this.createLead('Выбор услуги')
+                    },
+                    select_doctor: {
+                        message: () => `✅ ${this.state.service?.name}\n\nТеперь выберите врача:`,
+                        buttons: this.doctors.map(d => ({
+                            text: `${d.name}\n${d.specialty} • ⭐ ${d.rating}`,
+                            action: `doctor_${d.id}`,
+                            class: 'doctor-btn'
+                        })),
+                        onEnter: () => this.updateLead(`Услуга: ${this.state.service?.name}`)
+                    },
+                    select_time: {
+                        message: () => `✅ ${this.state.service?.name}\n👨‍⚕️ ${this.state.doctor?.name}\n\nВыберите время:`,
+                        buttons: this.timeSlots.map(t => ({
+                            text: `🕐 Сегодня, ${t}`,
+                            action: `time_${t}`,
+                            class: 'time-btn'
+                        }))
+                    },
+                    confirm: {
+                        message: () => `📝 Проверьте данные:\n\n📋 ${this.state.service?.name}\n👨‍⚕️ ${this.state.doctor?.name}\n⏰ Сегодня, ${this.state.time}\n💰 ${this.state.service?.price}\n\nВсё верно?`,
+                        buttons: [
+                            { text: '✅ Подтвердить', action: 'confirm', class: 'success' },
+                            { text: '🔄 Изменить', action: 'booking' }
+                        ],
+                        onEnter: () => this.moveLeadToProgress()
+                    },
+                    success: {
+                        message: () => `✅ Запись подтверждена!\n\n📋 ${this.state.service?.name}\n👨‍⚕️ ${this.state.doctor?.name}\n⏰ Сегодня, ${this.state.time}\n\n📍 ул. Медицинская, 15\n🔔 Напомним за 2 часа`,
+                        buttons: [
+                            { text: '📋 Новая запись', action: 'reset', class: 'primary' }
+                        ],
+                        onEnter: () => this.completeLead()
+                    }
+                };
+
+                const step = steps[this.state.step];
+                if (!step) return;
+
+                // Вызываем onEnter если есть
+                if (step.onEnter) step.onEnter();
+
+                // Добавляем сообщение бота
+                const msg = typeof step.message === 'function' ? step.message() : step.message;
+                const botMsg = document.createElement('div');
+                botMsg.className = 'crm-chat-message bot';
+                botMsg.innerHTML = msg.replace(/\n/g, '<br>');
+                chat.appendChild(botMsg);
+                chat.scrollTop = chat.scrollHeight;
+
+                // Рендерим кнопки
+                controls.innerHTML = '';
+                const btns = typeof step.buttons === 'function' ? step.buttons() : step.buttons;
+                btns.forEach(btn => {
+                    const button = document.createElement('button');
+                    button.className = `crm-phone-btn ${btn.class || ''}`;
+                    button.innerHTML = btn.text.replace(/\n/g, '<br>');
+                    button.onclick = () => this.handleAction(btn.action);
+                    controls.appendChild(button);
+                });
+            },
+
+            handleAction(action) {
+                const chat = document.getElementById('crm-chat-flow');
+
+                // Находим текст кнопки для сообщения пользователя
+                const btn = document.querySelector(`button[onclick*="'${action}'"]`);
+                let userText = action;
+                if (btn) {
+                    userText = btn.textContent.replace(/[📋💰🩺✅👨‍⚕️🕐📝🔔📍]/g, '').trim().split('\n')[0];
+                }
+
+                // Добавляем сообщение пользователя
+                const userMsg = document.createElement('div');
+                userMsg.className = 'crm-chat-message user';
+                userMsg.textContent = userText;
+                chat.appendChild(userMsg);
+                chat.scrollTop = chat.scrollHeight;
+
+                // Обрабатываем переход
+                switch(action) {
+                    case 'booking':
+                        this.state.step = 'booking';
+                        break;
+                    case 'prices':
+                        this.showPrices();
+                        return;
+                    case 'reset':
+                        this.reset();
+                        return;
+                    case 'confirm':
+                        this.state.step = 'success';
+                        break;
+                    default:
+                        if (action.startsWith('service_')) {
+                            const serviceId = action.replace('service_', '');
+                            this.state.service = this.services.find(s => s.id === serviceId);
+                            this.state.step = 'select_doctor';
+                        } else if (action.startsWith('doctor_')) {
+                            const doctorId = action.replace('doctor_', '');
+                            this.state.doctor = this.doctors.find(d => d.id === doctorId);
+                            this.state.step = 'select_time';
+                        } else if (action.startsWith('time_')) {
+                            this.state.time = action.replace('time_', '');
+                            this.state.step = 'confirm';
+                        }
+                }
+
+                // Рендерим следующий шаг с задержкой
+                setTimeout(() => this.renderStep(), 400);
+            },
+
+            createLead(service) {
+                this.leadCounter++;
+                const leadId = this.leadCounter;
+
+                const newCol = document.getElementById('crm-leads-new');
+                const countEl = document.getElementById('crm-count-new');
+                if (!newCol) return;
+
+                const card = document.createElement('div');
+                card.className = 'crm-lead-card new';
+                card.id = `lead-${leadId}`;
+                card.innerHTML = `
+                    <div class="crm-lead-header">
+                        <span class="crm-lead-id">#${leadId}</span>
+                        <span class="crm-lead-time">только что</span>
+                    </div>
+                    <div class="crm-lead-service">${service}</div>
+                    <div class="crm-lead-client">
+                        <i class="fa-solid fa-user"></i> Клиент
+                    </div>
+                    <div class="crm-lead-tags">
+                        <span class="crm-tag bot">бот</span>
+                        <span class="crm-tag new">новый</span>
+                    </div>
+                `;
+
+                newCol.appendChild(card);
+                countEl.textContent = newCol.children.length;
+
+                // Подсвечиваем колонку
+                const col = newCol.closest('.crm-kanban-col');
+                col.classList.add('pulse-highlight');
+                setTimeout(() => col.classList.remove('pulse-highlight'), 1000);
+
+                // Показываем AI Insights
+                this.showAIInsights('new', leadId);
+            },
+
+            updateLead(service) {
+                const card = document.getElementById(`lead-${this.leadCounter}`);
+                if (card) {
+                    const serviceEl = card.querySelector('.crm-lead-service');
+                    if (serviceEl) serviceEl.textContent = service;
+                }
+            },
+
+            moveLeadToProgress() {
+                const leadId = this.leadCounter;
+                const card = document.getElementById(`lead-${leadId}`);
+                const progressCol = document.getElementById('crm-leads-progress');
+                const newCount = document.getElementById('crm-count-new');
+                const progressCount = document.getElementById('crm-count-progress');
+
+                if (!card || !progressCol) return;
+
+                // Анимируем перемещение
+                card.style.transform = 'scale(1.05)';
+                card.style.boxShadow = '0 20px 40px rgba(59, 130, 246, 0.3)';
+
+                setTimeout(() => {
+                    progressCol.appendChild(card);
+                    card.classList.remove('new');
+                    card.classList.add('progress');
+
+                    const tags = card.querySelector('.crm-lead-tags');
+                    if (tags) {
+                        tags.innerHTML = '<span class="crm-tag bot">бот</span><span class="crm-tag progress">в работе</span>';
+                    }
+
+                    card.style.transform = 'scale(1)';
+                    card.style.boxShadow = '';
+
+                    // Обновляем счетчики
+                    newCount.textContent = document.getElementById('crm-leads-new').children.length;
+                    progressCount.textContent = progressCol.children.length;
+
+                    // Подсвечиваем колонку
+                    const col = progressCol.closest('.crm-kanban-col');
+                    col.classList.add('pulse-highlight');
+                    setTimeout(() => col.classList.remove('pulse-highlight'), 1000);
+                }, 500);
+            },
+
+            completeLead() {
+                const leadId = this.leadCounter;
+                const card = document.getElementById(`lead-${leadId}`);
+                const closedCol = document.getElementById('crm-leads-closed');
+                const progressCount = document.getElementById('crm-count-progress');
+                const closedCount = document.getElementById('crm-count-closed');
+
+                if (!card || !closedCol) return;
+
+                setTimeout(() => {
+                    closedCol.appendChild(card);
+                    card.classList.remove('progress');
+                    card.classList.add('closed');
+
+                    const tags = card.querySelector('.crm-lead-tags');
+                    if (tags) {
+                        tags.innerHTML = '<span class="crm-tag bot">бот</span><span class="crm-tag closed">завершено</span>';
+                    }
+
+                    // Добавляем AI вероятность
+                    const aiProb = document.createElement('div');
+                    aiProb.className = 'crm-ai-probability';
+                    aiProb.innerHTML = `
+                        <i class="fa-solid fa-wand-magic-sparkles"></i>
+                        <span>ИИ-прогноз: вероятность доп. продаж 80%</span>
+                    `;
+                    card.appendChild(aiProb);
+
+                    // Обновляем счетчики
+                    progressCount.textContent = document.getElementById('crm-leads-progress').children.length;
+                    closedCount.textContent = closedCol.children.length;
+
+                    // Показываем AI Insights для завершенной сделки
+                    this.showAIInsights('closed', leadId, 80);
+                }, 800);
+            },
+
+            showAIInsights(type, leadId, probability = null) {
+                const insightsBlock = document.getElementById('crm-ai-insights');
+                const content = document.getElementById('ai-insight-content');
+
+                if (!insightsBlock || !content) return;
+
+                insightsBlock.style.display = 'block';
+                insightsBlock.classList.add('slide-in');
+
+                if (type === 'new') {
+                    content.innerHTML = `
+                        <div class="ai-insight-item">
+                            <i class="fa-solid fa-user-tag"></i>
+                            <span><strong>Лид #${leadId}:</strong> Клиент первичный, исследует услуги</span>
+                        </div>
+                        <div class="ai-insight-item">
+                            <i class="fa-solid fa-clock"></i>
+                            <span>Рекомендуемое время ответа: <strong>3-5 минут</strong></span>
+                        </div>
+                    `;
+                } else if (type === 'closed') {
+                    content.innerHTML = `
+                        <div class="ai-insight-item success">
+                            <i class="fa-solid fa-chart-line"></i>
+                            <span><strong>Анализ сделки #${leadId}:</strong></span>
+                        </div>
+                        <div class="ai-insight-item">
+                            <i class="fa-solid fa-percent"></i>
+                            <span>Вероятность доп. продаж: <strong class="highlight-success">${probability}%</strong></span>
+                        </div>
+                        <div class="ai-insight-item">
+                            <i class="fa-solid fa-gift"></i>
+                            <span>Рекомендация: Предложить комплексное обследование</span>
+                        </div>
+                    `;
+                }
+
+                setTimeout(() => insightsBlock.classList.remove('slide-in'), 500);
+            },
+
+            showPrices() {
+                const chat = document.getElementById('crm-chat-flow');
+                const controls = document.getElementById('crm-phone-controls');
+
+                const pricesMsg = document.createElement('div');
+                pricesMsg.className = 'crm-chat-message bot';
+                pricesMsg.innerHTML = `
+                    💰 Прайс-лист:<br><br>
+                    • Консультация терапевта: 2 500 ₽<br>
+                    • Сдача анализов: от 1 200 ₽<br>
+                    • МРТ-диагностика: 8 500 ₽<br><br>
+                    📞 +7 (999) 123-45-67
+                `;
+                chat.appendChild(pricesMsg);
+                chat.scrollTop = chat.scrollHeight;
+
+                controls.innerHTML = `
+                    <button class="crm-phone-btn primary" onclick="LiveCRMSync.handleAction('booking')">
+                        📋 Записаться
+                    </button>
+                    <button class="crm-phone-btn" onclick="LiveCRMSync.handleAction('welcome')">
+                        🔙 Назад
+                    </button>
+                `;
+            },
+
+            reset() {
+                this.state = { step: 'welcome', service: null, doctor: null, time: null, leadId: null };
+
+                ['new', 'progress', 'closed'].forEach(status => {
+                    const container = document.getElementById(`crm-leads-${status}`);
+                    const countEl = document.getElementById(`crm-count-${status}`);
+                    if (container) container.innerHTML = '';
+                    if (countEl) countEl.textContent = '0';
+                });
+
+                document.getElementById('crm-ai-insights').style.display = 'none';
+
+                this.renderStep();
+            }
+        };
+
+        // Переключатель видов для мобильных
+        const LiveCRMSwitch = {
+            switchView(view) {
+                const layout = document.getElementById('crm-sync-layout');
+                const btnClient = document.getElementById('btn-client-view');
+                const btnAdmin = document.getElementById('btn-admin-view');
+
+                if (view === 'client') {
+                    layout.classList.add('mobile-client-view');
+                    layout.classList.remove('mobile-admin-view');
+                    btnClient.classList.add('active');
+                    btnAdmin.classList.remove('active');
+                } else {
+                    layout.classList.remove('mobile-client-view');
+                    layout.classList.add('mobile-admin-view');
+                    btnClient.classList.remove('active');
+                    btnAdmin.classList.add('active');
+                }
+            }
+        };
+
+        // Инициализация
+        LiveCRMSync.init();
+    </script>
+</body>
+</html>

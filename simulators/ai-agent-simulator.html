@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nodum AI Agent Simulator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* ========================================
+           БАЗОВЫЕ ПЕРЕМЕННЫЕ И СБРОСЫ
+           ======================================== */
+        :root {
+            --bg-color: #030712;
+            --card-bg: rgba(255, 255, 255, 0.02);
+            --card-border: rgba(255, 255, 255, 0.06);
+            --card-hover: rgba(255, 255, 255, 0.04);
+            --accent: #3b82f6;
+            --accent-glow: #60a5fa;
+            --accent-purple: #8b5cf6;
+            --text-main: #f9fafb;
+            --text-muted: #9ca3af;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --font-main: 'Outfit', sans-serif;
+            --radius-lg: 24px;
+            --radius-md: 16px;
+            --radius-sm: 12px;
+            --transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: var(--font-main);
+            line-height: 1.6;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ========================================
+           КОНТЕЙНЕР СИМУЛЯТОРА
+           ======================================== */
+        .simulator-section {
+            padding: 60px 5%;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .simulator-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .simulator-header h2 {
+            font-size: clamp(1.8rem, 4vw, 2.5rem);
+            font-weight: 800;
+            margin-bottom: 12px;
+        }
+
+        .text-gradient {
+            background: linear-gradient(135deg, #fff 0%, var(--accent) 100%);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .simulator-header p {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* ========================================
+           RAG AGENT DEMO STYLES
+           ======================================== */
+        .rag-agent-demo {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-lg);
+            padding: 30px;
+        }
+
+        .rag-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        @media (max-width: 1024px) {
+            .rag-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Левая панель: PDF Документ */
+        .rag-document-panel {
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+        }
+
+        .rag-doc-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px 20px;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        .rag-doc-header i {
+            color: var(--accent-glow);
+            font-size: 1.2rem;
+        }
+
+        .rag-doc-header span {
+            flex: 1;
+            font-weight: 500;
+        }
+
+        .rag-doc-badge {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+            padding: 4px 10px;
+            border-radius: 100px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .rag-document {
+            padding: 20px;
+            max-height: 500px;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .rag-paragraph {
+            padding: 16px;
+            margin-bottom: 12px;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-sm);
+            transition: var(--transition);
+        }
+
+        .rag-paragraph.highlighted {
+            border-color: var(--accent-glow);
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+        }
+
+        .rag-para-num {
+            color: var(--accent-glow);
+            font-weight: 600;
+            font-size: 0.85rem;
+            margin-bottom: 8px;
+        }
+
+        .rag-para-content strong {
+            color: var(--text-main);
+            display: block;
+            margin-bottom: 6px;
+        }
+
+        .rag-para-content p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        /* Луч сканера */
+        .rag-scanner-beam {
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, var(--accent-glow), transparent);
+            box-shadow: 0 0 20px var(--accent-glow);
+            display: none;
+            z-index: 10;
+        }
+
+        .rag-scanner-beam.active {
+            display: block;
+            animation: scanMove 2s ease-in-out;
+        }
+
+        @keyframes scanMove {
+            0%, 100% { opacity: 0; }
+            50% { opacity: 1; }
+        }
+
+        .rag-doc-footer {
+            padding: 12px 20px;
+            border-top: 1px solid var(--card-border);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .rag-ai-status {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .rag-ai-status.scanning {
+            color: var(--accent-glow);
+        }
+
+        /* Правая панель: Чат */
+        .rag-chat-panel {
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-md);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .rag-chat-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px 20px;
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(59, 130, 246, 0.1) 100%);
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        .rag-chat-header i {
+            color: var(--accent-purple);
+            font-size: 1.2rem;
+        }
+
+        .rag-chat-header span {
+            flex: 1;
+            font-weight: 500;
+        }
+
+        .rag-model-badge {
+            background: rgba(139, 92, 246, 0.1);
+            color: var(--accent-purple);
+            padding: 4px 10px;
+            border-radius: 100px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .rag-chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            max-height: 400px;
+        }
+
+        .rag-message {
+            max-width: 85%;
+            padding: 14px 18px;
+            border-radius: 18px;
+            animation: messageAppear 0.3s ease-out;
+        }
+
+        @keyframes messageAppear {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .rag-bot {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+        }
+
+        .rag-user {
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-purple) 100%);
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+            color: white;
+        }
+
+        .rag-msg-content {
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .rag-msg-source {
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .rag-typing {
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .rag-typing-indicator {
+            display: flex;
+            gap: 4px;
+        }
+
+        .rag-typing-indicator span {
+            width: 8px;
+            height: 8px;
+            background: var(--text-muted);
+            border-radius: 50%;
+            animation: typing 1.4s infinite ease-in-out both;
+        }
+
+        .rag-typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
+        .rag-typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes typing {
+            0%, 80%, 100% { transform: scale(0.6); opacity: 0.5; }
+            40% { transform: scale(1); opacity: 1; }
+        }
+
+        .rag-typing-text {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        .rag-chat-controls {
+            padding: 20px;
+            border-top: 1px solid var(--card-border);
+        }
+
+        .rag-hint-title {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            margin-bottom: 12px;
+        }
+
+        .rag-hint-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .rag-hint-btn {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            color: var(--accent-glow);
+            padding: 14px 20px;
+            border-radius: var(--radius-sm);
+            font-family: inherit;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            text-align: left;
+        }
+
+        .rag-hint-btn:hover {
+            background: rgba(59, 130, 246, 0.2);
+            border-color: var(--accent-glow);
+            transform: translateX(4px);
+        }
+
+        .rag-hint-btn.pulse-hint {
+            animation: pulseHint 2s infinite;
+        }
+
+        @keyframes pulseHint {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4); }
+            50% { box-shadow: 0 0 0 8px rgba(59, 130, 246, 0); }
+        }
+    </style>
+</head>
+<body>
+    <section class="simulator-section">
+        <div class="simulator-header">
+            <h2>Живой симулятор: <span class="text-gradient">AI-Агент с RAG Intelligence</span></h2>
+            <p>Задайте вопрос — ИИ найдет ответ в документе и покажет источник информации</p>
+        </div>
+
+        <div class="rag-agent-demo">
+            <div class="rag-layout">
+                <!-- Левая панель: PDF Документ -->
+                <div class="rag-document-panel">
+                    <div class="rag-doc-header">
+                        <i class="fa-solid fa-file-pdf"></i>
+                        <span>Регламент_Поставки_2024.pdf</span>
+                        <span class="rag-doc-badge">4 страницы</span>
+                    </div>
+                    <div class="rag-document" id="rag-doc-content">
+                        <div class="rag-paragraph" data-para-id="1" id="para-1">
+                            <div class="rag-para-num">§1</div>
+                            <div class="rag-para-content">
+                                <strong>Гарантийные обязательства</strong>
+                                <p>Гарантийный срок на оборудование составляет 24 месяца с даты ввода в эксплуатацию.</p>
+                            </div>
+                        </div>
+                        <div class="rag-paragraph" data-para-id="2" id="para-2">
+                            <div class="rag-para-num">§2</div>
+                            <div class="rag-para-content">
+                                <strong>Условия поставки</strong>
+                                <p>Сроки доставки до ХМАО: 3-5 рабочих дней. Стоимость включена в договор.</p>
+                            </div>
+                        </div>
+                        <div class="rag-paragraph" data-para-id="3" id="para-3">
+                            <div class="rag-para-num">§3</div>
+                            <div class="rag-para-content">
+                                <strong>Технические характеристики</strong>
+                                <p>Мощность насоса: 15 кВт. Производительность: до 120 м³/час.</p>
+                            </div>
+                        </div>
+                        <div class="rag-paragraph" data-para-id="4" id="para-4">
+                            <div class="rag-para-num">§4</div>
+                            <div class="rag-para-content">
+                                <strong>Обслуживание</strong>
+                                <p>Плановое ТО проводится каждые 6 месяцев. Выезд специалиста - бесплатно.</p>
+                            </div>
+                        </div>
+                        <!-- Луч сканера -->
+                        <div class="rag-scanner-beam" id="rag-scanner"></div>
+                    </div>
+                    <div class="rag-doc-footer">
+                        <span class="rag-ai-status" id="rag-status">
+                            <i class="fa-solid fa-brain"></i> AI готов к анализу
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Правая панель: Чат -->
+                <div class="rag-chat-panel">
+                    <div class="rag-chat-header">
+                        <i class="fa-solid fa-robot"></i>
+                        <span>AI-ассистент Nodum</span>
+                        <span class="rag-model-badge">GPT-4 + RAG</span>
+                    </div>
+                    <div class="rag-chat-messages" id="rag-chat-flow">
+                        <div class="rag-message rag-bot">
+                            <div class="rag-msg-content">
+                                Привет! Я изучил ваш регламент. Задайте вопрос — я найду ответ в документе и покажу, откуда взялась информация.
+                            </div>
+                            <div class="rag-msg-source">Источник: системная база знаний</div>
+                        </div>
+                    </div>
+                    <div class="rag-typing" id="rag-typing" style="display:none">
+                        <div class="rag-typing-indicator">
+                            <span></span><span></span><span></span>
+                        </div>
+                        <span class="rag-typing-text">Сканирую документ...</span>
+                    </div>
+                    <div class="rag-chat-controls">
+                        <p class="rag-hint-title">Попробуйте спросить:</p>
+                        <div class="rag-hint-buttons">
+                            <button class="rag-hint-btn" onclick="RAGAgent.askQuestion(0)" data-idx="0">
+                                Какая гарантия на насосы?
+                            </button>
+                            <button class="rag-hint-btn" onclick="RAGAgent.askQuestion(1)" data-idx="1">
+                                Срок поставки в Сургут?
+                            </button>
+                            <button class="rag-hint-btn" onclick="RAGAgent.askQuestion(2)" data-idx="2">
+                                Характеристики насоса?
+                            </button>
+                            <button class="rag-hint-btn" onclick="RAGAgent.askQuestion(3)" data-idx="3">
+                                Как часто ТО?
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+</body>
+</html>

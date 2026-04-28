@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nodum Telegram Bot Simulator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* ========================================
+           БАЗОВЫЕ ПЕРЕМЕННЫЕ И СБРОСЫ
+           ======================================== */
+        :root {
+            --bg-color: #030712;
+            --card-bg: rgba(255, 255, 255, 0.02);
+            --card-border: rgba(255, 255, 255, 0.06);
+            --card-hover: rgba(255, 255, 255, 0.04);
+            --accent: #3b82f6;
+            --accent-glow: #60a5fa;
+            --accent-purple: #8b5cf6;
+            --text-main: #f9fafb;
+            --text-muted: #9ca3af;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --font-main: 'Outfit', sans-serif;
+            --radius-lg: 24px;
+            --radius-md: 16px;
+            --radius-sm: 12px;
+            --transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: var(--font-main);
+            line-height: 1.6;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ========================================
+           КОНТЕЙНЕР СИМУЛЯТОРА
+           ======================================== */
+        .simulator-section {
+            padding: 60px 5%;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .simulator-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .simulator-header h2 {
+            font-size: clamp(1.8rem, 4vw, 2.5rem);
+            font-weight: 800;
+            margin-bottom: 12px;
+        }
+
+        .text-gradient {
+            background: linear-gradient(135deg, #fff 0%, var(--accent) 100%);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .simulator-header p {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* ========================================
+           TELEGRAM BOT STYLES
+           ======================================== */
+        .tg-simulator-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .phone-mockup {
+            width: 320px;
+            height: 640px;
+            background: linear-gradient(145deg, #1a1d24 0%, #0f1419 100%);
+            border-radius: 40px;
+            border: 12px solid #2a2d35;
+            box-shadow: 0 50px 100px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+            position: relative;
+        }
+
+        @media (max-width: 480px) {
+            .phone-mockup {
+                width: 280px;
+                height: 560px;
+                border-width: 10px;
+                border-radius: 32px;
+            }
+        }
+
+        /* Шапка Telegram */
+        .tg-header {
+            background: linear-gradient(135deg, #1a1d24 0%, #242830 100%);
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .tg-back-btn {
+            color: var(--accent-glow);
+            font-size: 1.2rem;
+        }
+
+        .tg-avatar {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-purple) 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: white;
+        }
+
+        .tg-info {
+            flex: 1;
+        }
+
+        .tg-name {
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .tg-status {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        /* Область сообщений */
+        .tg-chat {
+            height: calc(100% - 140px);
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .tg-chat::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .tg-chat::-webkit-scrollbar-thumb {
+            background: var(--card-border);
+            border-radius: 2px;
+        }
+
+        /* Сообщения */
+        .message {
+            max-width: 85%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            animation: messageAppear 0.3s ease-out;
+        }
+
+        @keyframes messageAppear {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message-bot {
+            background: #2a2d35;
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+            color: var(--text-main);
+        }
+
+        .message-user {
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-purple) 100%);
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+            color: white;
+        }
+
+        /* Индикатор набора */
+        .typing-indicator {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 16px;
+            align-self: flex-start;
+        }
+
+        .typing-indicator span {
+            width: 8px;
+            height: 8px;
+            background: var(--text-muted);
+            border-radius: 50%;
+            animation: typing 1.4s infinite ease-in-out both;
+        }
+
+        .typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
+        .typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes typing {
+            0%, 80%, 100% { transform: scale(0.6); opacity: 0.5; }
+            40% { transform: scale(1); opacity: 1; }
+        }
+
+        /* Кнопки ответов */
+        .tg-controls {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 16px;
+            background: linear-gradient(to top, #1a1d24 0%, transparent 100%);
+        }
+
+        .tg-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .tg-btn {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            color: var(--accent-glow);
+            padding: 14px 20px;
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .tg-btn:hover {
+            background: rgba(59, 130, 246, 0.2);
+            border-color: var(--accent-glow);
+            transform: translateX(4px);
+        }
+
+        .tg-btn:active {
+            transform: translateX(4px) scale(0.98);
+        }
+
+        .tg-btn i {
+            font-size: 1rem;
+        }
+
+        /* TG WebApp Styles */
+        .tg-webapp {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .tg-webapp .tg-header {
+            background: linear-gradient(135deg, #0088cc 0%, #006699 100%);
+            color: white;
+        }
+
+        .tg-webapp .tg-header i {
+            color: white;
+        }
+
+        .tg-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+            gap: 20px;
+        }
+
+        .tg-content .tg-avatar {
+            width: 80px;
+            height: 80px;
+            font-size: 2rem;
+        }
+
+        .tg-content h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            text-align: center;
+        }
+
+        .tg-content p {
+            color: var(--text-muted);
+            text-align: center;
+        }
+
+        .tg-slots {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            width: 100%;
+        }
+
+        .hint-btn-sim {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            color: var(--accent-glow);
+            padding: 16px 20px;
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .hint-btn-sim:hover {
+            background: rgba(59, 130, 246, 0.2);
+            border-color: var(--accent-glow);
+        }
+
+        .hint-btn-sim.confirmed {
+            background: var(--success);
+            border-color: var(--success);
+            color: white;
+        }
+
+        .tg-success {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            animation: successAppear 0.5s ease-out;
+        }
+
+        @keyframes successAppear {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .tg-success i {
+            font-size: 3rem;
+            color: var(--success);
+            margin-bottom: 16px;
+        }
+
+        .tg-success h4 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--success);
+        }
+    </style>
+</head>
+<body>
+    <section class="simulator-section">
+        <div class="simulator-header">
+            <h2>Живой симулятор: <span class="text-gradient">Telegram Bot</span></h2>
+            <p>Запись на сервис через Telegram WebApp</p>
+        </div>
+
+        <div class="tg-simulator-container">
+            <div class="phone-mockup">
+                <div class="tg-webapp">
+                    <div class="tg-header">
+                        <i class="fa-brands fa-telegram"></i>
+                        <div class="tg-info">
+                            <div class="tg-name">Nodum Service</div>
+                            <div class="tg-status">WebApp</div>
+                        </div>
+                    </div>
+
+                    <div class="tg-content" id="tg-content">
+                        <div class="tg-avatar">
+                            <i class="fa-solid fa-wrench"></i>
+                        </div>
+                        <h3>Запись на сервис</h3>
+                        <p>Выберите удобное время</p>
+                        <div class="tg-slots">
+                            <button class="hint-btn-sim" onclick="tgConfirm(this, '10:00')">10:00</button>
+                            <button class="hint-btn-sim" onclick="tgConfirm(this, '14:30')">14:30</button>
+                            <button class="hint-btn-sim" onclick="tgConfirm(this, '16:00')">16:00</button>
+                        </div>
+                    </div>
+
+                    <div class="tg-success" id="tg-success">
+                        <i class="fa-solid fa-check-circle"></i>
+                        <h4>Запись подтверждена!</h4>
+                        <p>Ожидайте звонка менеджера</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        // ========================================
+        // TELEGRAM BOT SIMULATOR
+        // ========================================
+        function tgConfirm(btn, time) {
+            // Подтверждаем выбранное время
+            btn.classList.add('confirmed');
+            btn.innerHTML = `<i class="fa-solid fa-check"></i> ${time}`;
+
+            // Деактивируем другие кнопки
+            const allBtns = document.querySelectorAll('.hint-btn-sim');
+            allBtns.forEach(b => {
+                if (b !== btn) {
+                    b.disabled = true;
+                    b.style.opacity = '0.5';
+                }
+            });
+
+            // Показываем сообщение об успехе
+            setTimeout(() => {
+                const content = document.getElementById('tg-content');
+                const success = document.getElementById('tg-success');
+
+                content.style.display = 'none';
+                success.style.display = 'block';
+            }, 500);
+        }
+    </script>
+</body>
+</html>

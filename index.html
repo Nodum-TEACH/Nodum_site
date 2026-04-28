@@ -24,6 +24,23 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({ 
+            startOnLoad: true, 
+            theme: 'dark',
+            themeVariables: {
+                primaryColor: '#3b82f6',
+                edgeLabelBackground:'#1e293b',
+                tertiaryColor: '#1e293b',
+                mainBkg: '#0f172a',
+                nodeBorder: '#3b82f6',
+                lineColor: '#6366f1',
+                fontFamily: 'Outfit'
+            },
+            flowchart: { useMaxWidth: true, htmlLabels: true, curve: 'long-hand' }
+        });
+    </script>
 </head>
 <body>
     <a class="skip-link" href="#main-content">Пропустить к содержанию</a>
@@ -91,7 +108,7 @@
         </div>
     </section>
 
-    <!-- Сценарии -->
+    <!-- Сценарии автоматизации - Сетка карточек с модальными демо -->
     <section id="portfolio" class="portfolio fade-in-up">
         <div class="section-header">
             <h2 class="section-title">Сценарии <span class="text-gradient">автоматизации</span></h2>
@@ -249,6 +266,7 @@
             </div>
             <div class="modal-body">
                 <form id="traditional-form" onsubmit="submitTraditionalForm(event)">
+                    <input type="hidden" id="form-demo-type" name="demoType" value="">
                     <div class="form-group">
                         <label for="form-field">Сфера деятельности *</label>
                         <input type="text" id="form-field" required placeholder="Например: Салон красоты, E-commerce, IT">
@@ -269,53 +287,51 @@
         </div>
     </div>
 
-    <!-- Модальное окно сценария (бент-карточки) -->
-    <div id="bot-modal" class="modal">
-        <div class="modal-content">
-            <span class="close-modal"><i class="fa-solid fa-xmark"></i></span>
-            <div class="modal-header">
+    <!-- Модальное окно сценария с интерактивной песочницей -->
+    <div id="bot-modal" class="modal scenario-modal">
+        <div class="modal-content scenario-modal-content">
+            <span class="close-modal" onclick="closeScenarioModal()"><i class="fa-solid fa-xmark"></i></span>
+            <div class="modal-header scenario-header">
                 <div class="modal-icon"><i></i></div>
                 <h2></h2>
             </div>
-            <div class="modal-body">
-                <div class="description"></div>
-
-                <!-- Interactive Bot Message Section -->
-                <div class="bot-message-section">
-                    <h3><i class="fa-solid fa-comments"></i> Демо-диалог</h3>
-                    <div class="bot-chat-container">
-                        <div class="bot-chat-messages" id="bot-chat-messages">
-                            <div class="bot-message">
-                                <div class="bot-avatar"><i class="fa-solid fa-robot"></i></div>
-                                <div class="message-content">
-                                    <p>Привет! Расскажите что вас интересует — отвечу на вопросы и помогу оставить заявку.</p>
-                                </div>
-                            </div>
+            <div class="modal-body scenario-body">
+                <!-- Dynamic card content will be inserted here -->
+                <div id="modal-card-content"></div>
+                <div class="modal-simulator-container" style="display: none;">
+                    <div id="modal-device-frame" class="simulator-frame macbook">
+                        <div class="frame-header">
+                            <div class="dots"><span></span><span></span><span></span></div>
+                            <div class="address-bar" id="modal-frame-title">Анализ документа: Регламент_Тюмень.pdf</div>
                         </div>
-                        <div class="bot-chat-input">
-                            <input type="text" id="bot-message-input" placeholder="Задайте вопрос...">
-                            <button id="bot-send-btn"><i class="fa-solid fa-paper-plane"></i></button>
+                        <div id="modal-simulator-content" class="frame-body">
+                            <!-- Контент загружается через JS -->
                         </div>
                     </div>
                 </div>
 
-                <div class="gallery-section">
-                    <h3>Интерфейс:</h3>
-                    <div class="image-gallery"></div>
+                <p class="scenario-description"></p>
+
+                <div class="scenario-features">
+                    <h4>Возможности:</h4>
+                    <ul class="features-list"></ul>
                 </div>
-                <div class="features-tech-grid">
-                    <div class="features">
-                        <h3>Что получает бизнес:</h3>
-                        <ul></ul>
-                    </div>
-                    <div class="tech-stack">
-                        <h3>Как это работает:</h3>
-                        <div class="implementation-details"></div>
-                    </div>
+
+                <div class="scenario-implementation">
+                    <h4>Как это работает:</h4>
+                    <p class="implementation-text"></p>
                 </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-primary btn-large modal-contact" style="width: 100%">Хочу такого агента</button>
+
+                <!-- ROI Toast и CTA будут добавляться JS -->
+
+                <div class="scenario-modal-actions">
+                    <button class="btn btn-primary" onclick="handleScenarioCTA()">
+                        <span>Оставить заявку <i class="fa-solid fa-paper-plane"></i></span>
+                    </button>
+                    <button class="btn btn-secondary btn-small" onclick="window.closeScenarioModal(); document.getElementById('chat').scrollIntoView({ behavior: 'smooth' });">
+                        <span>Спросить у агента <i class="fa-solid fa-robot"></i></span>
+                    </button>
+                </div>
             </div>
         </div>
     </div>

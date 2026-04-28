@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Калькулятор - Mobile</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #030712;
+            color: #f9fafb;
+            font-family: 'Outfit', sans-serif;
+            min-height: 100vh;
+            padding: 16px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .header h2 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        .header p {
+            color: #9ca3af;
+            font-size: 0.85rem;
+        }
+        .total-card {
+            background: linear-gradient(135deg, rgba(59,130,246,0.1), rgba(139,92,246,0.1));
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 16px;
+            padding: 24px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .total-label {
+            color: #9ca3af;
+            font-size: 0.85rem;
+            margin-bottom: 8px;
+        }
+        .total-value {
+            font-size: 2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #fff, #60a5fa);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .vat-note {
+            color: #9ca3af;
+            font-size: 0.75rem;
+            margin-top: 8px;
+        }
+        .items {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .item {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .item-info {
+            flex: 1;
+        }
+        .item-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 4px;
+        }
+        .item-price {
+            color: #9ca3af;
+            font-size: 0.8rem;
+        }
+        .item-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .btn-control {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.05);
+            color: #f9fafb;
+            font-size: 1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .btn-control:active {
+            background: rgba(59,130,246,0.2);
+        }
+        .count {
+            font-weight: 600;
+            font-size: 1.1rem;
+            min-width: 24px;
+            text-align: center;
+        }
+        .breakdown {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        .breakdown.show {
+            display: block;
+        }
+        .breakdown-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            color: #9ca3af;
+            margin-bottom: 8px;
+        }
+        .breakdown-row.total {
+            color: #f9fafb;
+            font-weight: 600;
+            font-size: 0.95rem;
+            padding-top: 8px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            margin-top: 8px;
+        }
+        .actions {
+            display: flex;
+            gap: 12px;
+        }
+        .btn-primary {
+            flex: 1;
+            padding: 16px;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-family: inherit;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .btn-secondary {
+            padding: 16px 24px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            color: #9ca3af;
+            font-family: inherit;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h2>🚚 Калькулятор</h2>
+        <p>Рассчитайте стоимость услуг манипулятора</p>
+    </div>
+
+    <div class="total-card">
+        <div class="total-label">Итоговая стоимость</div>
+        <div class="total-value" id="total">0 ₽</div>
+        <div class="vat-note">Включая НДС 20%</div>
+    </div>
+
+    <div class="items">
+        <div class="item">
+            <div class="item-info">
+                <div class="item-name">Рейс в черте города</div>
+                <div class="item-price">5 000 ₽ / рейс</div>
+            </div>
+            <div class="item-controls">
+                <button class="btn-control" onclick="update('city', -1)">−</button>
+                <span class="count" id="count-city">0</span>
+                <button class="btn-control" onclick="update('city', 1)">+</button>
+            </div>
+        </div>
+
+        <div class="item">
+            <div class="item-info">
+                <div class="item-name">Рейс за город (до 20 км)</div>
+                <div class="item-price">7 000 ₽ / рейс</div>
+            </div>
+            <div class="item-controls">
+                <button class="btn-control" onclick="update('suburb', -1)">−</button>
+                <span class="count" id="count-suburb">0</span>
+                <button class="btn-control" onclick="update('suburb', 1)">+</button>
+            </div>
+        </div>
+
+        <div class="item">
+            <div class="item-info">
+                <div class="item-name">Погрузка/разгрузка</div>
+                <div class="item-price">1 500 ₽ / час</div>
+            </div>
+            <div class="item-controls">
+                <button class="btn-control" onclick="update('loading', -1)">−</button>
+                <span class="count" id="count-loading">0</span>
+                <button class="btn-control" onclick="update('loading', 1)">+</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="breakdown" id="breakdown">
+        <div class="breakdown-row" id="breakdown-content"></div>
+    </div>
+
+    <div class="actions">
+        <button class="btn-primary" onclick="submit()">Отправить</button>
+        <button class="btn-secondary" onclick="reset()">Сброс</button>
+    </div>
+
+    <script>
+        const rates = {
+            city: { price: 5000, label: 'Рейс в черте города' },
+            suburb: { price: 7000, label: 'Рейс за город' },
+            loading: { price: 1500, label: 'Погрузка/разгрузка' }
+        };
+
+        let state = { city: 0, suburb: 0, loading: 0 };
+
+        function update(type, delta) {
+            state[type] = Math.max(0, state[type] + delta);
+            document.getElementById('count-' + type).textContent = state[type];
+            calculate();
+        }
+
+        function calculate() {
+            const total = state.city * rates.city.price + 
+                         state.suburb * rates.suburb.price + 
+                         state.loading * rates.loading.price;
+            
+            const vat = Math.round(total * 0.2);
+            const totalWithVat = total + vat;
+            
+            document.getElementById('total').textContent = totalWithVat.toLocaleString('ru-RU') + ' ₽';
+
+            const breakdown = document.getElementById('breakdown');
+            const content = document.getElementById('breakdown-content');
+            
+            if (total > 0) {
+                breakdown.classList.add('show');
+                let html = '';
+                if (state.city > 0) html += `<div class="breakdown-row"><span>${rates.city.label} × ${state.city}</span><span>${(state.city * rates.city.price).toLocaleString('ru-RU')} ₽</span></div>`;
+                if (state.suburb > 0) html += `<div class="breakdown-row"><span>${rates.suburb.label} × ${state.suburb}</span><span>${(state.suburb * rates.suburb.price).toLocaleString('ru-RU')} ₽</span></div>`;
+                if (state.loading > 0) html += `<div class="breakdown-row"><span>${rates.loading.label} × ${state.loading}</span><span>${(state.loading * rates.loading.price).toLocaleString('ru-RU')} ₽</span></div>`;
+                html += `<div class="breakdown-row"><span>База</span><span>${total.toLocaleString('ru-RU')} ₽</span></div>`;
+                html += `<div class="breakdown-row"><span>НДС 20%</span><span>${vat.toLocaleString('ru-RU')} ₽</span></div>`;
+                html += `<div class="breakdown-row total"><span>Итого</span><span>${totalWithVat.toLocaleString('ru-RU')} ₽</span></div>`;
+                content.innerHTML = html;
+            } else {
+                breakdown.classList.remove('show');
+            }
+        }
+
+        function submit() {
+            const total = state.city * rates.city.price + state.suburb * rates.suburb.price + state.loading * rates.loading.price;
+            if (total === 0) {
+                alert('Выберите услуги');
+                return;
+            }
+            const vat = Math.round(total * 0.2);
+            alert('Заявка отправлена! Сумма: ' + (total + vat).toLocaleString('ru-RU') + ' ₽');
+        }
+
+        function reset() {
+            state = { city: 0, suburb: 0, loading: 0 };
+            ['city', 'suburb', 'loading'].forEach(t => document.getElementById('count-' + t).textContent = '0');
+            calculate();
+        }
+    </script>
+</body>
+</html>

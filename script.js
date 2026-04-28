@@ -1,4 +1,12 @@
 
+// ============================================
+// GLOBAL VARIABLES
+// ============================================
+
+// Текущий активный тип демо для метаданных формы и модалки
+let currentDemoType = null;
+
+// ============================================
 // Toast Notification System
 function showNotification(title, message, type = 'info', duration = 5000) {
     const container = document.getElementById('toast-container');
@@ -13,16 +21,39 @@ function showNotification(title, message, type = 'info', duration = 5000) {
 
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
-    toast.innerHTML = `
-        <div class="toast-icon">${icons[type] || icons.info}</div>
-        <div class="toast-content">
-            <div class="toast-title">${title}</div>
-            <div class="toast-message">${message}</div>
-        </div>
-        <button class="toast-close" onclick="this.parentElement.remove()">
-            <i class="fa-solid fa-xmark"></i>
-        </button>
-    `;
+
+    // XSS-safe construction using DOM API
+    const iconDiv = document.createElement('div');
+    iconDiv.className = 'toast-icon';
+    iconDiv.innerHTML = icons[type] || icons.info; // Safe: predefined icons only
+
+    const contentDiv = document.createElement('div');
+    contentDiv.className = 'toast-content';
+
+    const titleDiv = document.createElement('div');
+    titleDiv.className = 'toast-title';
+    titleDiv.textContent = title; // XSS-safe: textContent escapes HTML
+
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'toast-message';
+    messageDiv.textContent = message; // XSS-safe: textContent escapes HTML
+
+    contentDiv.appendChild(titleDiv);
+    contentDiv.appendChild(messageDiv);
+
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'toast-close';
+    closeBtn.innerHTML = '<i class="fa-solid fa-xmark"></i>'; // Safe: predefined
+    closeBtn.onclick = () => toast.remove();
+
+    toast.appendChild(iconDiv);
+    toast.appendChild(contentDiv);
+    toast.appendChild(closeBtn);
+
+    // Лимитируем количество уведомлений (максимум 3)
+    while (container.children.length >= 3) {
+        container.firstChild.remove();
+    }
 
     container.appendChild(toast);
 
@@ -135,13 +166,24 @@ function closeTraditionalForm() {
     }, 300);
 }
 
+// Флаг защиты от дублирования отправки
+let isFormSubmitting = false;
+
 // Function to submit traditional form
 async function submitTraditionalForm(event) {
     event.preventDefault();
 
+    // Защита от двойного клика
+    if (isFormSubmitting) {
+        console.log('[form] Submit blocked: already submitting');
+        return;
+    }
+    isFormSubmitting = true;
+
     const field = document.getElementById('form-field').value;
     const contact = document.getElementById('form-contact').value.trim();
     const message = document.getElementById('form-message').value;
+    const demoType = document.getElementById('form-demo-type').value;
 
     // Validate contact format
     const phoneRegex = /(\+7|8)[\s\-]?\(?\d{3}\)?[\s\-]?\d{3}[\s\-]?\d{2}[\s\-]?\d{2}/;
@@ -165,14 +207,16 @@ async function submitTraditionalForm(event) {
                 field,
                 contact,
                 message,
-                formType: 'traditional'
+                formType: 'traditional',
+                demoType: demoType || 'general',
+                subject: demoType ? `Интерес к ${demoType}` : 'Заявка с сайта'
             })
         });
 
         const data = await response.json();
 
         if (data.success) {
-            console.log('[traditional-form] Form submitted successfully:', { field, contact, message });
+            console.log('[traditional-form] Form submitted successfully:', { field, contact, message, demoType });
             
             showNotification('Успешно', 'Заявка отправлена! Мы свяжемся с вами в ближайшее время.', 'success');
             
@@ -188,6 +232,8 @@ async function submitTraditionalForm(event) {
     } catch (error) {
         console.error('[traditional-form] Network error:', error);
         showNotification('Ошибка', 'Ошибка соединения. Проверьте интернет и попробуйте снова.', 'error');
+    } finally {
+        isFormSubmitting = false;
     }
 }
 
@@ -249,6 +295,52 @@ document.addEventListener('click', (event) => {
     scrollToHashTarget(href);
 });
 
+// ============================================
+// GLOBAL FUNCTIONS FOR INLINE HANDLERS
+// ============================================
+
+// Global closeScenarioModal function
+window.closeScenarioModal = function() {
+    const modal = document.getElementById('bot-modal');
+    if (!modal) return;
+
+    // Очищаем симулятор
+    const content = document.getElementById('modal-simulator-content');
+    const frameTitle = document.getElementById('modal-frame-title');
+    const frame = document.getElementById('modal-device-frame');
+
+    if (content) content.innerHTML = '';
+    if (frameTitle) frameTitle.textContent = '';
+    if (frame) frame.className = 'simulator-frame macbook';
+
+    // Очищаем features и implementation
+    const featuresList = modal.querySelector('.features-list');
+    const implementationText = modal.querySelector('.implementation-text');
+    if (featuresList) featuresList.innerHTML = '';
+    if (implementationText) implementationText.textContent = '';
+
+    // Очищаем modal-card-content
+    const modalCardContent = document.getElementById('modal-card-content');
+    if (modalCardContent) modalCardContent.innerHTML = '';
+
+    // Удаляем CTA и ROI-toast если есть
+    const existingCTA = modal.querySelector('.demo-final-cta');
+    const existingROI = document.querySelector('.roi-toast');
+    if (existingCTA) existingCTA.remove();
+    if (existingROI) existingROI.remove();
+
+    modal.classList.remove('visible');
+    setTimeout(() => {
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+    }, 300);
+};
+
+
+// ============================================
+// DOMContentLoaded - Event Listeners & Initialization
+// ============================================
+
 document.addEventListener('DOMContentLoaded', () => {
 
     // Burger Menu Toggle
@@ -291,10 +383,22 @@ document.addEventListener('DOMContentLoaded', () => {
         scrollToHashTarget('#portfolio');
     };
 
-    // 2. Магнитные кнопки
+    // Throttle helper для оптимизации производительности
+    function throttle(func, limit) {
+        let inThrottle;
+        return function(...args) {
+            if (!inThrottle) {
+                func.apply(this, args);
+                inThrottle = true;
+                setTimeout(() => inThrottle = false, limit);
+            }
+        };
+    }
+
+    // 2. Магнитные кнопки с throttle (60fps max)
     const magneticButtons = document.querySelectorAll('.btn-magnetic');
     magneticButtons.forEach(btn => {
-        btn.addEventListener('mousemove', function(e) {
+        const handleMouseMove = throttle(function(e) {
             const position = btn.getBoundingClientRect();
             const x = e.pageX - position.left - position.width / 2;
             const y = e.pageY - position.top - position.height / 2;
@@ -302,7 +406,9 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.style.transform = `translate(${x * 0.15}px, ${y * 0.15}px)`;
             const span = btn.querySelector('span');
             if(span) span.style.transform = `translate(${x * 0.05}px, ${y * 0.05}px)`;
-        });
+        }, 16); // ~60fps
+
+        btn.addEventListener('mousemove', handleMouseMove);
 
         btn.addEventListener('mouseout', function() {
             btn.style.transform = 'translate(0px, 0px)';
@@ -311,7 +417,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // 3. Загрузка данных и рендер Bento
+    // 3. Загрузка данных и рендер карточек сценариев
     fetch('data.json')
         .then(response => response.json())
         .then(data => {
@@ -322,6 +428,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderCards(cards) {
         const container = document.getElementById('bento-container');
+        if (!container) return;
 
         const tariffColors = {
             'Нейрон': 'tariff-neuron',
@@ -339,64 +446,209 @@ document.addEventListener('DOMContentLoaded', () => {
                 ? `<span class="card-tariff-badge ${tariffClass}">${card.tariff}</span>`
                 : '';
 
-            const tagsHTML = card.tags.slice(0, 3).map(tag => `<span>${tag}</span>`).join('');
+            // Benefit badge по типу выгоды
+            const benefitBadge = card.benefitType && card.benefit
+                ? `<span class="benefit-badge ${card.benefitType}"><i class="fa-solid fa-bolt"></i> ${card.benefit}</span>`
+                : '';
+
+            const tagsHTML = card.tags.slice(0, 3).map(tag => `<span>${escapeHtml(tag)}</span>`).join('');
+
+            // Используем demoType из data.json напрямую
+            const demoType = card.demoType || 'ai_agent';
 
             cardEl.innerHTML = `
                 <div>
                     <div class="card-icon-row">
-                        <div class="card-icon"><i class="${card.icon}"></i></div>
+                        <div class="card-icon"><i class="${escapeHtml(card.icon)}"></i></div>
                         ${tariffBadge}
                     </div>
-                    <h3>${card.title}</h3>
-                    <p>${card.description}</p>
+                    ${benefitBadge}
+                    <h3>${escapeHtml(card.title)}</h3>
+                    <p>${escapeHtml(card.description)}</p>
                 </div>
                 <div class="card-tags">${tagsHTML}</div>
             `;
 
-            cardEl.addEventListener('click', () => openModal(card));
+            // При клике на карточку открываем модалку
+            cardEl.addEventListener('click', () => openScenarioModal(card, demoType));
             container.appendChild(cardEl);
         });
     }
 
-    // 4. Модальное окно (логика)
-    const modal = document.getElementById('bot-modal');
+    // XSS-защита: экранирование HTML
+    function escapeHtml(text) {
+        if (!text || typeof text !== 'string') return text || '';
+        return text
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
 
-    function openModal(card) {
+    // 4. Модальное окно сценария с интерактивной песочницей
+    const modal = document.getElementById('bot-modal');
+    let currentCardTitle = '';
+
+    async function openScenarioModal(card, demoType) {
+        currentDemoType = demoType;
+        currentCardTitle = card.title;
+
+        // Заполняем заголовок и иконку
         modal.querySelector('.modal-icon i').className = card.icon;
         modal.querySelector('h2').textContent = card.title;
-        modal.querySelector('.description').textContent = card.description;
+        modal.querySelector('.scenario-description').textContent = card.description;
 
-        // Галерея
-        const gallery = modal.querySelector('.image-gallery');
-        gallery.innerHTML = card.images ? card.images.map(img => `
-            <div class="gallery-item"><img src="${img}" alt="Preview" loading="lazy"></div>
-        `).join('') : '<p style="color:var(--text-muted)">Нет скриншотов</p>';
+        // Заполняем features
+        const featuresList = modal.querySelector('.features-list');
+        if (featuresList && card.features) {
+            featuresList.innerHTML = card.features.map(feature => `<li>${escapeHtml(feature)}</li>`).join('');
+        }
 
-        // Что получает бизнес
-        modal.querySelector('.features ul').innerHTML = card.features.map(f => `<li>${f}</li>`).join('');
+        // Заполняем implementation
+        const implementationText = modal.querySelector('.implementation-text');
+        if (implementationText && card.implementation) {
+            implementationText.textContent = card.implementation;
+        }
 
-        // Как это работает
-        modal.querySelector('.implementation-details').textContent = card.implementation;
+        // Build and insert the glass card with mermaid diagram
+        const modalCardContent = document.getElementById('modal-card-content');
+        if (modalCardContent && card.mermaid) {
+            // Render mermaid SVG before inserting
+            let mermaidSvg = '';
+            if (window.mermaid) {
+                try {
+                    const { svg } = await window.mermaid.render('mermaid-' + Date.now(), card.mermaid);
+                    mermaidSvg = svg;
+                } catch (err) {
+                    console.error('Mermaid render error:', err);
+                    mermaidSvg = `<pre style="color: #666;">${escapeHtml(card.mermaid)}</pre>`;
+                }
+            }
 
-        // Reset bot chat
-        resetBotChat(card.title);
+            modalCardContent.innerHTML = `
+                <div class="mermaid-container">
+                    ${mermaidSvg}
+                </div>
+            `;
 
+            // Apply animation to arrow paths
+            setTimeout(() => {
+                const svg = modalCardContent.querySelector('svg');
+                console.log('SVG found:', !!svg);
+                if (svg) {
+                    const allPaths = svg.querySelectorAll('path');
+                    console.log('Paths found:', allPaths.length);
+                    allPaths.forEach((path, index) => {
+                        path.style.strokeDasharray = '10, 5';
+                        path.style.animation = 'flowAnimation 1s linear infinite';
+                        console.log(`Applied animation to path ${index}`);
+                    });
+                }
+            }, 300);
+        }
+
+        // Проверяем, мобильное ли устройство
+        const isMobile = window.innerWidth <= 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+
+        // Показываем модалку
         modal.style.display = 'flex';
         setTimeout(() => modal.classList.add('visible'), 10);
         document.body.style.overflow = 'hidden';
     }
 
-    function closeModal() {
-        modal.classList.remove('visible');
-        setTimeout(() => {
-            modal.style.display = 'none';
-            document.body.style.overflow = '';
-        }, 300);
-    }
+    // Глобальная функция для CTA в модалке
+    window.handleScenarioCTA = function() {
+        const demoTypeLabels = {
+            'ai_agent': 'AI-Агент',
+            'crm': 'CRM автоматизация',
+            'tg_bot': 'Telegram бот'
+        };
 
-    modal.querySelector('.close-modal').addEventListener('click', closeModal);
-    modal.addEventListener('click', e => { if(e.target === modal) closeModal(); });
-    document.addEventListener('keydown', e => { if(e.key === 'Escape') closeModal(); });
+        const demoTypeField = document.getElementById('form-demo-type');
+        if (demoTypeField) {
+            demoTypeField.value = `${demoTypeLabels[currentDemoType] || currentDemoType} — ${currentCardTitle}`;
+        }
+        window.closeScenarioModal();
+        openTraditionalForm({ preventDefault: () => {} });
+    };
+
+    // Закрытие по клику на фон и Escape
+    modal.addEventListener('click', e => { if(e.target === modal) window.closeScenarioModal(); });
+
+    // Глобальная функция для показа помощи при Rage Click
+    window.showHelpPrompt = function() {
+        // Удаляем существующий prompt если есть
+        const existing = document.querySelector('.help-prompt-overlay');
+        if (existing) return; // Уже показан
+
+        const overlay = document.createElement('div');
+        overlay.className = 'help-prompt-overlay';
+        overlay.innerHTML = `
+            <div class="help-prompt-modal">
+                <div class="help-prompt-icon"><i class="fa-solid fa-hand-holding-heart"></i></div>
+                <div class="help-prompt-title">Похоже, возникли трудности?</div>
+                <div class="help-prompt-text">
+                    Давайте я просто пришлю вам видео-обзор этой системы или перезвоню лично
+                </div>
+                <div class="help-prompt-actions">
+                    <button class="help-btn-video" onclick="handleHelpVideo()">
+                        <i class="fa-solid fa-play"></i> Получить видео-обзор
+                    </button>
+                    <button class="help-btn-call" onclick="handleHelpCall()">
+                        <i class="fa-solid fa-phone"></i> Заказать звонок
+                    </button>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(overlay);
+
+        // Закрытие по клику на фон
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) {
+                overlay.classList.remove('show');
+                setTimeout(() => overlay.remove(), 300);
+            }
+        });
+
+        // Показываем с анимацией
+        requestAnimationFrame(() => {
+            overlay.classList.add('show');
+        });
+
+        // Трекаем событие
+        if (window.nodumAnalytics) {
+            window.nodumAnalytics.track('help_prompt_shown', { trigger: 'rage_click' });
+        }
+    };
+
+    // Обработчики кнопок помощи
+    window.handleHelpVideo = function() {
+        const overlay = document.querySelector('.help-prompt-overlay');
+        if (overlay) {
+            overlay.classList.remove('show');
+            setTimeout(() => overlay.remove(), 300);
+        }
+        showNotification('Видео отправлено', 'Ссылка на видео-обзор отправлена вам в Telegram/email', 'success');
+        // Открываем форму с предзаполненным типом
+        openTraditionalForm({ preventDefault: () => {} });
+    };
+
+    window.handleHelpCall = function() {
+        const overlay = document.querySelector('.help-prompt-overlay');
+        if (overlay) {
+            overlay.classList.remove('show');
+            setTimeout(() => overlay.remove(), 300);
+        }
+        // Открываем форму с фокусом на контакт
+        openTraditionalForm({ preventDefault: () => {} });
+        const contactField = document.getElementById('form-contact');
+        if (contactField) {
+            setTimeout(() => contactField.focus(), 100);
+        }
+    };
 
     // Cabinet modal close on backdrop click
     const cabinetModal = document.getElementById('cabinet-modal');
@@ -404,86 +656,7 @@ document.addEventListener('DOMContentLoaded', () => {
         cabinetModal.addEventListener('click', e => { if (e.target === cabinetModal) closeCabinetModal(); });
     }
 
-    // Bot Chat Functionality
-    const botInput = document.getElementById('bot-message-input');
-    const botSendBtn = document.getElementById('bot-send-btn');
-    const botChatMessages = document.getElementById('bot-chat-messages');
-
-    function sendBotMessage() {
-        const text = botInput.value.trim();
-        if (!text) return;
-
-        // Add user message
-        const userMsg = document.createElement('div');
-        userMsg.className = 'user-message';
-        userMsg.innerHTML = `<div class="message-content"><p>${text}</p></div>`;
-        botChatMessages.appendChild(userMsg);
-
-        botInput.value = '';
-        botChatMessages.scrollTop = botChatMessages.scrollHeight;
-
-        // Simulate bot response
-        setTimeout(() => {
-            const botMsg = document.createElement('div');
-            botMsg.className = 'bot-message';
-            botMsg.innerHTML = `
-                <div class="bot-avatar"><i class="fa-solid fa-robot"></i></div>
-                <div class="message-content">
-                    <p>${generateBotResponse(text)}</p>
-                </div>
-            `;
-            botChatMessages.appendChild(botMsg);
-            botChatMessages.scrollTop = botChatMessages.scrollHeight;
-        }, 800 + Math.random() * 800);
-    }
-
-    function generateBotResponse(userMessage) {
-        const responses = {
-            'price': 'The pricing depends on your specific requirements. Contact me for a personalized quote! Starting from $299 for basic modules.',
-            'cost': 'Pricing varies by complexity and features. Basic bots start at $299, advanced solutions with AI integration start at $999.',
-            'features': 'This module includes automated responses, user management, analytics dashboard, and seamless integration with your existing systems.',
-            'implementation': 'Implementation typically takes 2-4 weeks. We handle everything from setup to deployment and training.',
-            'integration': 'Yes! I can integrate with CRM systems, payment gateways, calendars, and most popular business tools.',
-            'support': '24/7 technical support included with all packages. Plus regular updates and maintenance.',
-            'custom': 'Custom features can be developed based on your specific business needs. Let\'s discuss your requirements!',
-            'demo': 'This is a demo interface. The actual bot would be deployed to Telegram with full functionality.',
-            'how': 'The bot works through Telegram\'s API, providing a seamless experience for your users right in their favorite messenger.',
-            'security': 'All data is encrypted and stored securely. We comply with GDPR and other privacy regulations.'
-        };
-
-        const lowerMessage = userMessage.toLowerCase();
-
-        for (const [key, response] of Object.entries(responses)) {
-            if (lowerMessage.includes(key)) {
-                return response;
-            }
-        }
-
-        // Default responses
-        const defaultResponses = [
-            'That\'s a great question! The best way to get detailed information is to schedule a consultation with me.',
-            'I can help with that! Each solution is tailored to specific business needs. What industry are you in?',
-            'Excellent question! This module is designed to streamline your operations. What specific features interest you most?',
-            'Thanks for asking! I offer various solutions depending on your requirements. Would you like to know about pricing or implementation timeline?'
-        ];
-
-        return defaultResponses[Math.floor(Math.random() * defaultResponses.length)];
-    }
-
-    botSendBtn.addEventListener('click', sendBotMessage);
-    botInput.addEventListener('keypress', e => { if (e.key === 'Enter') sendBotMessage(); });
-
-    function resetBotChat(moduleName) {
-        botChatMessages.innerHTML = `
-            <div class="bot-message">
-                <div class="bot-avatar"><i class="fa-solid fa-robot"></i></div>
-                <div class="message-content">
-                    <p>Hi! I'm the demo bot for <strong>${moduleName}</strong>. Ask me anything about features, pricing, implementation, or how this can help your business!</p>
-                </div>
-            </div>
-        `;
-        botInput.value = '';
-    }
+    
 
     // 5. Scroll Анимации (Intersection Observer)
     function initScrollAnimations() {
@@ -555,8 +728,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const mainChatMessages = document.getElementById('main-chat-messages');
     const quickActionBtns = document.querySelectorAll('.quick-action-btn');
 
-    // Хранение истории чата
+    // Хранение истории чата (максимум 20 сообщений)
     let chatHistory = [];
+    const MAX_CHAT_HISTORY = 20;
 
     // Отслеживание собранной информации
     let collectedInfo = {
@@ -570,6 +744,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Флаг обработки сообщения
     let isProcessing = false;
+
+    // Rate limiting для отправки сообщений (1 сообщение в 2 секунды)
+    let lastMessageTime = 0;
+    const MESSAGE_RATE_LIMIT = 2000; // ms
 
     // Функция очистки истории чата
     function resetMainChatHistory() {
@@ -611,6 +789,13 @@ document.addEventListener('DOMContentLoaded', () => {
     async function sendMainChatMessage(message) {
         if (!message || !message.trim()) return;
 
+        // Защита от спама - rate limiting
+        const now = Date.now();
+        if (now - lastMessageTime < MESSAGE_RATE_LIMIT) {
+            showNotification('Подождите', 'Слишком быстро. Подождите секунду...', 'warning', 2000);
+            return;
+        }
+
         // Защита от спама - не отправляем если уже идет обработка
         if (isProcessing) {
             console.log('[chat] Message blocked: already processing');
@@ -618,6 +803,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         isProcessing = true;
+        lastMessageTime = now;
 
         // Блокируем UI во время обработки
         mainChatInput.disabled = true;
@@ -625,11 +811,14 @@ document.addEventListener('DOMContentLoaded', () => {
         mainChatSendBtn.style.opacity = '0.5';
         mainChatSendBtn.style.cursor = 'not-allowed';
 
-        // Добавляем сообщение пользователя в историю
+        // Добавляем сообщение пользователя в историю (с ограничением размера)
         chatHistory.push({
             role: 'user',
-            content: message
+            content: message.substring(0, 1000) // Limit message size
         });
+        if (chatHistory.length > MAX_CHAT_HISTORY) {
+            chatHistory = chatHistory.slice(-MAX_CHAT_HISTORY); // Keep last N messages
+        }
 
         // Add user message
         const userMsgDiv = document.createElement('div');
@@ -672,11 +861,14 @@ document.addEventListener('DOMContentLoaded', () => {
             // Вызываем llmstudo с историей сообщений
             botResponse = await llmstudo(message, undefined, chatHistory);
 
-            // Добавляем ответ бота в историю
+            // Добавляем ответ бота в историю (с ограничением размера)
             chatHistory.push({
                 role: 'assistant',
-                content: botResponse
+                content: botResponse.substring(0, 2000) // Limit response size
             });
+            if (chatHistory.length > MAX_CHAT_HISTORY) {
+                chatHistory = chatHistory.slice(-MAX_CHAT_HISTORY);
+            }
 
             // Проверяем, была ли собрана информация
             checkCollectedInfo(botResponse);
@@ -1016,5 +1208,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initialize reviews flip when DOM is ready
     initReviewsFlip();
+
 
 });
